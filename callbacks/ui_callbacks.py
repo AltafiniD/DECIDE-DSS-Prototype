@@ -10,16 +10,8 @@ def register_callbacks(app):
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {
-            // On initial load, n_clicks is 0. We don't want to update.
-            if (!n_clicks) {
-                return window.dash_clientside.no_update;
-            }
-            // On subsequent clicks, toggle the class.
-            if (current_classname.includes('slideover-hidden')) {
-                return 'slideover-panel slideover-visible';
-            } else {
-                return 'slideover-panel slideover-hidden';
-            }
+            if (!n_clicks) { return window.dash_clientside.no_update; }
+            return current_classname.includes('slideover-hidden') ? 'slideover-panel slideover-visible' : 'slideover-panel slideover-hidden';
         }
         """,
         Output("slideover-panel", "className"),
@@ -27,23 +19,30 @@ def register_callbacks(app):
         State("slideover-panel", "className")
     )
 
-    # Corrected callback for the top-down filter panel
+    # Callback for the top-down filter panel
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {
-            // On initial load, n_clicks is 0. We don't want to update.
-            if (!n_clicks) {
-                return window.dash_clientside.no_update;
-            }
-            // On subsequent clicks, toggle the class.
-            if (current_classname.includes('filter-hidden')) {
-                return 'filter-slide-panel filter-visible';
-            } else {
-                return 'filter-slide-panel filter-hidden';
-            }
+            if (!n_clicks) { return window.dash_clientside.no_update; }
+            return current_classname.includes('filter-hidden') ? 'filter-slide-panel filter-visible' : 'filter-slide-panel filter-hidden';
         }
         """,
         Output("filter-slide-panel", "className"),
         Input("toggle-filters-btn", "n_clicks"),
         State("filter-slide-panel", "className")
+    )
+
+    # --- NEW: Callback to show/hide the crime visualization radio buttons ---
+    app.clientside_callback(
+        """
+        function(crime_toggle_value) {
+            if (crime_toggle_value && crime_toggle_value.includes('crimes')) {
+                return { 'display': 'block', 'paddingLeft': '20px', 'marginTop': '5px' };
+            } else {
+                return { 'display': 'none' };
+            }
+        }
+        """,
+        Output('crime-radio-container', 'style'),
+        Input('crimes-master-toggle', 'value')
     )

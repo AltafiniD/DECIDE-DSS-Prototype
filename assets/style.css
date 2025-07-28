@@ -89,37 +89,32 @@ html, body {
     background-color: #0b5ed7;
 }
 
-/* --- UPDATED: General Panel Styles --- */
-.perspective-panel {
+/* --- UPDATED: Unified Panel Styles --- */
+.left-panel-top-group {
     position: absolute;
     top: 20px;
     left: 20px;
     z-index: 1;
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 220px;
-}
-
-/* NEW: Container for the left-side panels */
-.left-controls-container {
-    position: absolute;
-    top: 150px;
-    left: 20px;
-    z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px; /* This creates space between the panels */
+    gap: 10px;
 }
 
-/* NEW: Shared style for control panels */
-.control-panel {
+.info-panel {
     background-color: rgba(255, 255, 255, 0.85);
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 220px;
+    pointer-events: auto;
+}
+
+.selection-info-panel {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1;
+    width: 500px;
 }
 
 .layer-panel-header {
@@ -195,16 +190,4 @@ html, body {
 }
 .toggle-widget-btn:hover {
     background-color: rgba(240, 240, 240, 0.95);
-}
-
-.selection-info-panel {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 1;
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 500px;
 }

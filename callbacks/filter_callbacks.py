@@ -10,9 +10,12 @@ def register_callbacks(app, network_df):
     @app.callback(
         Output('network-range-slider', 'min'),
         Output('network-range-slider', 'max'),
-        Output('network-range-slider', 'value'),
+        # --- UPDATED: Added allow_duplicate=True ---
+        Output('network-range-slider', 'value', allow_duplicate=True),
         Output('network-range-slider', 'marks'),
-        Input('network-metric-dropdown', 'value')
+        Input('network-metric-dropdown', 'value'),
+        # --- UPDATED: Added prevent_initial_call=True ---
+        prevent_initial_call=True
     )
     def update_network_slider(selected_metric):
         """

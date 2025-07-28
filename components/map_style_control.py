@@ -7,9 +7,9 @@ def create_map_style_panel():
     """
     Creates the floating panel for selecting the map's base style.
     """
-    # --- UPDATED: Changed className to the shared "control-panel" ---
+    # --- UPDATED: Using the new shared "info-panel" class ---
     panel = html.Div(
-        className="control-panel",
+        className="info-panel",
         children=[
             html.H3("Map Style", style={"marginTop": 0, "marginBottom": "10px"}),
             dcc.RadioItems(

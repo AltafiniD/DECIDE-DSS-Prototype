@@ -73,21 +73,23 @@ def create_layout():
             
             html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
             filter_panel,
+
+            # --- UPDATED: Group for top-left panels ---
             html.Div(
-                className="perspective-panel",
-                children=[html.H3("Perspective", style={"marginTop": 0, "marginBottom": "20px"}), dcc.Slider(id='perspective-slider', min=0, max=60, step=1, value=INITIAL_VIEW_STATE_CONFIG['pitch'], marks={0: {'label': '2D'}, 60: {'label': '3D'}}, tooltip={"placement": "bottom", "always_visible": False}, updatemode='mouseup')]
-            ),
-            
-            # --- UPDATED: Wrapped left-side panels in a container ---
-            html.Div(
-                className="left-controls-container",
+                className="left-panel-top-group",
                 children=[
+                    html.Div(
+                        className="info-panel",
+                        children=[html.H3("Perspective", style={"marginTop": 0, "marginBottom": "20px"}), dcc.Slider(id='perspective-slider', min=0, max=60, step=1, value=INITIAL_VIEW_STATE_CONFIG['pitch'], marks={0: {'label': '2D'}, 60: {'label': '3D'}}, tooltip={"placement": "bottom", "always_visible": False}, updatemode='mouseup')]
+                    ),
                     create_layer_control_panel(),
                     create_map_style_panel()
                 ]
             ),
 
-            html.Div(id="selection-info-panel", className="selection-info-panel", children=[dcc.Markdown(id="selection-info-display")]),
+            # --- UPDATED: Standalone debug panel ---
+            html.Div(id="selection-info-panel", className="info-panel selection-info-panel", children=[dcc.Markdown(id="selection-info-display")]),
+            
             html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
             create_slideover_panel(dataframes, plotly_crime_colours)
         ]
