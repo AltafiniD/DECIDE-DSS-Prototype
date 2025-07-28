@@ -10,7 +10,7 @@ from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
 from components.layer_control import create_layer_control_panel
 from components.slideover_panel import create_slideover_panel
-from components.top_bar import create_top_bar # Import the new top bar
+from components.filter_panel import create_filter_panel # Import the new filter panel
 
 def create_layout():
     """
@@ -57,43 +57,43 @@ def create_layout():
     initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG[layer_id].get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
-    top_bar, month_map = create_top_bar(dataframes.get('crime', pd.DataFrame()), dataframes.get('network', pd.DataFrame()))
+    filter_panel, month_map = create_filter_panel(dataframes.get('crime', pd.DataFrame()), dataframes.get('network', pd.DataFrame()))
 
     layout = html.Div(
-        className="main-container",
+        style={"position": "relative", "width": "100vw", "height": "100vh", "overflow": "hidden"},
         children=[
             dcc.Store(id='selected-neighbourhood-store', data=None),
             dcc.Store(id='selected-month-store', data=None),
             dcc.Store(id='month-map-store', data=month_map),
             
-            top_bar, # The new top bar is placed here
+            html.Div(
+                dash_deck.DeckGL(
+                    id="deck-gl", mapboxKey=MAPBOX_API_KEY,
+                    data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style="mapbox://styles/mapbox/light-v9").to_json(),
+                    tooltip=True, enableEvents=['click']
+                ),
+                style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"},
+            ),
+            
+            # --- Floating UI Elements ---
+            html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
+            filter_panel,
 
             html.Div(
-                className="map-container",
+                className="perspective-panel",
                 children=[
-                    dash_deck.DeckGL(
-                        id="deck-gl", mapboxKey=MAPBOX_API_KEY,
-                        data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style="mapbox://styles/mapbox/light-v9").to_json(),
-                        tooltip=True, enableEvents=['click']
-                    ),
-                    # All floating panels are now children of the map container
-                    html.Div(
-                        className="perspective-panel",
-                        children=[
-                            html.H3("Perspective", style={"marginTop": 0, "marginBottom": "20px"}),
-                            dcc.Slider(
-                                id='perspective-slider', min=0, max=60, step=1, value=INITIAL_VIEW_STATE_CONFIG['pitch'],
-                                marks={0: {'label': '2D'}, 60: {'label': '3D'}},
-                                tooltip={"placement": "bottom", "always_visible": False}, updatemode='mouseup'
-                            )
-                        ]
-                    ),
-                    create_layer_control_panel(),
-                    html.Div(id="selection-info-panel", className="selection-info-panel", children=[dcc.Markdown(id="selection-info-display")]),
-                    html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
-                    create_slideover_panel(dataframes, plotly_crime_colours)
+                    html.H3("Perspective", style={"marginTop": 0, "marginBottom": "20px"}),
+                    dcc.Slider(
+                        id='perspective-slider', min=0, max=60, step=1, value=INITIAL_VIEW_STATE_CONFIG['pitch'],
+                        marks={0: {'label': '2D'}, 60: {'label': '3D'}},
+                        tooltip={"placement": "bottom", "always_visible": False}, updatemode='mouseup'
+                    )
                 ]
-            )
+            ),
+            create_layer_control_panel(),
+            html.Div(id="selection-info-panel", className="selection-info-panel", children=[dcc.Markdown(id="selection-info-display")]),
+            html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
+            create_slideover_panel(dataframes, plotly_crime_colours)
         ]
     )
     return layout, all_layers, dataframes

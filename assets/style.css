@@ -6,41 +6,75 @@ html, body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-.main-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100vw;
+/* --- New Filter Panel Styles --- */
+.toggle-filters-btn {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.toggle-filters-btn:hover {
+    background-color: rgba(240, 240, 240, 0.95);
 }
 
-.map-container {
-    position: relative;
-    flex-grow: 1;
-}
-
-.top-bar-container {
-    display: flex;
-    align-items: flex-end; /* Align items to the bottom */
-    justify-content: space-around;
-    gap: 20px;
-    padding: 10px 20px;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+.filter-slide-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     z-index: 10;
+    background-color: rgba(242, 242, 247, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    padding-top: 80px; /* Make space for the toggle button */
+    box-sizing: border-box;
+    transition: transform 0.4s ease-in-out;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 20px;
 }
 
-.top-bar-filter {
-    flex: 1; 
+.filter-hidden {
+    transform: translateY(calc(-100% - 20px));
+}
+.filter-visible {
+    transform: translateY(0);
+}
+
+.filter-inputs-wrapper {
+    display: flex;
+    gap: 20px;
+    flex-grow: 1;
+    justify-content: space-around;
+}
+
+.filter-control {
+    flex: 1;
     min-width: 200px;
-    max-width: 450px;
+    max-width: 400px;
 }
 
-.top-bar-filter .rc-slider {
+.filter-control .rc-slider {
     margin-top: 5px;
 }
 
 .apply-filters-button {
-    height: 38px; /* Match height of dropdown */
+    height: 38px;
     padding: 6px 12px;
     font-size: 16px;
     font-weight: 600;
@@ -51,17 +85,17 @@ html, body {
     cursor: pointer;
     transition: background-color 0.15s ease-in-out;
 }
-
 .apply-filters-button:hover {
     background-color: #0b5ed7;
 }
 
+/* --- Updated Panel Styles (More Transparent) --- */
 .perspective-panel {
     position: absolute;
     top: 20px;
     left: 20px;
     z-index: 1;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.85);
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -83,8 +117,8 @@ html, body {
     top: 20px;
     right: 20px;
     width: 530px;
-    height: calc(100vh - 110px);
-    background-color: rgba(242, 242, 247, 0.8);
+    height: calc(100vh - 40px);
+    background-color: rgba(242, 242, 247, 0.85);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-radius: 16px;
@@ -108,7 +142,7 @@ html, body {
     grid-auto-rows: 150px;
 }
 .widget {
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.7); /* More transparent */
     border-radius: 16px;
     padding: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -132,7 +166,7 @@ html, body {
     padding: 8px 16px;
     font-size: 14px;
     font-weight: 600;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.85);
     border: none;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -148,7 +182,7 @@ html, body {
     bottom: 20px;
     left: 20px;
     z-index: 1;
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.85);
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
