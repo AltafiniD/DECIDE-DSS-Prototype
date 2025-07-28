@@ -4,6 +4,7 @@ from dash.dependencies import Input, Output, State
 import pydeck as pdk
 import copy
 import pandas as pd
+import numpy as np
 
 from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG
 
@@ -11,96 +12,94 @@ def register_callbacks(app, all_layers, dataframes):
     """
     Registers all map-related callbacks to the Dash app.
     """
-    layer_toggle_inputs = [
-        Input(f"{layer_id}-toggle", "value") for layer_id in LAYER_CONFIG
-    ]
+    other_layer_ids = [k for k in LAYER_CONFIG.keys() if not k.startswith('crime_')]
+    layer_toggle_inputs = [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
     @app.callback(
+        # Corrected: Added the second output for the loading spinner
+        [Output("deck-gl", "data"), Output("layers-loading-output", "children")],
         [
-            Output("deck-gl", "data"),
-            Output("layers-loading-output", "children")
-        ],
-        [
-            # The button is now a primary trigger
             Input("apply-filters-btn", "n_clicks"),
-            # These inputs will still trigger the callback instantly
             Input("perspective-slider", "value"),
-            Input("selected-month-store", "data"),
+            Input("map-style-radio", "value"),
+            Input("crime-viz-radio", "value"),
             *layer_toggle_inputs
         ],
         [
-            # Filter values are now passed as State, not Input
             State("time-filter-slider", "value"),
-            State("nain-filter-slider", "value"),
             State("crime-type-filter-dropdown", "value"),
-            State("month-map-store", "data")
+            State("month-map-store", "data"),
+            State("network-metric-dropdown", "value"),
+            State("network-range-slider", "value"),
         ]
     )
-    def update_map_view(n_clicks, pitch, selected_month, *args):
+    def update_map_view(n_clicks, pitch, map_style, crime_viz_selection, *args):
         """
-        This callback reconstructs the map with the correct layers and view.
-        It is triggered by the apply button or other direct interactions.
+        This callback reconstructs the map with the correct layers, view, and style.
         """
-        # --- Unpack Arguments ---
-        num_toggles = len(LAYER_CONFIG)
-        # The layer toggles are the first part of *args
+        num_toggles = len(other_layer_ids)
         layer_toggles = args[:num_toggles]
-        # The states are the second part of *args
-        time_range, nain_range, selected_crime_types, month_map = args[num_toggles:]
+        time_range, selected_crime_types, month_map, network_metric, network_range = args[num_toggles:]
 
         visible_layers = []
         layers_to_render = copy.deepcopy(all_layers)
 
-        # --- Apply Global Filters ---
-        
-        # 1. Crime layer filtering
-        crime_layer = layers_to_render.get('crime')
-        if crime_layer is not None:
-            filtered_crime_df = dataframes['crime'].copy()
-
-            # Apply date range filter
+        # --- Crime Layer Filtering ---
+        active_crime_layer = layers_to_render.get(crime_viz_selection)
+        if active_crime_layer:
+            crime_df_id = 'crime_points' if 'points' in crime_viz_selection else 'crime_heatmap'
+            filtered_crime_df = dataframes[crime_df_id].copy()
             if time_range and month_map:
-                start_month_str = month_map.get(str(time_range[0]))
-                end_month_str = month_map.get(str(time_range[1]))
-                
+                start_month_str, end_month_str = month_map.get(str(time_range[0])), month_map.get(str(time_range[1]))
                 if start_month_str and end_month_str:
                     filtered_crime_df['Month_dt'] = pd.to_datetime(filtered_crime_df['Month'], errors='coerce')
-                    start_date = pd.to_datetime(start_month_str)
-                    end_date = pd.to_datetime(end_month_str)
-                    mask = (filtered_crime_df['Month_dt'] >= start_date) & (filtered_crime_df['Month_dt'] <= end_date)
-                    filtered_crime_df = filtered_crime_df[mask]
-            
-            # Apply crime type filter (if any are selected)
+                    start_date, end_date = pd.to_datetime(start_month_str), pd.to_datetime(end_month_str)
+                    filtered_crime_df = filtered_crime_df[(filtered_crime_df['Month_dt'] >= start_date) & (filtered_crime_df['Month_dt'] <= end_date)]
             if selected_crime_types:
-                mask = filtered_crime_df['Crime type'].isin(selected_crime_types)
-                filtered_crime_df = filtered_crime_df[mask]
-            
-            crime_layer.data = filtered_crime_df
+                filtered_crime_df = filtered_crime_df[filtered_crime_df['Crime type'].isin(selected_crime_types)]
+            active_crime_layer.data = filtered_crime_df
+            visible_layers.append(active_crime_layer)
 
-        # 2. Network layer filtering by NAIN range
+        # --- Dynamic Network Layer Filtering and Coloring ---
         network_layer = layers_to_render.get('network')
-        if network_layer is not None and nain_range:
-            original_network_df = dataframes['network'].copy()
-            original_network_df['NAIN'] = pd.to_numeric(original_network_df['NAIN'], errors='coerce')
-            mask = (original_network_df['NAIN'] >= nain_range[0]) & (original_network_df['NAIN'] <= nain_range[1])
-            network_layer.data = original_network_df[mask]
+        is_network_visible = any('network' in toggle for toggle in layer_toggles if toggle)
+        if network_layer and is_network_visible and network_metric and network_range:
+            network_df = dataframes['network'].copy()
+            network_df[network_metric] = pd.to_numeric(network_df[network_metric], errors='coerce')
+            
+            mask = (network_df[network_metric] >= network_range[0]) & (network_df[network_metric] <= network_range[1])
+            filtered_network_df = network_df[mask].copy()
 
-        # --- Handle single-month click from widget ---
-        if selected_month and selected_month != "clear" and crime_layer is not None:
-            current_crime_df = crime_layer.data
-            month_filtered_df = current_crime_df[current_crime_df['Month'] == selected_month]
-            crime_layer.data = month_filtered_df
+            metric_series = filtered_network_df[network_metric].dropna()
+            if not metric_series.empty:
+                min_val, max_val = metric_series.min(), metric_series.max()
+                if max_val == min_val:
+                    norm_series = pd.Series(0.5, index=metric_series.index)
+                else:
+                    norm_series = (metric_series - min_val) / (max_val - min_val)
+                
+                def get_rainbow_color(norm):
+                    if pd.isna(norm): return [128, 128, 128, 100]
+                    r = int(255 * (norm * 2)) if norm > 0.5 else 0
+                    g = int(255 * (1 - abs(norm - 0.5) * 2))
+                    b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
+                    return [r, g, b, 150]
 
-        # Determine which layers are visible based on the toggles
-        for i, layer_id in enumerate(LAYER_CONFIG.keys()):
-            if i < len(layer_toggles) and layer_toggles[i]:
-                if layer_id in layers_to_render:
-                    visible_layers.append(layers_to_render[layer_id])
+                filtered_network_df['color'] = norm_series.apply(get_rainbow_color)
+                filtered_network_df['value'] = metric_series
+                filtered_network_df['metric'] = network_metric
+            
+            network_layer.data = filtered_network_df
+        
+        for i, layer_id in enumerate(other_layer_ids):
+            if i < len(layer_toggles) and layer_toggles[i] and layer_id in layers_to_render:
+                visible_layers.append(layers_to_render[layer_id])
 
         view_config = INITIAL_VIEW_STATE_CONFIG.copy()
         view_config['pitch'] = pitch
         updated_view_state = pdk.ViewState(**view_config, transition_duration=250)
-
+        
+        # Corrected: Use the dynamic tooltip for the active crime layer or network layer
         active_tooltip = None
         for layer in reversed(visible_layers):
             layer_id = layer.id
@@ -110,11 +109,7 @@ def register_callbacks(app, all_layers, dataframes):
                 active_tooltip = tooltip_config
                 break
 
-        deck = pdk.Deck(
-            layers=visible_layers,
-            initial_view_state=updated_view_state,
-            map_style="mapbox://styles/mapbox/light-v9",
-            tooltip=active_tooltip if active_tooltip else True
-        )
+        deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
-        return [deck.to_json(), None]
+        # Corrected: Return a tuple with the deck JSON and a value for the loading spinner
+        return deck.to_json(), None

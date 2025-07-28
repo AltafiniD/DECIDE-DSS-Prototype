@@ -3,12 +3,23 @@
 # Your Mapbox API key
 MAPBOX_API_KEY = "pk.eyJ1IjoiaGVucnl3aWxmIiwiYSI6ImNtZDdjcHoyMjBrOWkya3NjaXcyd3p1cXkifQ.yw-wKc3DW22df0U6jo9YKQ"
 
+# Mapbox Style Configuration
+MAP_STYLES = {
+    "Light": "mapbox://styles/mapbox/light-v9",
+    "Dark": "mapbox://styles/mapbox/dark-v9",
+    "Streets": "mapbox://styles/mapbox/streets-v11",
+    "Satellite": "mapbox://styles/mapbox/satellite-streets-v11"
+}
+
+# --- NEW: Columns to exclude from the dynamic network filter ---
+NETWORK_METRICS_EXCLUDE = ['fid', 'X1', 'Y1', 'X2', 'Y2', 'Depthmap_Ref']
+
 # Initial map view settings
 INITIAL_VIEW_STATE_CONFIG = {
     "latitude": 51.4816,
     "longitude": -3.1791,
     "zoom": 12,
-    "pitch": 0, # Start at a 2D angle
+    "pitch": 45,
     "bearing": 0,
 }
 
@@ -28,14 +39,19 @@ LAYER_CONFIG = {
         "id": "flooding", "label": "Flooding", "file_path": "data/FI01_Cardiff_Flooding_Indicators.geojson",
         "type": "polygon", "visible": False,
     },
-    "crime": {
-        "id": "crime", "label": "Street Crimes", "file_path": "data/SC01_Street_Crimes.geojson",
+    "crime_heatmap": {
+        "id": "crime_heatmap", "label": "Crime Heatmap", "file_path": "data/SC01_Street_Crimes.geojson",
+        "type": "hexagon", "visible": True,
+        "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
+    },
+    "crime_points": {
+        "id": "crime_points", "label": "Crime Points", "file_path": "data/SC01_Street_Crimes.geojson",
         "type": "scatterplot", "visible": False,
         "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
     },
     "network": {
         "id": "network", "label": "Network Analysis", "file_path": "data/ASA02_Cardiff.geojson",
         "type": "linestring", "visible": False,
-        "tooltip": {"text": "Connectivity: {Connectivity}\nNAIN: {NAIN}"}
+        "tooltip": {"html": "<b>{metric}:</b> {value}"} # Tooltip will be dynamic
     }
 }

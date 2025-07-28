@@ -6,7 +6,7 @@ html, body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* --- New Filter Panel Styles --- */
+/* --- Filter Panel Styles --- */
 .toggle-filters-btn {
     position: absolute;
     top: 20px;
@@ -40,7 +40,7 @@ html, body {
     border-bottom-right-radius: 16px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     padding: 20px;
-    padding-top: 80px; /* Make space for the toggle button */
+    padding-top: 80px;
     box-sizing: border-box;
     transition: transform 0.4s ease-in-out;
     display: flex;
@@ -89,12 +89,32 @@ html, body {
     background-color: #0b5ed7;
 }
 
-/* --- Updated Panel Styles (More Transparent) --- */
+/* --- UPDATED: General Panel Styles --- */
 .perspective-panel {
     position: absolute;
     top: 20px;
     left: 20px;
     z-index: 1;
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 220px;
+}
+
+/* NEW: Container for the left-side panels */
+.left-controls-container {
+    position: absolute;
+    top: 150px;
+    left: 20px;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* This creates space between the panels */
+}
+
+/* NEW: Shared style for control panels */
+.control-panel {
     background-color: rgba(255, 255, 255, 0.85);
     padding: 15px;
     border-radius: 8px;
@@ -142,7 +162,7 @@ html, body {
     grid-auto-rows: 150px;
 }
 .widget {
-    background-color: rgba(255, 255, 255, 0.7); /* More transparent */
+    background-color: rgba(255, 255, 255, 0.7);
     border-radius: 16px;
     padding: 15px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);

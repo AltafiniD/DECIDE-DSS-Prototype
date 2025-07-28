@@ -7,7 +7,8 @@ def get_widgets(dataframes, color_map):
     """
     Defines a list of all widgets to be displayed in the slide-over panel.
     """
-    crime_df = dataframes.get('crime', pd.DataFrame())
+    # Use one of the new crime dataframes
+    crime_df = dataframes.get('crime_points', pd.DataFrame())
     initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
 
     crime_statistics_widget = {
