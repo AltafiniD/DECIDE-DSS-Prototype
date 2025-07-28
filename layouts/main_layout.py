@@ -21,7 +21,6 @@ def create_layout():
     dataframes = {}
 
     plotly_crime_colours, pydeck_crime_colours = get_crime_colour_map()
-
     unique_files = {v['file_path']: process_geojson_features(v['file_path']) for v in LAYER_CONFIG.values()}
 
     for layer_id, config in LAYER_CONFIG.items():
@@ -60,7 +59,6 @@ def create_layout():
     
     initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG[layer_id].get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
-
     filter_panel, month_map = create_filter_panel(dataframes.get('crime_points'), dataframes.get('network'))
 
     layout = html.Div(
@@ -68,27 +66,26 @@ def create_layout():
         children=[
             dcc.Store(id='selected-neighbourhood-store', data=None),
             dcc.Store(id='month-map-store', data=month_map),
-            
             html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=MAP_STYLES['Light']).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
             
             html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
             filter_panel,
 
-            # --- UPDATED: Group for top-left panels ---
+            # --- UI Controls positioned according to the screenshot ---
+            html.Div(className="bottom-left-controls", children=[
+                create_layer_control_panel(),
+                create_map_style_panel(),
+            ]),
+            
+            # Collapsible debug panel
             html.Div(
-                className="left-panel-top-group",
+                id="debug-panel-container",
+                className="debug-panel-container collapsed",
                 children=[
-                    html.Div(
-                        className="info-panel",
-                        children=[html.H3("Perspective", style={"marginTop": 0, "marginBottom": "20px"}), dcc.Slider(id='perspective-slider', min=0, max=60, step=1, value=INITIAL_VIEW_STATE_CONFIG['pitch'], marks={0: {'label': '2D'}, 60: {'label': '3D'}}, tooltip={"placement": "bottom", "always_visible": False}, updatemode='mouseup')]
-                    ),
-                    create_layer_control_panel(),
-                    create_map_style_panel()
+                    html.Div(id="debug-panel-header", children="Debug"),
+                    html.Div(id="selection-info-panel", className="info-panel", children=[dcc.Markdown(id="selection-info-display")])
                 ]
             ),
-
-            # --- UPDATED: Standalone debug panel ---
-            html.Div(id="selection-info-panel", className="info-panel selection-info-panel", children=[dcc.Markdown(id="selection-info-display")]),
             
             html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
             create_slideover_panel(dataframes, plotly_crime_colours)

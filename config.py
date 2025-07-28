@@ -11,7 +11,6 @@ MAP_STYLES = {
     "Satellite": "mapbox://styles/mapbox/satellite-streets-v11"
 }
 
-# --- NEW: Columns to exclude from the dynamic network filter ---
 NETWORK_METRICS_EXCLUDE = ['fid', 'X1', 'Y1', 'X2', 'Y2', 'Depthmap_Ref']
 
 # Initial map view settings
@@ -19,39 +18,34 @@ INITIAL_VIEW_STATE_CONFIG = {
     "latitude": 51.4816,
     "longitude": -3.1791,
     "zoom": 12,
-    "pitch": 45,
+    "pitch": 45, # Keep a default pitch
     "bearing": 0,
 }
 
 # --- Layer Configuration ---
 LAYER_CONFIG = {
     "buildings": {
-        "id": "buildings", "label": "Buildings", "file_path": "data/BS01_Cardiff_Buildings.geojson",
-        "type": "polygon", "visible": False,
-        "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
+        "id": "buildings", "label": "Buildings", "emoji": "🏢", "file_path": "data/BS01_Cardiff_Buildings.geojson",
+        "type": "polygon", "visible": False, "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
     "neighbourhoods": {
-        "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B02_Cardiff_Neighbourhoods.geojson",
-        "type": "polygon", "visible": False,
-        "tooltip": {"text": "Neighbourhood: {NAME}"}
+        "id": "neighbourhoods", "label": "Neighbourhoods", "emoji": "🏘️", "file_path": "data/B02_Cardiff_Neighbourhoods.geojson",
+        "type": "polygon", "visible": False, "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "flooding": {
-        "id": "flooding", "label": "Flooding", "file_path": "data/FI01_Cardiff_Flooding_Indicators.geojson",
+        "id": "flooding", "label": "Flooding", "emoji": "💧", "file_path": "data/FI01_Cardiff_Flooding_Indicators.geojson",
         "type": "polygon", "visible": False,
     },
     "crime_heatmap": {
-        "id": "crime_heatmap", "label": "Crime Heatmap", "file_path": "data/SC01_Street_Crimes.geojson",
-        "type": "hexagon", "visible": True,
-        "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
+        "id": "crime_heatmap", "label": "Heatmap", "emoji": "🔥", "file_path": "data/SC01_Street_Crimes.geojson",
+        "type": "hexagon", "visible": True, "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
     },
     "crime_points": {
-        "id": "crime_points", "label": "Crime Points", "file_path": "data/SC01_Street_Crimes.geojson",
-        "type": "scatterplot", "visible": False,
-        "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
+        "id": "crime_points", "label": "Points", "emoji": "📍", "file_path": "data/SC01_Street_Crimes.geojson",
+        "type": "scatterplot", "visible": False, "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
     },
     "network": {
-        "id": "network", "label": "Network Analysis", "file_path": "data/ASA02_Cardiff.geojson",
-        "type": "linestring", "visible": False,
-        "tooltip": {"html": "<b>{metric}:</b> {value}"} # Tooltip will be dynamic
+        "id": "network", "label": "Network Analysis", "emoji": "🚗", "file_path": "data/ASA02_Cardiff.geojson",
+        "type": "linestring", "visible": False, "tooltip": {"html": "<b>{metric}:</b> {value}"}
     }
 }

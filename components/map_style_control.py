@@ -5,18 +5,25 @@ from config import MAP_STYLES
 
 def create_map_style_panel():
     """
-    Creates the floating panel for selecting the map's base style.
+    Creates the pop-out button menu for selecting the map's base style.
     """
-    # --- UPDATED: Using the new shared "info-panel" class ---
+    # These buttons will be hidden by default and shown on click
+    style_buttons = [
+        html.Button(label, id=f"style-btn-{label.lower()}", n_clicks=0, className="map-style-option-btn")
+        for label in MAP_STYLES.keys()
+    ]
+
     panel = html.Div(
-        className="info-panel",
+        id="map-style-container",
+        className="map-style-container",
         children=[
-            html.H3("Map Style", style={"marginTop": 0, "marginBottom": "10px"}),
-            dcc.RadioItems(
-                id='map-style-radio',
-                options=[{'label': label, 'value': url} for label, url in MAP_STYLES.items()],
-                value=MAP_STYLES['Light'],
-                labelStyle={'display': 'block', 'marginBottom': '5px'}
+            # The main button that is always visible
+            html.Button("Map Style", id="map-style-main-btn", n_clicks=0),
+            # The container for the options, hidden by default
+            html.Div(
+                id="map-style-options-container",
+                className="map-style-options-container hidden",
+                children=style_buttons
             )
         ]
     )
