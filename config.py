@@ -30,6 +30,11 @@ LAYER_CONFIG = {
         "type": "polygon", "visible": False,
         "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
+    "deprivation": {
+        "id": "deprivation", "label": "Deprivation", "file_path": "data/HD00_OA_Household_Deprivation.geojson",
+        "type": "polygon", "visible": True,
+        "tooltip": {"text": "Neighbourhood: {NAME}"}
+    },
     "neighbourhoods": {
         "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B04_Cardiff_Communities.geojson",
         "type": "polygon", "visible": True,

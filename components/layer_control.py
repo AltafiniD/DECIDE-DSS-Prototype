@@ -3,14 +3,15 @@
 from dash import html, dcc
 from config import LAYER_CONFIG
 
-# --- NEW: Emojis for layers ---
+# --- NEW: Added an emoji for the deprivation layer ---
 LAYER_EMOJIS = {
     "neighbourhoods": "🏘️",
     "buildings": "🏢",
     "flooding": "🌊",
     "network": "🌐",
     "crime_points": "📍",
-    "crime_heatmap": "🔥"
+    "crime_heatmap": "🔥",
+    "deprivation": "📉" # <--- New emoji
 }
 
 def create_layer_control_panel():
@@ -22,7 +23,6 @@ def create_layer_control_panel():
     crime_layers = {k: v for k, v in LAYER_CONFIG.items() if k.startswith('crime_')}
     other_layers = {k: v for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')}
 
-    # --- UPDATED: Add toggles for non-crime layers with emojis ---
     for layer_id, config in other_layers.items():
         emoji = LAYER_EMOJIS.get(layer_id, '')
         label = f"{emoji} {config['label']}".strip()
@@ -33,11 +33,9 @@ def create_layer_control_panel():
             style={'marginBottom': '5px'}
         ))
 
-    # --- UPDATED: Crime layers are now controlled by a master toggle ---
     if crime_layers:
         children.append(html.Hr())
         
-        # Master toggle for all crime visualizations
         children.append(dcc.Checklist(
             id='crime-master-toggle',
             options=[{'label': "🚨 Crimes", 'value': 'crimes_on'}],
@@ -45,14 +43,13 @@ def create_layer_control_panel():
             style={'fontWeight': 'bold'}
         ))
 
-        # Radio buttons for selecting the crime viz, hidden by default
         crime_radio_options = [
             {'label': f"{LAYER_EMOJIS.get(layer_id, '')} {config['label']}".strip(), 'value': layer_id}
             for layer_id, config in crime_layers.items()
         ]
         children.append(html.Div(
             id='crime-radio-container',
-            style={'display': 'none', 'paddingLeft': '20px', 'marginTop': '5px'}, # Indented and hidden
+            style={'display': 'none', 'paddingLeft': '20px', 'marginTop': '5px'},
             children=[
                 dcc.RadioItems(
                     options=crime_radio_options,

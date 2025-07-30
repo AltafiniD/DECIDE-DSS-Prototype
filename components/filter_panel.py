@@ -4,9 +4,10 @@ from dash import dcc, html
 import pandas as pd
 from config import NETWORK_METRICS_EXCLUDE
 
-def create_filter_panel(crime_df, network_df):
+# --- UPDATED: Function now accepts deprivation_df ---
+def create_filter_panel(crime_df, network_df, deprivation_df):
     """
-    Creates the slide-down filter panel with dynamic network controls.
+    Creates the slide-down filter panel with dynamic network controls and a deprivation filter.
     """
     # --- Time Filter for Crimes ---
     crime_df['Month_dt'] = pd.to_datetime(crime_df['Month'], format='%Y-%m', errors='coerce')
@@ -21,22 +22,25 @@ def create_filter_panel(crime_df, network_df):
     crime_type_dropdown = dcc.Dropdown(id='crime-type-filter-dropdown', options=[{'label': crime, 'value': crime} for crime in all_crime_types], value=[], multi=True, placeholder="Filter by Crime Type (all shown by default)")
 
     # --- Dynamic Network Filter ---
-    # Get all numeric columns from the network dataframe, excluding specified ones
     numeric_cols = network_df.select_dtypes(include='number').columns.tolist()
     network_metrics = sorted([col for col in numeric_cols if col not in NETWORK_METRICS_EXCLUDE])
+    network_metric_dropdown = dcc.Dropdown(id='network-metric-dropdown', options=[{'label': metric, 'value': metric} for metric in network_metrics], value='NAIN', clearable=False)
+    network_range_slider = dcc.RangeSlider(id='network-range-slider', min=0, max=1, value=[0, 1], step=0.01, tooltip={"placement": "bottom", "always_visible": True})
+
+    # --- NEW: Deprivation Category Filter ---
+    deprivation_category_col = "Household deprivation (6 categories)"
+    deprivation_options = []
+    if deprivation_category_col in deprivation_df.columns:
+        # Get unique categories and add an 'All' option
+        categories = sorted(deprivation_df[deprivation_category_col].dropna().unique())
+        deprivation_options = [{'label': 'All Categories', 'value': 'all'}] + [{'label': cat, 'value': cat} for cat in categories]
     
-    network_metric_dropdown = dcc.Dropdown(
-        id='network-metric-dropdown',
-        options=[{'label': metric, 'value': metric} for metric in network_metrics],
-        value='NAIN', # Default to NAIN
+    deprivation_dropdown = dcc.Dropdown(
+        id='deprivation-category-dropdown',
+        options=deprivation_options,
+        value='all', # Default to showing all categories
+        placeholder="Filter by Deprivation Category",
         clearable=False
-    )
-    # The range slider will be updated dynamically by a callback
-    network_range_slider = dcc.RangeSlider(
-        id='network-range-slider',
-        min=0, max=1, value=[0, 1],
-        step=0.01,
-        tooltip={"placement": "bottom", "always_visible": True}
     )
 
     panel = html.Div(
@@ -48,11 +52,9 @@ def create_filter_panel(crime_df, network_df):
                 children=[
                     html.Div(className="filter-control", children=[html.Label("Time Range (Crimes)"), time_slider]),
                     html.Div(className="filter-control", children=[html.Label("Crime Types"), crime_type_dropdown]),
-                    html.Div(className="filter-control", children=[
-                        html.Label("Network Metric"),
-                        network_metric_dropdown,
-                        network_range_slider
-                    ]),
+                    html.Div(className="filter-control", children=[html.Label("Network Metric"), network_metric_dropdown, network_range_slider]),
+                    # --- NEW: Add the deprivation dropdown to the panel ---
+                    html.Div(className="filter-control", children=[html.Label("Deprivation Category"), deprivation_dropdown]),
                 ]
             ),
             html.Button("Apply Filters", id="apply-filters-btn", n_clicks=0, className="apply-filters-button")
