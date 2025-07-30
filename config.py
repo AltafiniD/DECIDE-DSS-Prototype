@@ -37,7 +37,7 @@ LAYER_CONFIG = {
         "type": "polygon", "visible": False,
     },
     "crime_heatmap": {
-        "id": "crime_heatmap", "label": "Heatmap", "emoji": "🔥", "file_path": "data/SC01_Street_Crimes.geojson",
+        "id": "crime_heatmap", "label": "Hexmap", "emoji": "🔥", "file_path": "data/SC01_Street_Crimes.geojson",
         "type": "hexagon", "visible": True, "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
     },
     "crime_points": {
