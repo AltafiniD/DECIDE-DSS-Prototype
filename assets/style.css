@@ -190,7 +190,7 @@ html, body {
 .toggle-debug-btn {
     position: absolute;
     bottom: 20px;
-    right: 20px;
+    right: 50px;
     z-index: 11;
     width: 40px;
     height: 40px;

@@ -43,33 +43,46 @@ def create_layout():
             elif layer_id == 'flooding':
                 layer_args.update({'extruded': False, 'get_fill_color': '[0, 255, 255, 120]', 'stroked': False})
             
-            # --- UPDATED: New logic for the deprivation layer ---
             elif layer_id == 'deprivation':
                 df['Percentile'] = pd.to_numeric(df['Percentile'], errors='coerce')
                 
-                # --- NEW: Define a stepped blue color scale ---
-                # 10 shades from light blue to navy blue
+                
+                zero_percent_color = [229, 245, 224] # Light Green
+
                 blue_scale = [
-                    [237, 248, 251], # 0-10%
-                    [208, 226, 242], # 10-20%
-                    [179, 205, 233], # 20-30%
-                    [140, 180, 223], # 30-40%
-                    [101, 155, 213], # 40-50%
-                    [62, 130, 203],  # 50-60%
-                    [31, 105, 185],  # 60-70%
-                    [8, 81, 156],    # 70-80%
-                    [8, 64, 129],    # 80-90%
-                    [8, 48, 107]     # 90-100%
+                    [237, 248, 251], # >1 - 10
+                    [208, 226, 242], # 10-20
+                    [179, 205, 233], # 20-30
+                    [140, 180, 223], # 30-40
+                    [101, 155, 213], # 40-50
+                    [62, 130, 203],  # 50-60
+                    [31, 105, 185],  # 60-70
+                    [8, 81, 156],    # 70-80
+                    [8, 64, 129],    # 80-90
+                    [8, 48, 107]     # 90-100
                 ]
 
                 def get_deprivation_color(p):
                     if pd.isna(p):
-                        return [200, 200, 200, 100] # Grey for missing data
-                    # Determine the color index based on the percentile (0-9)
-                    # math.floor ensures 100 goes to index 9, not 10
-                    index = min(math.floor(p / 10), 9)
-                    color = blue_scale[index]
-                    return color + [180] # Add alpha transparency
+                        return [128, 128, 128, 180] # Grey for missing data
+                    
+                    # Condition 1: Exactly 0%
+                    if p == 0:
+                        return zero_percent_color + [180]
+                    
+                    # Condition 2: For values between 0 and 10 (e.g., 0.1 to 9.99)
+                    if 0 < p < 10:
+                        return blue_scale[0] + [180]
+                    
+                    # Condition 3: For values 10 and greater
+                    if p >= 10:
+                        # This maps values 10-19.9 to index 1, 20-29.9 to index 2, etc.
+                        # It correctly maps 100 to the last index (9).
+                        index = min(math.floor(p / 10), 9)
+                        return blue_scale[index] + [180]
+                    
+                    # Fallback for any other case 
+                    return [200, 200, 200, 128]
 
                 df['color'] = df['Percentile'].apply(get_deprivation_color)
                 
@@ -103,7 +116,6 @@ def create_layout():
     initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG[layer_id].get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
-    # --- UPDATED: Pass the deprivation dataframe to the filter panel ---
     filter_panel, month_map = create_filter_panel(
         dataframes.get('crime_points'), 
         dataframes.get('network'),
