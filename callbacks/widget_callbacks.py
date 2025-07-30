@@ -9,14 +9,17 @@ import json
 from utils.geometry import is_point_in_polygon
 from utils.colours import get_crime_colour_map
 from components.crime_widget import create_crime_histogram_figure
+from utils.cache import get_dataframe # Use the new cache
 
-def register_callbacks(app, crime_df, neighbourhoods_df):
+# Dataframes are no longer passed in here.
+def register_callbacks(app):
     """
     Registers all widget-related callbacks.
+    Data is fetched from the cache within the callbacks.
     """
     plotly_colour_map, _ = get_crime_colour_map()
 
-    # --- Debug Callback ---
+    # --- Debug Callback (no change needed) ---
     @app.callback(
         Output("selection-info-display", "children"),
         Input("deck-gl", "clickInfo"),
@@ -27,7 +30,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
         pretty_json = json.dumps(click_info, indent=2)
         return f"#### Last Click Data\n\n```json\n{pretty_json}\n```"
 
-    # --- Neighbourhood Selection Callback ---
+    # --- Neighbourhood Selection Callback (no change needed) ---
     @app.callback(
         Output("selected-neighbourhood-store", "data"),
         Input("deck-gl", "clickInfo"),
@@ -38,7 +41,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
             return click_info['object']['properties']
         return no_update
 
-    # --- Crime Graph Click Callback ---
+    # --- Crime Graph Click Callback (no change needed) ---
     @app.callback(
         Output('crime-type-filter-dropdown', 'value', allow_duplicate=True),
         Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
@@ -52,10 +55,9 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
         crime_type = chart_click['points'][0]['customdata'][0]
         return [crime_type], n_clicks + 1
 
-    # --- NACH Graph Click Callback ---
+    # --- NACH Graph Click Callback (no change needed) ---
     @app.callback(
         Output('network-metric-dropdown', 'value'),
-        # --- UPDATED: Added allow_duplicate=True ---
         Output('network-range-slider', 'value', allow_duplicate=True),
         Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
         Input('network-nach-chart', 'clickData'),
@@ -65,14 +67,10 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
     def update_filters_from_nach_graph(chart_click, n_clicks):
         if not chart_click:
             return no_update, no_update, no_update
-
         bin_range = chart_click['points'][0]['customdata'][0]
-        new_dropdown_value = 'NACH'
-        new_slider_value = bin_range
-        
-        return new_dropdown_value, new_slider_value, n_clicks + 1
+        return 'NACH', bin_range, n_clicks + 1
 
-    # --- Clear Selection Callback ---
+    # --- Clear Selection Callback (no change needed) ---
     @app.callback(
         Output('time-filter-slider', 'value', allow_duplicate=True),
         Output('crime-type-filter-dropdown', 'value', allow_duplicate=True),
@@ -85,9 +83,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
     def clear_graph_filters(clear_clicks, month_map, n_clicks):
         if not clear_clicks:
             return no_update, no_update, no_update
-        slider_reset_value = [0, len(month_map) - 1]
-        dropdown_reset_value = []
-        return slider_reset_value, dropdown_reset_value, n_clicks + 1
+        return [0, len(month_map) - 1], [], n_clicks + 1
 
     # --- Crime Widget Update Callback ---
     @app.callback(
@@ -98,7 +94,9 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
     def update_crime_widget(selected_neighbourhood, n_clicks, time_range, selected_crime_types, month_map):
         widget_title = "#### Crime Statistics for Cardiff"
         chart_title = "Crimes per Month by Type"
-        filtered_crime_df = crime_df.copy()
+        
+        # Fetch data from cache inside the callback
+        filtered_crime_df = get_dataframe('crime_points')
 
         if time_range and month_map:
             start_month_str, end_month_str = month_map.get(str(time_range[0])), month_map.get(str(time_range[1]))
@@ -113,6 +111,8 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
         if selected_neighbourhood:
             name = selected_neighbourhood.get('NAME')
             if name:
+                # Fetch neighbourhoods data from cache only when a neighbourhood is selected
+                neighbourhoods_df = get_dataframe('neighbourhoods')
                 widget_title = f"#### Crime Statistics for {name}"
                 chart_title = f"Crimes in {name}"
                 poly_row = neighbourhoods_df[neighbourhoods_df['NAME'] == name]

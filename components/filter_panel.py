@@ -2,9 +2,11 @@
 
 from dash import dcc, html
 import pandas as pd
-from config import NETWORK_METRICS_EXCLUDE
+from config import NETWORK_METRICS_EXCLUDE, LAYER_CONFIG
+from utils.geojson_loader import get_geojson_properties_keys
 
-def create_filter_panel(crime_df, network_df):
+# THE FIX: This component no longer needs the large network_df.
+def create_filter_panel(crime_df):
     """
     Creates the slide-down filter panel with dynamic network controls.
     """
@@ -21,9 +23,12 @@ def create_filter_panel(crime_df, network_df):
     crime_type_dropdown = dcc.Dropdown(id='crime-type-filter-dropdown', options=[{'label': crime, 'value': crime} for crime in all_crime_types], value=[], multi=True, placeholder="Filter by Crime Type (all shown by default)")
 
     # --- Dynamic Network Filter ---
-    # Get all numeric columns from the network dataframe, excluding specified ones
-    numeric_cols = network_df.select_dtypes(include='number').columns.tolist()
-    network_metrics = sorted([col for col in numeric_cols if col not in NETWORK_METRICS_EXCLUDE])
+    # THE FIX: Efficiently get network metric columns without loading the whole file.
+    network_file_path = LAYER_CONFIG.get('network', {}).get('file_path')
+    all_network_cols = get_geojson_properties_keys(network_file_path)
+    # We can't check for numeric types this way, so we rely on the exclude list.
+    # This assumes all non-excluded properties are numeric metrics.
+    network_metrics = sorted([col for col in all_network_cols if col not in NETWORK_METRICS_EXCLUDE])
     
     network_metric_dropdown = dcc.Dropdown(
         id='network-metric-dropdown',

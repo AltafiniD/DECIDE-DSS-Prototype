@@ -23,6 +23,7 @@ INITIAL_VIEW_STATE_CONFIG = {
 }
 
 # --- Layer Configuration ---
+# THE FIX: Replaced garbled characters with standard emojis.
 LAYER_CONFIG = {
     "buildings": {
         "id": "buildings", "label": "Buildings", "emoji": "🏢", "file_path": "data/BS01_Cardiff_Buildings.geojson",
@@ -33,19 +34,19 @@ LAYER_CONFIG = {
         "type": "polygon", "visible": False, "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "flooding": {
-        "id": "flooding", "label": "Flooding", "emoji": "💧", "file_path": "data/FI01_Cardiff_Flooding_Indicators.geojson",
+        "id": "flooding", "label": "Flooding", "emoji": "🌊", "file_path": "data/FI01_Cardiff_Flooding_Indicators.geojson",
         "type": "polygon", "visible": False,
     },
     "crime_heatmap": {
-        "id": "crime_heatmap", "label": "Hexmap", "emoji": "🔥", "file_path": "data/SC01_Street_Crimes.geojson",
-        "type": "hexagon", "visible": True, "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
+        "id": "crime_heatmap", "label": "Hexmap", "emoji": "🟥", "file_path": "data/SC01_Street_Crimes.geojson",
+        "type": "hexagon", "visible": False, "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
     },
     "crime_points": {
         "id": "crime_points", "label": "Points", "emoji": "📍", "file_path": "data/SC01_Street_Crimes.geojson",
         "type": "scatterplot", "visible": False, "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
     },
     "network": {
-        "id": "network", "label": "Network Analysis", "emoji": "🚗", "file_path": "data/ASA02_Cardiff.geojson",
+        "id": "network", "label": "Network Analysis", "emoji": "🕸️", "file_path": "data/ASA02_Cardiff.geojson",
         "type": "linestring", "visible": False, "tooltip": {"html": "<b>{metric}:</b> {value}"}
     }
 }

@@ -6,7 +6,7 @@ import pydeck as pdk
 import pandas as pd
 
 from config import MAPBOX_API_KEY, LAYER_CONFIG, INITIAL_VIEW_STATE_CONFIG, MAP_STYLES
-from utils.geojson_loader import process_geojson_features
+from utils.cache import get_dataframe
 from utils.colours import get_crime_colour_map
 from components.layer_control import create_layer_control_panel
 from components.slideover_panel import create_slideover_panel
@@ -15,23 +15,23 @@ from components.map_style_control import create_map_style_panel
 
 def create_layout():
     """
-    Creates the main layout and returns the dataframes for the callbacks.
+    Creates the main layout. Stores layer configurations instead of instantiated objects.
     """
-    all_layers = {}
-    dataframes = {}
-
+    all_layers_config = {}
     plotly_crime_colours, pydeck_crime_colours = get_crime_colour_map()
-    unique_files = {v['file_path']: process_geojson_features(v['file_path']) for v in LAYER_CONFIG.values()}
 
     for layer_id, config in LAYER_CONFIG.items():
-        df = unique_files[config['file_path']]
-        dataframes[layer_id] = df
-        if df.empty: continue
+        # This will still lazy-load data for initially visible layers, but now that's none.
+        df = get_dataframe(layer_id)
         
-        layer_type = config.get('type')
-        layer_args = { 'data': df.copy(), 'id': layer_id, 'opacity': 0.8, 'pickable': True }
+        if df.empty:
+            print(f"Skipping initial creation of layer '{layer_id}' due to empty dataframe.")
 
-        if layer_type == 'polygon':
+        layer_type_str = None
+        layer_args = { 'data': df, 'id': layer_id, 'opacity': 0.8, 'pickable': True }
+
+        if config.get('type') == 'polygon':
+            layer_type_str = "PolygonLayer"
             layer_args.update({'stroked': True, 'get_polygon': 'contour', 'filled': True, 'get_line_width': 20})
             if layer_id == 'buildings':
                 layer_args.update({'extruded': True, 'wireframe': True, 'get_elevation': 'height', 'get_fill_color': '[255, 0, 0]'})
@@ -39,27 +39,39 @@ def create_layout():
                 layer_args.update({'extruded': False, 'get_fill_color': '[200, 200, 200, 100]', 'get_line_color': '[84, 84, 84, 200]'})
             elif layer_id == 'flooding':
                 layer_args.update({'extruded': False, 'get_fill_color': '[0, 255, 255, 120]', 'stroked': False})
-            layer = pdk.Layer("PolygonLayer", **layer_args)
 
-        elif layer_type == 'scatterplot':
-            df['color'] = df['Crime type'].map(pydeck_crime_colours).apply(lambda x: x if isinstance(x, list) else [128, 128, 128, 100])
-            layer_args['data'] = df.copy()
-            layer_args.update({'get_position': 'coordinates', 'get_radius': 15, 'get_fill_color': 'color'})
-            layer = pdk.Layer("ScatterplotLayer", **layer_args)
+        elif config.get('type') == 'scatterplot':
+            layer_type_str = "ScatterplotLayer"
+            df['colour'] = df['Crime type'].map(pydeck_crime_colours).apply(lambda x: x if isinstance(x, list) else [128, 128, 128, 100])
+            layer_args['data'] = df
+            layer_args.update({'get_position': 'coordinates', 'get_radius': 15, 'get_fill_color': 'colour'})
 
-        elif layer_type == 'hexagon':
+        elif config.get('type') == 'hexagon':
+            layer_type_str = "HexagonLayer"
             layer_args.update({'get_position': 'coordinates', 'radius': 100, 'elevation_scale': 4, 'elevation_range': [0, 1000], 'extruded': True, 'color_range': [[255, 255, 178, 25], [254, 204, 92, 85], [253, 141, 60, 135], [240, 59, 32, 185], [189, 0, 38, 255]]})
-            layer = pdk.Layer("HexagonLayer", **layer_args)
 
-        elif layer_type == 'linestring':
-            layer_args.update({'get_source_position': 'source_position', 'get_target_position': 'target_position', 'get_color': 'color', 'get_width': 5})
-            layer = pdk.Layer("LineLayer", **layer_args)
-        else: continue
-        all_layers[layer_id] = layer
+        elif config.get('type') == 'linestring':
+            layer_type_str = "LineLayer"
+            layer_args.update({'get_source_position': 'source_position', 'get_target_position': 'target_position', 'get_color': [128, 128, 128, 100], 'get_width': 5})
+        
+        if layer_type_str:
+            all_layers_config[layer_id] = {"type": layer_type_str, "args": layer_args}
+
+    initial_visible_layers = [
+        pdk.Layer(config['type'], **config['args'])
+        for layer_id, config in all_layers_config.items()
+        if LAYER_CONFIG[layer_id].get('visible', False) and not config['args']['data'].empty
+    ]
     
-    initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG[layer_id].get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
-    filter_panel, month_map = create_filter_panel(dataframes.get('crime_points'), dataframes.get('network'))
+    
+    # THE FIX: Only pass the crime dataframe, which is smaller and needed for the time slider.
+    crime_df_initial = get_dataframe('crime_points')
+    filter_panel, month_map = create_filter_panel(crime_df_initial)
+    
+    # We still need the network_df for the slideover panel, but this is okay as it's
+    # only loaded when the app starts, and the panel itself isn't visible.
+    network_df_initial = get_dataframe('network')
 
     layout = html.Div(
         style={"position": "relative", "width": "100vw", "height": "100vh", "overflow": "hidden"},
@@ -71,13 +83,11 @@ def create_layout():
             html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
             filter_panel,
 
-            # --- UI Controls positioned according to the screenshot ---
             html.Div(className="bottom-left-controls", children=[
                 create_layer_control_panel(),
                 create_map_style_panel(),
             ]),
             
-            # Collapsible debug panel
             html.Div(
                 id="debug-panel-container",
                 className="debug-panel-container collapsed",
@@ -88,7 +98,10 @@ def create_layout():
             ),
             
             html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
-            create_slideover_panel(dataframes, plotly_crime_colours)
+            create_slideover_panel(
+                {'crime_points': crime_df_initial, 'network': network_df_initial},
+                plotly_crime_colours
+            )
         ]
     )
-    return layout, all_layers, dataframes
+    return layout, all_layers_config

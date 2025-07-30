@@ -2,17 +2,19 @@
 from dash import dcc, html
 import pandas as pd
 from .crime_widget import create_crime_histogram_figure
-from .network_widget import create_network_histogram_figure # Import new widget
+from .network_widget import create_network_histogram_figure
 
-def get_widgets(dataframes, color_map):
+# Renamed parameter to colour_map
+def get_widgets(dataframes, colour_map):
     """
     Defines a list of all widgets to be displayed in the slide-over panel.
     """
     crime_df = dataframes.get('crime_points', pd.DataFrame())
-    network_df = dataframes.get('network', pd.DataFrame()) # Get network data
+    network_df = dataframes.get('network', pd.DataFrame())
 
-    initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
-    initial_network_fig = create_network_histogram_figure(network_df) # Create network fig
+    # Pass colour_map to the figure creation function
+    initial_crime_fig = create_crime_histogram_figure(crime_df, colour_map)
+    initial_network_fig = create_network_histogram_figure(network_df)
 
     crime_statistics_widget = {
         "size": (3, 3),
@@ -28,7 +30,6 @@ def get_widgets(dataframes, color_map):
         ]
     }
 
-    # --- NEW: Network analysis widget definition ---
     network_analysis_widget = {
         "size": (2, 2),
         "content": [
@@ -39,7 +40,7 @@ def get_widgets(dataframes, color_map):
 
     widgets = [
         crime_statistics_widget,
-        network_analysis_widget, # Add new widget to the list
+        network_analysis_widget,
         { "size": (1, 2), "title": "Slim Widget (1x2)", "content": "A slim, tall widget." },
         { "size": (1, 1), "title": "Small (1x1)", "content": "A small widget." },
     ]

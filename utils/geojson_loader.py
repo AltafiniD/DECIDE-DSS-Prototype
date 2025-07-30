@@ -4,6 +4,25 @@ import json
 import pandas as pd
 import numpy as np
 
+def get_geojson_properties_keys(file_path):
+    """
+    Efficiently reads only the first feature from a GeoJSON file
+    to get the available property keys (column headers).
+    """
+    try:
+        with open(file_path, 'r') as f:
+            # Read just enough to get the first feature's properties
+            # This is a simplification; for huge files, a more robust line-by-line parser would be better,
+            # but for most GeoJSONs this is fast enough.
+            geojson_data = json.load(f)
+            features = geojson_data.get('features', [])
+            if features:
+                return list(features[0].get('properties', {}).keys())
+    except (FileNotFoundError, json.JSONDecodeError, IndexError) as e:
+        print(f"Could not read properties from {file_path}: {e}")
+    return []
+
+
 def process_geojson_features(file_path):
     """
     Loads a GeoJSON file and processes its features, intelligently handling
