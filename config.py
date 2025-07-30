@@ -30,7 +30,7 @@ LAYER_CONFIG = {
         "type": "polygon", "visible": False, "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
     "neighbourhoods": {
-        "id": "neighbourhoods", "label": "Neighbourhoods", "emoji": "🏘️", "file_path": "data/B02_Cardiff_Neighbourhoods.geojson",
+        "id": "neighbourhoods", "label": "Neighbourhoods", "emoji": "🏘️", "file_path": "data/B04_Cardiff_Communities.geojson",
         "type": "polygon", "visible": False, "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "flooding": {
