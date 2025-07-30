@@ -16,11 +16,10 @@ def register_callbacks(app, all_layers, dataframes):
     layer_toggle_inputs = [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
     @app.callback(
-        # Corrected: Added the second output for the loading spinner
         [Output("deck-gl", "data"), Output("layers-loading-output", "children")],
         [
             Input("apply-filters-btn", "n_clicks"),
-            Input("perspective-slider", "value"),
+            # Input("perspective-slider", "value"), # --- REMOVED ---
             Input("map-style-radio", "value"),
             Input("crime-viz-radio", "value"),
             *layer_toggle_inputs
@@ -33,7 +32,7 @@ def register_callbacks(app, all_layers, dataframes):
             State("network-range-slider", "value"),
         ]
     )
-    def update_map_view(n_clicks, pitch, map_style, crime_viz_selection, *args):
+    def update_map_view(n_clicks, map_style, crime_viz_selection, *args):
         """
         This callback reconstructs the map with the correct layers, view, and style.
         """
@@ -95,11 +94,10 @@ def register_callbacks(app, all_layers, dataframes):
             if i < len(layer_toggles) and layer_toggles[i] and layer_id in layers_to_render:
                 visible_layers.append(layers_to_render[layer_id])
 
+        # --- UPDATED: View state is no longer dynamic ---
         view_config = INITIAL_VIEW_STATE_CONFIG.copy()
-        view_config['pitch'] = pitch
         updated_view_state = pdk.ViewState(**view_config, transition_duration=250)
         
-        # Corrected: Use the dynamic tooltip for the active crime layer or network layer
         active_tooltip = None
         for layer in reversed(visible_layers):
             layer_id = layer.id
@@ -111,5 +109,4 @@ def register_callbacks(app, all_layers, dataframes):
 
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
-        # Corrected: Return a tuple with the deck JSON and a value for the loading spinner
         return deck.to_json(), None

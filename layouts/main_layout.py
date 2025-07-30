@@ -73,21 +73,24 @@ def create_layout():
             
             html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
             filter_panel,
-            html.Div(
-                className="perspective-panel",
-                children=[html.H3("Perspective", style={"marginTop": 0, "marginBottom": "20px"}), dcc.Slider(id='perspective-slider', min=0, max=60, step=1, value=INITIAL_VIEW_STATE_CONFIG['pitch'], marks={0: {'label': '2D'}, 60: {'label': '3D'}}, tooltip={"placement": "bottom", "always_visible": False}, updatemode='mouseup')]
-            ),
             
-            # --- UPDATED: Wrapped left-side panels in a container ---
+            # --- UPDATED: Controls now in a bottom-left container ---
             html.Div(
-                className="left-controls-container",
+                className="bottom-left-controls-container",
                 children=[
                     create_layer_control_panel(),
                     create_map_style_panel()
                 ]
             ),
 
-            html.Div(id="selection-info-panel", className="selection-info-panel", children=[dcc.Markdown(id="selection-info-display")]),
+            # --- UPDATED: Debug panel is now a toggleable element in the bottom-right ---
+            html.Button("🐞", id="toggle-debug-btn", className="toggle-debug-btn"),
+            html.Div(
+                id="debug-panel",
+                className="debug-panel-container debug-hidden",
+                children=[dcc.Markdown(id="selection-info-display")]
+            ),
+            
             html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
             create_slideover_panel(dataframes, plotly_crime_colours)
         ]

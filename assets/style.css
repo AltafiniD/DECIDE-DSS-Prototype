@@ -89,31 +89,18 @@ html, body {
     background-color: #0b5ed7;
 }
 
-/* --- UPDATED: General Panel Styles --- */
-.perspective-panel {
+/* --- UPDATED: Renamed and repositioned controls container --- */
+.bottom-left-controls-container {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 1;
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 220px;
-}
-
-/* NEW: Container for the left-side panels */
-.left-controls-container {
-    position: absolute;
-    top: 150px;
+    bottom: 20px;
     left: 20px;
     z-index: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px; /* This creates space between the panels */
+    gap: 10px;
 }
 
-/* NEW: Shared style for control panels */
+/* Shared style for control panels */
 .control-panel {
     background-color: rgba(255, 255, 255, 0.85);
     padding: 15px;
@@ -132,6 +119,8 @@ html, body {
     height: 20px;
     margin-left: 10px;
 }
+
+/* --- Slideover Widget Panel Styles --- */
 .slideover-panel {
     position: absolute;
     top: 20px;
@@ -197,14 +186,48 @@ html, body {
     background-color: rgba(240, 240, 240, 0.95);
 }
 
-.selection-info-panel {
+/* --- NEW: Debug Panel Styles --- */
+.toggle-debug-btn {
     position: absolute;
     bottom: 20px;
-    left: 20px;
-    z-index: 1;
+    right: 20px;
+    z-index: 11;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
     background-color: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.toggle-debug-btn:hover {
+    background-color: rgba(240, 240, 240, 0.95);
+    transform: scale(1.1);
+}
+
+.debug-panel-container {
+    position: absolute;
+    bottom: 70px; /* Position above the toggle button */
+    right: 20px;
+    z-index: 10;
+    background-color: rgba(30, 30, 30, 0.85);
+    backdrop-filter: blur(10px);
+    color: #f0f0f0;
     padding: 15px;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 500px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    width: 450px;
+    max-height: 300px;
+    overflow-y: auto;
+    transition: all 0.4s ease-in-out;
+}
+.debug-hidden {
+    transform: translateY(calc(100% + 80px));
+    opacity: 0;
+}
+.debug-visible {
+    transform: translateY(0);
+    opacity: 1;
 }

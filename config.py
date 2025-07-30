@@ -31,8 +31,8 @@ LAYER_CONFIG = {
         "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
     "neighbourhoods": {
-        "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B02_Cardiff_Neighbourhoods.geojson",
-        "type": "polygon", "visible": False,
+        "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B04_Cardiff_Communities.geojson",
+        "type": "polygon", "visible": True,
         "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "flooding": {
@@ -41,7 +41,7 @@ LAYER_CONFIG = {
     },
     "crime_heatmap": {
         "id": "crime_heatmap", "label": "Crime Heatmap", "file_path": "data/SC01_Street_Crimes.geojson",
-        "type": "hexagon", "visible": True,
+        "type": "hexagon", "visible": False,
         "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
     },
     "crime_points": {

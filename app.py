@@ -7,6 +7,7 @@ from callbacks.map_callbacks import register_callbacks as register_map_callbacks
 from callbacks.ui_callbacks import register_callbacks as register_ui_callbacks
 from callbacks.widget_callbacks import register_callbacks as register_widget_callbacks
 from callbacks.filter_callbacks import register_callbacks as register_filter_callbacks # Import new callbacks
+from callbacks import widget_callbacks
 
 # --- Dash App Initialization ---
 app = dash.Dash(__name__, assets_folder='assets')
@@ -18,7 +19,7 @@ app.layout, all_pydeck_layers, dataframes = create_layout()
 # Register the different sets of callbacks
 register_map_callbacks(app, all_pydeck_layers, dataframes)
 register_ui_callbacks(app)
-register_widget_callbacks(app, dataframes['crime_points'], dataframes['neighbourhoods'])
+widget_callbacks.register_callbacks(app, dataframes['crime_points'], dataframes['neighbourhoods'], dataframes['network'])
 register_filter_callbacks(app, dataframes['network']) # Register new filter callbacks
 
 # --- Run the Server ---

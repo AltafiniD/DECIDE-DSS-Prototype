@@ -9,14 +9,15 @@ import json
 from utils.geometry import is_point_in_polygon
 from utils.colours import get_crime_colour_map
 from components.crime_widget import create_crime_histogram_figure
+from components.network_widget import create_network_histogram_figure
 
-def register_callbacks(app, crime_df, neighbourhoods_df):
+def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
     """
     Registers all widget-related callbacks.
     """
     plotly_colour_map, _ = get_crime_colour_map()
 
-    # --- Debug Callback for the always-on selection panel ---
+    # --- Debug Callback ---
     @app.callback(
         Output("selection-info-display", "children"),
         Input("deck-gl", "clickInfo"),
@@ -27,7 +28,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
         pretty_json = json.dumps(click_info, indent=2)
         return f"#### Last Click Data\n\n```json\n{pretty_json}\n```"
 
-    # --- Callbacks for neighbourhood selection ---
+    # --- Neighbourhood selection ---
     @app.callback(
         Output("selected-neighbourhood-store", "data"),
         Input("deck-gl", "clickInfo"),
@@ -38,7 +39,25 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
             return click_info['object']['properties']
         return no_update
 
-    # --- UPDATED: Callback to update filter controls from graph click ---
+    # --- NEW: Callback to update filter slider from network histogram click ---
+    @app.callback(
+        Output('network-range-slider', 'value', allow_duplicate=True),
+        Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
+        Input('network-histogram-chart', 'clickData'),
+        State('apply-filters-btn', 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def update_slider_from_histogram_click(chart_click, n_clicks):
+        if not chart_click:
+            return no_update, no_update
+        
+        # Extract the [start, end] range from the bar's customdata
+        new_range = chart_click['points'][0]['customdata']
+        
+        # Update the slider and programmatically click "Apply"
+        return new_range, n_clicks + 1
+
+    # --- Crime histogram click -> update filters ---
     @app.callback(
         Output('time-filter-slider', 'value'),
         Output('crime-type-filter-dropdown', 'value'),
@@ -50,18 +69,10 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
     def update_filters_from_graph(chart_click, n_clicks):
         if not chart_click:
             return no_update, no_update, no_update
-
-        # Extract only the crime type from the clicked point
         crime_type = chart_click['points'][0]['customdata'][0]
-        
-        # Set the dropdown to only the selected crime type
-        new_dropdown_value = [crime_type]
-        
-        # Return `no_update` for the time slider, the new value for the dropdown,
-        # and programmatically click the "Apply" button to trigger the map update.
-        return no_update, new_dropdown_value, n_clicks + 1
+        return no_update, [crime_type], n_clicks + 1
 
-    # --- Callback to clear selections from the widget button ---
+    # --- Clear crime filter button ---
     @app.callback(
         Output('time-filter-slider', 'value', allow_duplicate=True),
         Output('crime-type-filter-dropdown', 'value', allow_duplicate=True),
@@ -74,51 +85,30 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
     def clear_graph_filters(clear_clicks, month_map, n_clicks):
         if not clear_clicks:
             return no_update, no_update, no_update
-        
-        # Reset slider to full range and dropdown to empty (which means all)
-        slider_reset_value = [0, len(month_map) - 1]
-        dropdown_reset_value = []
+        slider_reset_value = [0, len(month_map) - 1] if month_map else [0, 0]
+        return slider_reset_value, [], n_clicks + 1
 
-        return slider_reset_value, dropdown_reset_value, n_clicks + 1
-
-    # --- Crime widget now respects global filters ---
+    # --- Update crime widget ---
     @app.callback(
-        [
-            Output("crime-bar-chart", "figure"),
-            Output("crime-widget-title", "children")
-        ],
-        [
-            Input("selected-neighbourhood-store", "data"),
-            Input("apply-filters-btn", "n_clicks") # Also update when filters are applied
-        ],
-        [
-            State("time-filter-slider", "value"),
-            State("crime-type-filter-dropdown", "value"),
-            State("month-map-store", "data")
-        ]
+        [Output("crime-bar-chart", "figure"), Output("crime-widget-title", "children")],
+        [Input("selected-neighbourhood-store", "data"), Input("apply-filters-btn", "n_clicks")],
+        [State("time-filter-slider", "value"), State("crime-type-filter-dropdown", "value"), State("month-map-store", "data")]
     )
     def update_crime_widget(selected_neighbourhood, n_clicks, time_range, selected_crime_types, month_map):
         widget_title = "#### Crime Statistics for Cardiff"
         chart_title = "Crimes per Month by Type"
-        
         filtered_crime_df = crime_df.copy()
 
-        # Apply global filters first
         if time_range and month_map:
-            start_month_str = month_map.get(str(time_range[0]))
-            end_month_str = month_map.get(str(time_range[1]))
+            start_month_str, end_month_str = month_map.get(str(time_range[0])), month_map.get(str(time_range[1]))
             if start_month_str and end_month_str:
                 filtered_crime_df['Month_dt'] = pd.to_datetime(filtered_crime_df['Month'], errors='coerce')
-                start_date = pd.to_datetime(start_month_str)
-                end_date = pd.to_datetime(end_month_str)
-                mask = (filtered_crime_df['Month_dt'] >= start_date) & (filtered_crime_df['Month_dt'] <= end_date)
-                filtered_crime_df = filtered_crime_df[mask]
+                start_date, end_date = pd.to_datetime(start_month_str), pd.to_datetime(end_month_str)
+                filtered_crime_df = filtered_crime_df[(filtered_crime_df['Month_dt'] >= start_date) & (filtered_crime_df['Month_dt'] <= end_date)]
         
         if selected_crime_types:
-            mask = filtered_crime_df['Crime type'].isin(selected_crime_types)
-            filtered_crime_df = filtered_crime_df[mask]
+            filtered_crime_df = filtered_crime_df[filtered_crime_df['Crime type'].isin(selected_crime_types)]
 
-        # Then, apply the neighbourhood filter if one is selected
         if selected_neighbourhood:
             name = selected_neighbourhood.get('NAME')
             if name:
@@ -132,3 +122,22 @@ def register_callbacks(app, crime_df, neighbourhoods_df):
         
         fig = create_crime_histogram_figure(filtered_crime_df, plotly_colour_map, title=chart_title)
         return fig, widget_title
+
+    # --- Update network widget ---
+    @app.callback(
+        Output("network-histogram-chart", "figure"),
+        Input("apply-filters-btn", "n_clicks"),
+        [State("network-metric-dropdown", "value"), State("network-range-slider", "value")],
+        prevent_initial_call=True
+    )
+    def update_network_widget(n_clicks, network_metric, network_range):
+        if not n_clicks or not network_metric or not network_range:
+            return no_update
+
+        df = network_df.copy()
+        df[network_metric] = pd.to_numeric(df[network_metric], errors='coerce')
+        mask = (df[network_metric] >= network_range[0]) & (df[network_metric] <= network_range[1])
+        filtered_series = df.loc[mask, network_metric].dropna()
+
+        fig = create_network_histogram_figure(filtered_series, network_metric)
+        return fig
