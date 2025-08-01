@@ -31,14 +31,11 @@ FLOOD_LAYER_CONFIG = {
     "watercourses": {
         "id": "flood_watercourses", "label": "Risk from Watercourses",
         "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
-        "color": [123, 104, 238, 100]
+        "color": [123, 104, 238, 100] # This is the base color (Medium Slate Blue)
     }
 }
 
-# --- NEW: Configuration for dynamic building coloring ---
-# Defines the dropdown options and the color scales for each risk type.
-# NOTE: We are assuming the column names in your buildings data are 'Risk_Rivers' and 'Risk_Sea'.
-# If they are different, you can easily change them here.
+# --- Configuration for dynamic building coloring ---
 BUILDING_COLOR_CONFIG = {
     "none": {
         "label": "Default",
@@ -60,6 +57,15 @@ BUILDING_COLOR_CONFIG = {
             "low": [155, 198, 200, 180],    # Lighter CadetBlue
             "medium": [95, 158, 160, 180], # Opaque CadetBlue
             "high": [55, 118, 120, 180]     # Darker CadetBlue
+        }
+    },
+    "risk_watercourses": {
+        "label": "Risk from Watercourses",
+        "column": "Watercourses_Risk",
+        "colors": {
+            "low": [173, 164, 248, 180],    # Lighter MediumSlateBlue
+            "medium": [123, 104, 238, 180], # Opaque MediumSlateBlue
+            "high": [73, 54, 188, 180]      # Darker MediumSlateBlue
         }
     }
 }

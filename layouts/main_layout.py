@@ -50,22 +50,22 @@ def create_layout():
                 layer_args.update({'extruded': False, 'get_fill_color': '[200, 200, 200, 100]', 'get_line_color': '[84, 84, 84, 200]'})
             elif layer_id == 'land_use':
                 land_use_color_map = {
-                    'Coastal water': [118, 181, 197, 160], 'Inland Water': [118, 181, 197, 160],
-                    'Deciduous woodland': [58, 124, 62, 160], 'Coniferous and undifferentiated woodland': [37, 86, 40, 160],
-                    'Unimproved grassland': [147, 195, 124, 160], 'Open or heath and moor land': [205, 205, 125, 160],
-                    'Coastal dunes': [242, 230, 172, 160], 'Wetlands': [170, 210, 220, 160],
-                    'Low density residential with amenities (suburbs and small villages / hamlets)': [249, 220, 162, 160],
-                    'Medium density residential with high streets and amenities': [246, 193, 111, 160],
-                    'High density residential with retail and commercial sites': [225, 158, 86, 160],
-                    'Urban centres - mainly commercial/retail with residential pockets': [200, 130, 70, 160],
-                    'Retail': [223, 133, 124, 160], 'Retail parks': [210, 110, 100, 160],
-                    'Industrial areas': [207, 187, 215, 160], 'Business parks': [180, 160, 190, 160],
-                    'Mining and spoil areas': [150, 150, 150, 160], 'Amenity': [181, 213, 142, 160],
-                    'Recreational land': [181, 213, 142, 160], 'Transport': [190, 190, 190, 160],
-                    'Principle Transport': [170, 170, 170, 160], 'Community services': [140, 162, 215, 160],
-                    'Large complex buildings various use (travel/recreation/ retail)': [160, 160, 200, 160],
-                    'Agriculture - mixed use': [220, 220, 160, 160], 'Agriculture - mainly crops': [230, 230, 150, 160],
-                    'Farms': [200, 180, 130, 160], 'Orchards': [200, 210, 140, 160], 'Glasshouses': [190, 220, 220, 160],
+                    'Coastal water': [0, 1, 125, 160], 'Inland Water': [146, 203, 251, 160],
+                    'Deciduous woodland': [92, 142, 63, 160], 'Coniferous and undifferentiated woodland': [1, 103, 0, 160],
+                    'Unimproved grassland': [147, 195, 124, 160], 'Open or heath and moor land': [92, 142, 63, 160],
+                    'Coastal dunes': [211, 209, 116, 160], 'Wetlands': [146, 203, 251, 160],
+                    'Low density residential with amenities (suburbs and small villages / hamlets)': [255, 221, 139, 160],
+                    'Medium density residential with high streets and amenities': [255, 204, 88, 160],
+                    'High density residential with retail and commercial sites': [255, 181, 0, 160],
+                    'Urban centres - mainly commercial/retail with residential pockets': [121, 117, 187, 160],
+                    'Retail': [223, 133, 124, 160], 'Retail parks': [2, 1, 215, 160],
+                    'Industrial areas': [71, 0, 89, 160], 'Business parks': [106, 3, 142, 160],
+                    'Mining and spoil areas': [156, 54, 56, 160], 'Amenity': [181, 213, 142, 160],
+                    'Recreational land': [110, 29, 4, 160], 'Transport': [190, 190, 190, 160],
+                    'Principle Transport': [171, 171, 171, 160], 'Community services': [140, 162, 215, 160],
+                    'Large complex buildings various use (travel/recreation/ retail)': [80, 80, 193, 160],
+                    'Agriculture - mixed use': [172, 212, 99, 160], 'Agriculture - mainly crops': [218, 233, 154],
+                    'Farms': [130, 208, 129, 160], 'Orchards': [255, 234, 77, 160], 'Glasshouses': [97, 218, 175, 160],
                 }
                 default_color = [128, 128, 128, 120]
                 if 'landuse_text' in df.columns:
