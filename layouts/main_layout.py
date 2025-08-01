@@ -44,8 +44,13 @@ def create_layout():
                 layer_args.update({'extruded': True, 'wireframe': True, 'get_elevation': 'height', 'get_fill_color': '[255, 0, 0]'})
             elif layer_id == 'neighbourhoods':
                 layer_args.update({'extruded': False, 'get_fill_color': '[200, 200, 200, 100]', 'get_line_color': '[84, 84, 84, 200]'})
+            
             elif layer_id == 'land_use':
-                layer_args.update({'get_fill_color': '[138, 43, 226, 100]', 'get_line_color': [40, 0, 80, 150], 'stroked': True})
+                layer_args.update({
+                    'get_fill_color': '[138, 43, 226, 100]',
+                    'stroked': False 
+                })
+
             elif layer_id == 'population':
                 df['density'] = pd.to_numeric(df['density'], errors='coerce')
                 df_non_zero = df[df['density'] > 0].copy()
@@ -75,18 +80,12 @@ def create_layout():
             layer = pdk.Layer("PolygonLayer", **layer_args)
 
         elif layer_type == 'scatterplot':
-            # Specific logic for crime points
             if layer_id == 'crime_points':
                 df['color'] = df['Crime type'].map(pydeck_crime_colours).apply(lambda x: x if isinstance(x, list) else [128, 128, 128, 100])
                 layer_args['data'] = df.copy()
                 layer_args.update({'get_position': 'coordinates', 'get_radius': 15, 'get_fill_color': 'color'})
-            # --- NEW: Logic for stop and search points ---
             elif layer_id == 'stop_and_search':
-                layer_args.update({
-                    'get_position': 'coordinates',
-                    'get_radius': 10, # Smaller points
-                    'get_fill_color': [220, 20, 60, 200] # Crimson red
-                })
+                layer_args.update({'get_position': 'coordinates', 'get_radius': 10, 'get_fill_color': [220, 20, 60, 200]})
             layer = pdk.Layer("ScatterplotLayer", **layer_args)
             
         elif layer_type == 'hexagon':
@@ -103,8 +102,14 @@ def create_layout():
         dataframes[config['id']] = df
         if df.empty: continue
         layer = pdk.Layer(
-            "PolygonLayer", id=config['id'], data=df, pickable=True, stroked=True, filled=True,
-            get_polygon='contour', get_fill_color=config['color'], get_line_color=[0,0,0,50], get_line_width=10
+            "PolygonLayer",
+            id=config['id'],
+            data=df,
+            pickable=True,
+            stroked=False,
+            filled=True,
+            get_polygon='contour',
+            get_fill_color=config['color'],
         )
         all_layers[config['id']] = layer
     
@@ -112,7 +117,9 @@ def create_layout():
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
     filter_panel, month_map = create_filter_panel(
-        dataframes.get('crime_points'), dataframes.get('network'), dataframes.get('deprivation')
+        dataframes.get('crime_points'), 
+        dataframes.get('network'),
+        dataframes.get('deprivation')
     )
 
     layout = html.Div(
@@ -130,6 +137,7 @@ def create_layout():
                 className="bottom-left-controls-container",
                 children=[
                     create_layer_control_panel(),
+                    # --- THIS IS THE CORRECTED LINE ---
                     create_map_style_panel()
                 ]
             ),

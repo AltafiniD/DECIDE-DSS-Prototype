@@ -6,8 +6,8 @@ import numpy as np
 
 def process_geojson_features(file_path):
     """
-    Loads a GeoJSON file and processes its features, intelligently handling
-    polygons, points (from properties or geometry), and linestrings.
+    Loads a GeoJSON file and processes its features, correctly handling
+    Polygons, MultiPolygons, Points, and LineStrings.
     """
     try:
         with open(file_path, 'r') as f:
@@ -24,27 +24,25 @@ def process_geojson_features(file_path):
     for feature in features:
         properties = feature.get('properties', {})
         geometry = feature.get('geometry', {})
-
-        if geometry and geometry.get('type') in ['Polygon', 'MultiPolygon']:
-            coords = geometry.get('coordinates')
-            contour = None
-            if geometry.get('type') == 'Polygon' and coords:
-                contour = coords[0]
-            elif geometry.get('type') == 'MultiPolygon' and coords and coords[0]:
-                contour = coords[0][0]
-
-            if contour and isinstance(contour, list) and len(contour) >= 3:
-                is_valid = all(
-                    isinstance(p, (list, tuple)) and len(p) >= 2 and
-                    isinstance(p[0], (int, float)) and isinstance(p[1], (int, float))
-                    for p in contour
-                )
-                if is_valid:
+        geom_type = geometry.get('type') if geometry else None
+        
+        if geom_type == 'MultiPolygon':
+            for poly_coords in geometry.get('coordinates', []):
+                contour = poly_coords[0]
+                if contour and isinstance(contour, list) and len(contour) >= 3:
                     record = properties.copy()
                     record['contour'] = contour
                     processed_data.append(record)
         
-        elif geometry and geometry.get('type') == 'Point':
+        elif geom_type == 'Polygon':
+            coords = geometry.get('coordinates')
+            contour = coords[0] if coords else None
+            if contour and isinstance(contour, list) and len(contour) >= 3:
+                record = properties.copy()
+                record['contour'] = contour
+                processed_data.append(record)
+        
+        elif geom_type == 'Point':
             coords = geometry.get('coordinates')
             if coords and isinstance(coords, list) and len(coords) == 2:
                 record = properties.copy()
@@ -58,7 +56,7 @@ def process_geojson_features(file_path):
                 record['coordinates'] = [lon, lat]
                 processed_data.append(record)
         
-        elif geometry and geometry.get('type') == 'LineString':
+        elif geom_type == 'LineString':
             coords = geometry.get('coordinates')
             if coords and isinstance(coords, list) and len(coords) >= 2:
                 start_point, end_point = coords[0], coords[-1]
@@ -72,5 +70,9 @@ def process_geojson_features(file_path):
         return pd.DataFrame()
 
     df = pd.DataFrame(processed_data)
+    # Final check to ensure contour is valid before returning
+    if 'contour' in df.columns:
+        df = df[df['contour'].apply(lambda x: isinstance(x, list) and len(x) > 0)]
+
     df = df.replace({np.nan: None})
     return df
