@@ -3,15 +3,17 @@
 from dash import html, dcc
 from config import LAYER_CONFIG
 
-# --- NEW: Added an emoji for the deprivation layer ---
+# --- UPDATED: Changed 'flooding' key to 'flooding_toggle' ---
 LAYER_EMOJIS = {
     "neighbourhoods": "🏘️",
     "buildings": "🏢",
-    "flooding": "🌊",
+    "flooding_toggle": "🌊", # <--- This key now matches the master toggle ID
     "network": "🌐",
     "crime_points": "📍",
     "crime_heatmap": "🔥",
-    "deprivation": "📉" # <--- New emoji
+    "deprivation": "📉",
+    "land_use": "🏞️",
+    "population": "👨‍👩‍👧‍👦"
 }
 
 def create_layer_control_panel():

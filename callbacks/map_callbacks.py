@@ -2,18 +2,18 @@
 
 from dash.dependencies import Input, Output, State
 import pydeck as pdk
-import copy # --- IMPORT THE COPY MODULE ---
+import copy
 import pandas as pd
 import numpy as np
 
-from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG
+from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG
 
 def register_callbacks(app, all_layers, dataframes):
     """
     Registers all map-related callbacks to the Dash app.
     """
-    other_layer_ids = [k for k in LAYER_CONFIG.keys() if not k.startswith('crime_')]
-    layer_toggle_inputs = [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
+    other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
+    layer_toggle_inputs = [Input("flooding_toggle-toggle", "value")] + [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
     @app.callback(
         [Output("deck-gl", "data"), Output("layers-loading-output", "children")],
@@ -29,7 +29,8 @@ def register_callbacks(app, all_layers, dataframes):
             State("month-map-store", "data"),
             State("network-metric-dropdown", "value"),
             State("network-range-slider", "value"),
-            State("deprivation-category-dropdown", "value")
+            State("deprivation-category-dropdown", "value"),
+            State("flood-risk-selector", "value")
         ]
     )
     def update_map_view(n_clicks, map_style, crime_viz_selection, *args):
@@ -37,20 +38,18 @@ def register_callbacks(app, all_layers, dataframes):
         This callback reconstructs the map with the correct layers, view, and style.
         """
         num_other_layers = len(other_layer_ids)
-        layer_toggles = args[:num_other_layers]
-        time_range, selected_crime_types, month_map, network_metric, network_range, deprivation_category = args[num_other_layers:]
+        flooding_toggle = args[0]
+        other_toggles = args[1:num_other_layers+1]
+        time_range, selected_crime_types, month_map, network_metric, network_range, deprivation_category, flood_selection = args[num_other_layers+1:]
 
         visible_layers = []
 
         # --- Crime Layer Filtering ---
         if crime_viz_selection and crime_viz_selection in all_layers:
-            # --- CORRECTED: Use copy.deepcopy ---
             layer_copy = copy.deepcopy(all_layers[crime_viz_selection])
-            
             crime_df_id = 'crime_points' if 'points' in crime_viz_selection else 'crime_heatmap'
             original_crime_df = dataframes[crime_df_id]
             filtered_crime_df = original_crime_df.copy()
-            
             if time_range and month_map:
                 start_month_str, end_month_str = month_map.get(str(time_range[0])), month_map.get(str(time_range[1]))
                 if start_month_str and end_month_str:
@@ -59,23 +58,28 @@ def register_callbacks(app, all_layers, dataframes):
                     filtered_crime_df = filtered_crime_df[(filtered_crime_df['Month_dt'] >= start_date) & (filtered_crime_df['Month_dt'] <= end_date)]
             if selected_crime_types:
                 filtered_crime_df = filtered_crime_df[filtered_crime_df['Crime type'].isin(selected_crime_types)]
-            
             layer_copy.data = filtered_crime_df
             visible_layers.append(layer_copy)
 
-        # --- Handle visibility and filtering for other layers ---
+        # --- Logic for displaying multiple selected flood layers ---
+        if flooding_toggle and flood_selection:
+            for layer_id in flood_selection:
+                if layer_id in all_layers:
+                    visible_layers.append(all_layers[layer_id])
+
+        # --- CORRECTED LOOP: Handle visibility and filtering for other layers ---
         for i, layer_id in enumerate(other_layer_ids):
-            if i < len(layer_toggles) and layer_toggles[i] and layer_id in all_layers:
-                # --- CORRECTED: Use copy.deepcopy ---
+            # Check the corresponding toggle value at index `i` to see if it's "on"
+            if i < len(other_toggles) and other_toggles[i]:
                 layer_copy = copy.deepcopy(all_layers[layer_id])
                 
+                # Now `layer_id` is a string and can be compared correctly
                 if layer_id == 'network' and network_metric and network_range:
                     original_network_df = dataframes['network']
                     filtered_network_df = original_network_df.copy()
                     filtered_network_df[network_metric] = pd.to_numeric(filtered_network_df[network_metric], errors='coerce')
                     mask = (filtered_network_df[network_metric] >= network_range[0]) & (filtered_network_df[network_metric] <= network_range[1])
                     filtered_network_df = filtered_network_df[mask].copy()
-
                     metric_series = filtered_network_df[network_metric].dropna()
                     if not metric_series.empty:
                         min_val, max_val = metric_series.min(), metric_series.max()
@@ -90,13 +94,12 @@ def register_callbacks(app, all_layers, dataframes):
                         filtered_network_df['value'] = metric_series
                         filtered_network_df['metric'] = network_metric
                     layer_copy.data = filtered_network_df
-                
                 elif layer_id == 'deprivation' and deprivation_category and deprivation_category != 'all':
                     original_dep_df = dataframes['deprivation']
                     category_col = "Household deprivation (6 categories)"
                     filtered_dep_df = original_dep_df[original_dep_df[category_col] == deprivation_category].copy()
                     layer_copy.data = filtered_dep_df
-
+                
                 visible_layers.append(layer_copy)
 
         view_config = INITIAL_VIEW_STATE_CONFIG.copy()
@@ -104,10 +107,14 @@ def register_callbacks(app, all_layers, dataframes):
         
         active_tooltip = None
         for layer in reversed(visible_layers):
-            # Ensure layer.id exists and is in LAYER_CONFIG
-            if hasattr(layer, 'id') and layer.id in LAYER_CONFIG:
-                layer_config = LAYER_CONFIG.get(layer.id, {})
-                tooltip_config = layer_config.get("tooltip")
+            if hasattr(layer, 'id') and (layer.id in LAYER_CONFIG or any(layer.id == f['id'] for f in FLOOD_LAYER_CONFIG.values())):
+                layer_config = LAYER_CONFIG.get(layer.id)
+                if not layer_config:
+                    for f_id, f_config in FLOOD_LAYER_CONFIG.items():
+                        if f_config['id'] == layer.id:
+                            layer_config = f_config
+                            break
+                tooltip_config = layer_config.get("tooltip") if layer_config else None
                 if tooltip_config:
                     active_tooltip = tooltip_config
                     break
