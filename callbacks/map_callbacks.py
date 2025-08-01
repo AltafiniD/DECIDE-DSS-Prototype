@@ -6,7 +6,7 @@ import copy
 import pandas as pd
 import numpy as np
 
-from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG
+from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG
 
 def register_callbacks(app, all_layers, dataframes):
     """
@@ -30,7 +30,8 @@ def register_callbacks(app, all_layers, dataframes):
             State("network-metric-dropdown", "value"),
             State("network-range-slider", "value"),
             State("deprivation-category-dropdown", "value"),
-            State("flood-risk-selector", "value")
+            State("flood-risk-selector", "value"),
+            State("building-color-selector", "value")
         ]
     )
     def update_map_view(n_clicks, map_style, crime_viz_selection, *args):
@@ -40,11 +41,10 @@ def register_callbacks(app, all_layers, dataframes):
         num_other_layers = len(other_layer_ids)
         flooding_toggle = args[0]
         other_toggles = args[1:num_other_layers+1]
-        time_range, selected_crime_types, month_map, network_metric, network_range, deprivation_category, flood_selection = args[num_other_layers+1:]
+        time_range, selected_crime_types, month_map, network_metric, network_range, deprivation_category, flood_selection, building_color_metric = args[num_other_layers+1:]
 
         visible_layers = []
 
-        # --- Crime Layer Filtering ---
         if crime_viz_selection and crime_viz_selection in all_layers:
             layer_copy = copy.deepcopy(all_layers[crime_viz_selection])
             crime_df_id = 'crime_points' if 'points' in crime_viz_selection else 'crime_heatmap'
@@ -60,47 +60,78 @@ def register_callbacks(app, all_layers, dataframes):
                 filtered_crime_df = filtered_crime_df[filtered_crime_df['Crime type'].isin(selected_crime_types)]
             layer_copy.data = filtered_crime_df
             visible_layers.append(layer_copy)
-
-        # --- Logic for displaying multiple selected flood layers ---
         if flooding_toggle and flood_selection:
             for layer_id in flood_selection:
                 if layer_id in all_layers:
                     visible_layers.append(all_layers[layer_id])
 
-        # --- CORRECTED LOOP: Handle visibility and filtering for other layers ---
         for i, layer_id in enumerate(other_layer_ids):
-            # Check the corresponding toggle value at index `i` to see if it's "on"
             if i < len(other_toggles) and other_toggles[i]:
-                layer_copy = copy.deepcopy(all_layers[layer_id])
+                # --- REFACTORED: Special handling to recreate the buildings layer ---
+                if layer_id == 'buildings':
+                    metric_config = BUILDING_COLOR_CONFIG.get(building_color_metric)
+                    buildings_df = dataframes['buildings']
+                    
+                    building_layer_args = {
+                        'id': 'buildings', 'data': buildings_df, 'pickable': True, 'extruded': True,
+                        'wireframe': True, 'get_polygon': 'contour', 'get_elevation': 'height'
+                    }
+
+                    if metric_config and building_color_metric != 'none':
+                        column_name = metric_config['column']
+                        colors = metric_config['colors']
+                        white_color = [255, 255, 255, 180]
+
+                        def get_building_color(risk_level):
+                            risk_level_str = str(risk_level).lower()
+                            if risk_level_str == 'low': return colors.get('low', white_color)
+                            if risk_level_str == 'medium': return colors.get('medium', white_color)
+                            if risk_level_str == 'high': return colors.get('high', white_color)
+                            return white_color
+
+                        if column_name in buildings_df.columns:
+                            buildings_df_copy = buildings_df.copy()
+                            buildings_df_copy['color'] = buildings_df_copy[column_name].apply(get_building_color)
+                            building_layer_args['data'] = buildings_df_copy
+                            building_layer_args['get_fill_color'] = 'color'
+                        else:
+                            print(f"Warning: Column '{column_name}' not found for building coloring.")
+                            building_layer_args['get_fill_color'] = BUILDING_COLOR_CONFIG['none']['color']
+                    else:
+                        building_layer_args['get_fill_color'] = BUILDING_COLOR_CONFIG['none']['color']
+                    
+                    new_building_layer = pdk.Layer("PolygonLayer", **building_layer_args)
+                    visible_layers.append(new_building_layer)
                 
-                # Now `layer_id` is a string and can be compared correctly
-                if layer_id == 'network' and network_metric and network_range:
-                    original_network_df = dataframes['network']
-                    filtered_network_df = original_network_df.copy()
-                    filtered_network_df[network_metric] = pd.to_numeric(filtered_network_df[network_metric], errors='coerce')
-                    mask = (filtered_network_df[network_metric] >= network_range[0]) & (filtered_network_df[network_metric] <= network_range[1])
-                    filtered_network_df = filtered_network_df[mask].copy()
-                    metric_series = filtered_network_df[network_metric].dropna()
-                    if not metric_series.empty:
-                        min_val, max_val = metric_series.min(), metric_series.max()
-                        norm_series = (metric_series - min_val) / (max_val - min_val) if max_val > min_val else 0.5
-                        def get_rainbow_color(norm):
-                            if pd.isna(norm): return [128, 128, 128, 100]
-                            r = int(255 * (norm * 2)) if norm > 0.5 else 0
-                            g = int(255 * (1 - abs(norm - 0.5) * 2))
-                            b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
-                            return [r, g, b, 150]
-                        filtered_network_df['color'] = norm_series.apply(get_rainbow_color)
-                        filtered_network_df['value'] = metric_series
-                        filtered_network_df['metric'] = network_metric
-                    layer_copy.data = filtered_network_df
-                elif layer_id == 'deprivation' and deprivation_category and deprivation_category != 'all':
-                    original_dep_df = dataframes['deprivation']
-                    category_col = "Household deprivation (6 categories)"
-                    filtered_dep_df = original_dep_df[original_dep_df[category_col] == deprivation_category].copy()
-                    layer_copy.data = filtered_dep_df
-                
-                visible_layers.append(layer_copy)
+                else: # For all other layers, use the original deepcopy method
+                    layer_copy = copy.deepcopy(all_layers[layer_id])
+                    if layer_id == 'network' and network_metric and network_range:
+                        original_network_df = dataframes['network']
+                        filtered_network_df = original_network_df.copy()
+                        filtered_network_df[network_metric] = pd.to_numeric(filtered_network_df[network_metric], errors='coerce')
+                        mask = (filtered_network_df[network_metric] >= network_range[0]) & (filtered_network_df[network_metric] <= network_range[1])
+                        filtered_network_df = filtered_network_df[mask].copy()
+                        metric_series = filtered_network_df[network_metric].dropna()
+                        if not metric_series.empty:
+                            min_val, max_val = metric_series.min(), metric_series.max()
+                            norm_series = (metric_series - min_val) / (max_val - min_val) if max_val > min_val else 0.5
+                            def get_rainbow_color(norm):
+                                if pd.isna(norm): return [128, 128, 128, 150]
+                                r = int(255 * (norm * 2)) if norm > 0.5 else 0
+                                g = int(255 * (1 - abs(norm - 0.5) * 2))
+                                b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
+                                return [r, g, b, 150]
+                            filtered_network_df['color'] = norm_series.apply(get_rainbow_color)
+                            filtered_network_df['value'] = metric_series
+                            filtered_network_df['metric'] = network_metric
+                        layer_copy.data = filtered_network_df
+                    elif layer_id == 'deprivation' and deprivation_category and deprivation_category != 'all':
+                        original_dep_df = dataframes['deprivation']
+                        category_col = "Household deprivation (6 categories)"
+                        filtered_dep_df = original_dep_df[original_dep_df[category_col] == deprivation_category].copy()
+                        layer_copy.data = filtered_dep_df
+                    
+                    visible_layers.append(layer_copy)
 
         view_config = INITIAL_VIEW_STATE_CONFIG.copy()
         updated_view_state = pdk.ViewState(**view_config, transition_duration=250)

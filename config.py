@@ -11,7 +11,7 @@ MAP_STYLES = {
     "Satellite": "mapbox://styles/mapbox/satellite-streets-v11"
 }
 
-# --- Central configuration for all flood risk layers ---
+# Central configuration for all flood risk layers
 FLOOD_LAYER_CONFIG = {
     "indicators": {
         "id": "flood_indicators", "label": "Flooding Indicators",
@@ -35,19 +35,44 @@ FLOOD_LAYER_CONFIG = {
     }
 }
 
-# --- Columns to exclude from the dynamic network filter ---
+# --- NEW: Configuration for dynamic building coloring ---
+# Defines the dropdown options and the color scales for each risk type.
+# NOTE: We are assuming the column names in your buildings data are 'Risk_Rivers' and 'Risk_Sea'.
+# If they are different, you can easily change them here.
+BUILDING_COLOR_CONFIG = {
+    "none": {
+        "label": "Default",
+        "color": [220, 220, 220, 180] # Default grey color
+    },
+    "risk_rivers": {
+        "label": "Risk from Rivers",
+        "column": "Rivers_risk",
+        "colors": {
+            "low": [132, 124, 179, 180],    # Lighter DarkSlateBlue
+            "medium": [72, 61, 139, 180],  # Opaque DarkSlateBlue
+            "high": [42, 31, 99, 180]      # Darker DarkSlateBlue
+        }
+    },
+    "risk_sea": {
+        "label": "Risk from Sea",
+        "column": "Sea_risk",
+        "colors": {
+            "low": [155, 198, 200, 180],    # Lighter CadetBlue
+            "medium": [95, 158, 160, 180], # Opaque CadetBlue
+            "high": [55, 118, 120, 180]     # Darker CadetBlue
+        }
+    }
+}
+
+# Columns to exclude from the dynamic network filter
 NETWORK_METRICS_EXCLUDE = ['fid', 'X1', 'Y1', 'X2', 'Y2', 'Depthmap_Ref']
 
 # Initial map view settings
 INITIAL_VIEW_STATE_CONFIG = {
-    "latitude": 51.4816,
-    "longitude": -3.1791,
-    "zoom": 12,
-    "pitch": 45,
-    "bearing": 0,
+    "latitude": 51.4816, "longitude": -3.1791, "zoom": 12, "pitch": 45, "bearing": 0,
 }
 
-# --- Layer Configuration ---
+# Layer Configuration
 LAYER_CONFIG = {
     "stop_and_search": {
         "id": "stop_and_search", "label": "Stop & Search", "file_path": "data/SC02_Stop_and_Search.geojson",
@@ -68,7 +93,7 @@ LAYER_CONFIG = {
         "tooltip": {"html": "<b>{high_level_landuse}</b><br/>{landuse_text}"}
     },
     "buildings": {
-        "id": "buildings", "label": "Buildings", "file_path": "data/BS01_Cardiff_Buildings.geojson",
+        "id": "buildings", "label": "Buildings", "file_path": "data/IB01_Integrated_Buildings_Dataset.geojson",
         "type": "polygon", "visible": False,
         "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
@@ -79,7 +104,7 @@ LAYER_CONFIG = {
     },
     "neighbourhoods": {
         "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B04_Cardiff_Communities.geojson",
-        "type": "polygon", "visible": False,
+        "type": "polygon", "visible": True,
         "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "crime_heatmap": {

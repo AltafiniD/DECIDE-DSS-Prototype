@@ -6,7 +6,7 @@ import pydeck as pdk
 import pandas as pd
 import math
 
-from config import MAPBOX_API_KEY, LAYER_CONFIG, FLOOD_LAYER_CONFIG, INITIAL_VIEW_STATE_CONFIG, MAP_STYLES
+from config import MAPBOX_API_KEY, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG, INITIAL_VIEW_STATE_CONFIG, MAP_STYLES
 from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
 from components.layer_control import create_layer_control_panel
@@ -40,17 +40,40 @@ def create_layout():
         if layer_type == 'polygon':
             layer_args.update({'stroked': True, 'get_polygon': 'contour', 'filled': True, 'get_line_width': 20})
             
+            # --- UPDATED: Initialize buildings with default color from config ---
             if layer_id == 'buildings':
-                layer_args.update({'extruded': True, 'wireframe': True, 'get_elevation': 'height', 'get_fill_color': '[255, 0, 0]'})
+                layer_args.update({
+                    'extruded': True, 'wireframe': True, 'get_elevation': 'height',
+                    'get_fill_color': BUILDING_COLOR_CONFIG['none']['color']
+                })
             elif layer_id == 'neighbourhoods':
                 layer_args.update({'extruded': False, 'get_fill_color': '[200, 200, 200, 100]', 'get_line_color': '[84, 84, 84, 200]'})
-            
             elif layer_id == 'land_use':
-                layer_args.update({
-                    'get_fill_color': '[138, 43, 226, 100]',
-                    'stroked': False 
-                })
-
+                land_use_color_map = {
+                    'Coastal water': [118, 181, 197, 160], 'Inland Water': [118, 181, 197, 160],
+                    'Deciduous woodland': [58, 124, 62, 160], 'Coniferous and undifferentiated woodland': [37, 86, 40, 160],
+                    'Unimproved grassland': [147, 195, 124, 160], 'Open or heath and moor land': [205, 205, 125, 160],
+                    'Coastal dunes': [242, 230, 172, 160], 'Wetlands': [170, 210, 220, 160],
+                    'Low density residential with amenities (suburbs and small villages / hamlets)': [249, 220, 162, 160],
+                    'Medium density residential with high streets and amenities': [246, 193, 111, 160],
+                    'High density residential with retail and commercial sites': [225, 158, 86, 160],
+                    'Urban centres - mainly commercial/retail with residential pockets': [200, 130, 70, 160],
+                    'Retail': [223, 133, 124, 160], 'Retail parks': [210, 110, 100, 160],
+                    'Industrial areas': [207, 187, 215, 160], 'Business parks': [180, 160, 190, 160],
+                    'Mining and spoil areas': [150, 150, 150, 160], 'Amenity': [181, 213, 142, 160],
+                    'Recreational land': [181, 213, 142, 160], 'Transport': [190, 190, 190, 160],
+                    'Principle Transport': [170, 170, 170, 160], 'Community services': [140, 162, 215, 160],
+                    'Large complex buildings various use (travel/recreation/ retail)': [160, 160, 200, 160],
+                    'Agriculture - mixed use': [220, 220, 160, 160], 'Agriculture - mainly crops': [230, 230, 150, 160],
+                    'Farms': [200, 180, 130, 160], 'Orchards': [200, 210, 140, 160], 'Glasshouses': [190, 220, 220, 160],
+                }
+                default_color = [128, 128, 128, 120]
+                if 'landuse_text' in df.columns:
+                    df['color'] = df['landuse_text'].map(land_use_color_map).apply(lambda x: x if isinstance(x, list) else default_color)
+                else:
+                    df['color'] = [default_color] * len(df)
+                layer_args['data'] = df.copy()
+                layer_args.update({'get_fill_color': 'color', 'stroked': False})
             elif layer_id == 'population':
                 df['density'] = pd.to_numeric(df['density'], errors='coerce')
                 df_non_zero = df[df['density'] > 0].copy()
@@ -78,7 +101,6 @@ def create_layout():
                 df['color'] = df['Percentile'].apply(get_deprivation_color)
                 layer_args.update({'extruded': False, 'get_fill_color': 'color', 'get_line_color': [80, 80, 80, 50], 'stroked': True, 'get_line_width': 5})
             layer = pdk.Layer("PolygonLayer", **layer_args)
-
         elif layer_type == 'scatterplot':
             if layer_id == 'crime_points':
                 df['color'] = df['Crime type'].map(pydeck_crime_colours).apply(lambda x: x if isinstance(x, list) else [128, 128, 128, 100])
@@ -87,7 +109,6 @@ def create_layout():
             elif layer_id == 'stop_and_search':
                 layer_args.update({'get_position': 'coordinates', 'get_radius': 10, 'get_fill_color': [220, 20, 60, 200]})
             layer = pdk.Layer("ScatterplotLayer", **layer_args)
-            
         elif layer_type == 'hexagon':
             layer_args.update({'get_position': 'coordinates', 'radius': 100, 'elevation_scale': 4, 'elevation_range': [0, 1000], 'extruded': True, 'color_range': [[255, 255, 178, 25], [254, 204, 92, 85], [253, 141, 60, 135], [240, 59, 32, 185], [189, 0, 38, 255]]})
             layer = pdk.Layer("HexagonLayer", **layer_args)
@@ -101,25 +122,18 @@ def create_layout():
         df = unique_files[config['file_path']]
         dataframes[config['id']] = df
         if df.empty: continue
-        layer = pdk.Layer(
-            "PolygonLayer",
-            id=config['id'],
-            data=df,
-            pickable=True,
-            stroked=False,
-            filled=True,
-            get_polygon='contour',
-            get_fill_color=config['color'],
-        )
+        layer = pdk.Layer("PolygonLayer", id=config['id'], data=df, pickable=True, stroked=False, filled=True, get_polygon='contour', get_fill_color=config['color'])
         all_layers[config['id']] = layer
     
     initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG.get(layer_id, {}).get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
+    # --- UPDATED: Pass the buildings dataframe to the filter panel ---
     filter_panel, month_map = create_filter_panel(
         dataframes.get('crime_points'), 
         dataframes.get('network'),
-        dataframes.get('deprivation')
+        dataframes.get('deprivation'),
+        dataframes.get('buildings')
     )
 
     layout = html.Div(
@@ -127,28 +141,19 @@ def create_layout():
         children=[
             dcc.Store(id='selected-neighbourhood-store', data=None),
             dcc.Store(id='month-map-store', data=month_map),
-            
             html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=MAP_STYLES['Light']).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
-            
             html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
             filter_panel,
-            
             html.Div(
                 className="bottom-left-controls-container",
-                children=[
-                    create_layer_control_panel(),
-                    # --- THIS IS THE CORRECTED LINE ---
-                    create_map_style_panel()
-                ]
+                children=[create_layer_control_panel(), create_map_style_panel()]
             ),
-
             html.Button("🐞", id="toggle-debug-btn", className="toggle-debug-btn"),
             html.Div(
                 id="debug-panel",
                 className="debug-panel-container debug-hidden",
                 children=[dcc.Markdown(id="selection-info-display")]
             ),
-            
             html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
             create_slideover_panel(dataframes, plotly_crime_colours)
         ]
