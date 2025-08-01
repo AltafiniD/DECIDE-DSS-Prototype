@@ -6,7 +6,6 @@ import pydeck as pdk
 import pandas as pd
 import math
 
-# --- UPDATED: Import the new flood config ---
 from config import MAPBOX_API_KEY, LAYER_CONFIG, FLOOD_LAYER_CONFIG, INITIAL_VIEW_STATE_CONFIG, MAP_STYLES
 from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
@@ -24,14 +23,12 @@ def create_layout():
 
     plotly_crime_colours, pydeck_crime_colours = get_crime_colour_map()
 
-    # --- UPDATED: Load files from both configs ---
     files_to_load = {v['file_path']: v for v in LAYER_CONFIG.values() if 'file_path' in v}
     files_to_load.update({v['file_path']: v for v in FLOOD_LAYER_CONFIG.values()})
     unique_files = {path: process_geojson_features(path) for path in files_to_load}
 
-    # --- Create layers for standard data ---
     for layer_id, config in LAYER_CONFIG.items():
-        if config['type'] == 'toggle_only': continue
+        if config.get('type') == 'toggle_only': continue
         
         df = unique_files[config['file_path']]
         dataframes[layer_id] = df
@@ -76,10 +73,22 @@ def create_layout():
                 df['color'] = df['Percentile'].apply(get_deprivation_color)
                 layer_args.update({'extruded': False, 'get_fill_color': 'color', 'get_line_color': [80, 80, 80, 50], 'stroked': True, 'get_line_width': 5})
             layer = pdk.Layer("PolygonLayer", **layer_args)
+
         elif layer_type == 'scatterplot':
-            df['color'] = df['Crime type'].map(pydeck_crime_colours).apply(lambda x: x if isinstance(x, list) else [128, 128, 128, 100])
-            layer_args.update({'get_position': 'coordinates', 'get_radius': 15, 'get_fill_color': 'color'})
+            # Specific logic for crime points
+            if layer_id == 'crime_points':
+                df['color'] = df['Crime type'].map(pydeck_crime_colours).apply(lambda x: x if isinstance(x, list) else [128, 128, 128, 100])
+                layer_args['data'] = df.copy()
+                layer_args.update({'get_position': 'coordinates', 'get_radius': 15, 'get_fill_color': 'color'})
+            # --- NEW: Logic for stop and search points ---
+            elif layer_id == 'stop_and_search':
+                layer_args.update({
+                    'get_position': 'coordinates',
+                    'get_radius': 10, # Smaller points
+                    'get_fill_color': [220, 20, 60, 200] # Crimson red
+                })
             layer = pdk.Layer("ScatterplotLayer", **layer_args)
+            
         elif layer_type == 'hexagon':
             layer_args.update({'get_position': 'coordinates', 'radius': 100, 'elevation_scale': 4, 'elevation_range': [0, 1000], 'extruded': True, 'color_range': [[255, 255, 178, 25], [254, 204, 92, 85], [253, 141, 60, 135], [240, 59, 32, 185], [189, 0, 38, 255]]})
             layer = pdk.Layer("HexagonLayer", **layer_args)
@@ -89,22 +98,13 @@ def create_layout():
         else: continue
         all_layers[layer_id] = layer
 
-    # --- NEW: Create layers for all flood data ---
     for layer_key, config in FLOOD_LAYER_CONFIG.items():
         df = unique_files[config['file_path']]
-        dataframes[config['id']] = df # Store dataframe by its unique ID
+        dataframes[config['id']] = df
         if df.empty: continue
         layer = pdk.Layer(
-            "PolygonLayer",
-            id=config['id'],
-            data=df,
-            pickable=True,
-            stroked=True,
-            filled=True,
-            get_polygon='contour',
-            get_fill_color=config['color'],
-            get_line_color=[0,0,0,50],
-            get_line_width=10
+            "PolygonLayer", id=config['id'], data=df, pickable=True, stroked=True, filled=True,
+            get_polygon='contour', get_fill_color=config['color'], get_line_color=[0,0,0,50], get_line_width=10
         )
         all_layers[config['id']] = layer
     
@@ -112,9 +112,7 @@ def create_layout():
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
     filter_panel, month_map = create_filter_panel(
-        dataframes.get('crime_points'), 
-        dataframes.get('network'),
-        dataframes.get('deprivation')
+        dataframes.get('crime_points'), dataframes.get('network'), dataframes.get('deprivation')
     )
 
     layout = html.Div(

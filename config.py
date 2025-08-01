@@ -11,32 +11,27 @@ MAP_STYLES = {
     "Satellite": "mapbox://styles/mapbox/satellite-streets-v11"
 }
 
-# --- NEW: Central configuration for all flood risk layers ---
-# This dictionary drives the new dropdown and layer rendering.
+# --- Central configuration for all flood risk layers ---
 FLOOD_LAYER_CONFIG = {
     "indicators": {
-        "id": "flood_indicators",
-        "label": "Flooding Indicators",
+        "id": "flood_indicators", "label": "Flooding Indicators",
         "file_path": "data/flood/FI01_Cardiff_Flooding_Indicators.geojson",
-        "color": [0, 191, 255, 100]  # Deep Sky Blue
+        "color": [0, 191, 255, 100]
     },
     "rivers": {
-        "id": "flood_rivers",
-        "label": "Risk from Rivers",
+        "id": "flood_rivers", "label": "Risk from Rivers",
         "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
-        "color": [72, 61, 139, 100]  # Dark Slate Blue
+        "color": [72, 61, 139, 100]
     },
     "sea": {
-        "id": "flood_sea",
-        "label": "Risk from Sea",
+        "id": "flood_sea", "label": "Risk from Sea",
         "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
-        "color": [95, 158, 160, 100] # Cadet Blue
+        "color": [95, 158, 160, 100]
     },
     "watercourses": {
-        "id": "flood_watercourses",
-        "label": "Risk from Watercourses",
+        "id": "flood_watercourses", "label": "Risk from Watercourses",
         "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
-        "color": [123, 104, 238, 100] # Medium Slate Blue
+        "color": [123, 104, 238, 100]
     }
 }
 
@@ -54,6 +49,11 @@ INITIAL_VIEW_STATE_CONFIG = {
 
 # --- Layer Configuration ---
 LAYER_CONFIG = {
+    "stop_and_search": {
+        "id": "stop_and_search", "label": "Stop & Search", "file_path": "data/SC02_Stop_and_Search.geojson",
+        "type": "scatterplot", "visible": False,
+        "tooltip": {"html": "<b>{Type}</b><br/>Object: {Object of search}<br/>Outcome: {Outcome}"}
+    },
     "flooding_toggle": {
         "id": "flooding_toggle", "label": "Flooding", "type": "toggle_only", "visible": False
     },
@@ -74,12 +74,12 @@ LAYER_CONFIG = {
     },
     "deprivation": {
         "id": "deprivation", "label": "Deprivation", "file_path": "data/HD00_OA_Household_Deprivation.geojson",
-        "type": "polygon", "visible": True,
+        "type": "polygon", "visible": False,
         "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "neighbourhoods": {
         "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B04_Cardiff_Communities.geojson",
-        "type": "polygon", "visible": True,
+        "type": "polygon", "visible": False,
         "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "crime_heatmap": {

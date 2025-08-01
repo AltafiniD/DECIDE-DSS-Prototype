@@ -7,7 +7,7 @@ import numpy as np
 def process_geojson_features(file_path):
     """
     Loads a GeoJSON file and processes its features, intelligently handling
-    polygons, points (from Longitude/Latitude), and linestrings.
+    polygons, points (from properties or geometry), and linestrings.
     """
     try:
         with open(file_path, 'r') as f:
@@ -43,12 +43,21 @@ def process_geojson_features(file_path):
                     record = properties.copy()
                     record['contour'] = contour
                     processed_data.append(record)
+        
+        elif geometry and geometry.get('type') == 'Point':
+            coords = geometry.get('coordinates')
+            if coords and isinstance(coords, list) and len(coords) == 2:
+                record = properties.copy()
+                record['coordinates'] = coords
+                processed_data.append(record)
+
         elif 'Longitude' in properties and 'Latitude' in properties:
             lon, lat = properties.get('Longitude'), properties.get('Latitude')
             if isinstance(lon, (int, float)) and isinstance(lat, (int, float)):
                 record = properties.copy()
                 record['coordinates'] = [lon, lat]
                 processed_data.append(record)
+        
         elif geometry and geometry.get('type') == 'LineString':
             coords = geometry.get('coordinates')
             if coords and isinstance(coords, list) and len(coords) >= 2:

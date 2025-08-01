@@ -3,17 +3,19 @@
 from dash import html, dcc
 from config import LAYER_CONFIG
 
-# --- UPDATED: Changed 'flooding' key to 'flooding_toggle' ---
+# --- UPDATED: Added an emoji for the Stop & Search layer ---
 LAYER_EMOJIS = {
     "neighbourhoods": "🏘️",
     "buildings": "🏢",
-    "flooding_toggle": "🌊", # <--- This key now matches the master toggle ID
+    "flooding_toggle": "🌊",
     "network": "🌐",
     "crime_points": "📍",
     "crime_heatmap": "🔥",
     "deprivation": "📉",
     "land_use": "🏞️",
-    "population": "👨‍👩‍👧‍👦"
+
+    "population": "👨‍👩‍👧‍👦",
+    "stop_and_search": "👮" # <--- New emoji
 }
 
 def create_layer_control_panel():
