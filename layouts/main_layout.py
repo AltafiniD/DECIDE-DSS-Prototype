@@ -11,7 +11,6 @@ from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
 from components.slideover_panel import create_slideover_panel
 from components.filter_panel import create_filter_panel
-# --- FIXED: Import the new combined controls component ---
 from components.combined_controls import create_combined_panel
 
 def create_layout():
@@ -134,8 +133,6 @@ def create_layout():
         dataframes.get('buildings')
     )
 
-    # --- THE FIX IS HERE ---
-    # We now correctly access the 'url' from the MAP_STYLES dictionary
     initial_map_style = MAP_STYLES['Light']['url']
 
     layout = html.Div(
@@ -156,8 +153,10 @@ def create_layout():
                 className="debug-panel-container debug-hidden",
                 children=[dcc.Markdown(id="selection-info-display")]
             ),
-            html.Button("Show Widgets", id="toggle-slideover-btn", className="toggle-widget-btn"),
-            create_slideover_panel(dataframes, plotly_crime_colours)
+            
+            # --- THE FIX IS HERE: The panel now comes BEFORE the button ---
+            create_slideover_panel(dataframes, plotly_crime_colours),
+            html.Button("❮", id="toggle-slideover-btn"),
         ]
     )
     return layout, all_layers, dataframes

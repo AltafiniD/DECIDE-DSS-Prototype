@@ -7,7 +7,7 @@ def register_callbacks(app):
     """
     Registers all UI-related callbacks to the Dash app.
     """
-    # --- NEW: Callback for the image-based map style selector ---
+    # --- Callback for the image-based map style selector ---
     @app.callback(
         Output('map-style-radio', 'value'),
         Output({'type': 'map-style-button', 'index': ALL}, 'className'),
@@ -17,18 +17,13 @@ def register_callbacks(app):
     def update_map_style_selection(n_clicks):
         from config import MAP_STYLES # Import inside to avoid circular dependency issues
         
-        # Determine which button was clicked
         triggered_id = ctx.triggered_id
         if not triggered_id:
             return no_update, no_update
             
-        # Get the style label (e.g., "Light") from the button's ID
         selected_style_label = triggered_id['index']
-        
-        # Get the corresponding URL for the map callback
         new_map_url = MAP_STYLES[selected_style_label]['url']
         
-        # Update the classNames for all buttons to show which is selected
         class_names = [
             f"map-style-button{' selected' if label == selected_style_label else ''}"
             for label in MAP_STYLES.keys()
@@ -37,17 +32,32 @@ def register_callbacks(app):
         return new_map_url, class_names
 
 
-    # Callback for the right-side widget panel
+    # --- UPDATED: Callback for the right-side widget panel and its handle ---
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {
-            if (!n_clicks) { return window.dash_clientside.no_update; }
-            return current_classname.includes('slideover-hidden')
+            // This function is triggered when the handle button is clicked.
+            if (!n_clicks) {
+                // On initial load, don't do anything.
+                return [window.dash_clientside.no_update, window.dash_clientside.no_update];
+            }
+            // Check if the panel is currently hidden.
+            const is_hidden = current_classname.includes('slideover-hidden');
+            
+            // Determine the new class for the panel.
+            const new_classname = is_hidden
                 ? 'slideover-panel slideover-visible'
                 : 'slideover-panel slideover-hidden';
+            
+            // Determine the new icon for the button (right arrow for open, left for closed).
+            const new_button_text = is_hidden ? '❯' : '❮';
+            
+            // Return both new values.
+            return [new_classname, new_button_text];
         }
         """,
         Output("slideover-panel", "className"),
+        Output("toggle-slideover-btn", "children"), # The icon in the button
         Input("toggle-slideover-btn", "n_clicks"),
         State("slideover-panel", "className")
     )

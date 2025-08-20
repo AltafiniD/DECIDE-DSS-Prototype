@@ -7,7 +7,7 @@ html, body {
 }
 
 /* --- Toggle Button Styles --- */
-.toggle-filters-btn, .toggle-widget-btn, .toggle-debug-btn {
+.toggle-filters-btn, .toggle-debug-btn {
     position: absolute;
     z-index: 11;
     padding: 8px 16px;
@@ -22,7 +22,6 @@ html, body {
 }
 
 .toggle-filters-btn { top: 20px; left: 50%; transform: translateX(-50%); }
-.toggle-widget-btn { top: 20px; right: 20px; }
 .toggle-debug-btn { bottom: 20px; right: 50px; width: 40px; height: 40px; font-size: 20px; border-radius: 50%; padding: 0; }
 
 
@@ -64,6 +63,7 @@ html, body {
 
 /* --- Slideover (Widget) Panel Specifics --- */
 .slideover-panel {
+    position: absolute;
     top: 20px; right: 20px;
     width: 530px; height: calc(100vh - 40px);
     padding: 20px;
@@ -162,22 +162,22 @@ html, body {
     cursor: pointer;
     transition: background-color 0.15s ease-in-out, transform 0.15s ease, box-shadow 0.15s ease;
 }
-.apply-filters-button:hover, .toggle-filters-btn:hover, .toggle-widget-btn:hover, .toggle-debug-btn:hover {
+.apply-filters-button:hover, .toggle-filters-btn:hover, .toggle-debug-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 .apply-filters-button:hover {
     background-color: #0b5ed7;
 }
-.toggle-filters-btn:hover, .toggle-widget-btn:hover, .toggle-debug-btn:hover {
+.toggle-filters-btn:hover, .toggle-debug-btn:hover {
     background-color: rgba(240, 240, 240, 0.95);
 }
-.apply-filters-button:active, .toggle-filters-btn:active, .toggle-widget-btn:active, .toggle-debug-btn:active {
+.apply-filters-button:active, .toggle-filters-btn:active, .toggle-debug-btn:active {
     transform: translateY(0px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* --- NEW: Map Style Image Selector Styles --- */
+/* --- Map Style Image Selector Styles --- */
 .map-style-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -213,4 +213,37 @@ html, body {
     font-weight: 600;
     font-size: 13px;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* --- Widget Panel Handle Styles --- */
+#toggle-slideover-btn {
+    position: absolute;
+    top: 50%;
+    right: 0; /* Start position when panel is hidden */
+    transform: translateY(-50%);
+    width: 30px;
+    height: 80px;
+    padding: 0;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    background-color: rgba(242, 242, 247, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 11;
+    transition: right 0.4s ease-in-out, background-color 0.2s;
+}
+
+#toggle-slideover-btn:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* When the panel is visible, move the button to its left edge */
+.slideover-visible + #toggle-slideover-btn {
+    right: calc(530px + 20px);
 }
