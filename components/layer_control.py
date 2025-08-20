@@ -18,10 +18,9 @@ LAYER_EMOJIS = {
     "stop_and_search": "👮" # <--- New emoji
 }
 
-def create_layer_control_panel():
+def create_layer_control_content():
     """
-    Creates the floating panel with toggles for each data layer,
-    grouping crime visualizations into a master toggle and radio selector.
+    Creates the HTML components for the layer controls.
     """
     children = []
     crime_layers = {k: v for k, v in LAYER_CONFIG.items() if k.startswith('crime_')}
@@ -64,17 +63,14 @@ def create_layer_control_panel():
         ))
         children.append(html.Hr())
 
-    panel = html.Div(
-        className="control-panel",
-        children=[
-            html.Div(
-                className="layer-panel-header",
-                children=[
-                    html.H3("Layers", style={"marginTop": 0, "marginBottom": 0}),
-                    dcc.Loading(id="layers-loading", type="circle", className="layer-spinner", children=html.Div(id="layers-loading-output"))
-                ]
-            ),
-            *children
-        ]
-    )
-    return panel
+    # The header and the controls are returned as a list of components
+    return [
+        html.Div(
+            className="layer-panel-header",
+            children=[
+                html.H3("Layers", style={"marginTop": 0, "marginBottom": 0}),
+                dcc.Loading(id="layers-loading", type="circle", className="layer-spinner", children=html.Div(id="layers-loading-output"))
+            ]
+        ),
+        *children
+    ]

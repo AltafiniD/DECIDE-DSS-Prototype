@@ -9,10 +9,10 @@ import math
 from config import MAPBOX_API_KEY, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG, INITIAL_VIEW_STATE_CONFIG, MAP_STYLES
 from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
-from components.layer_control import create_layer_control_panel
 from components.slideover_panel import create_slideover_panel
 from components.filter_panel import create_filter_panel
-from components.map_style_control import create_map_style_panel
+# --- FIXED: Import the new combined controls component ---
+from components.combined_controls import create_combined_panel
 
 def create_layout():
     """
@@ -40,7 +40,6 @@ def create_layout():
         if layer_type == 'polygon':
             layer_args.update({'stroked': True, 'get_polygon': 'contour', 'filled': True, 'get_line_width': 20})
             
-            # --- UPDATED: Initialize buildings with default color from config ---
             if layer_id == 'buildings':
                 layer_args.update({
                     'extruded': True, 'wireframe': True, 'get_elevation': 'height',
@@ -128,7 +127,6 @@ def create_layout():
     initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG.get(layer_id, {}).get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
-    # --- UPDATED: Pass the buildings dataframe to the filter panel ---
     filter_panel, month_map = create_filter_panel(
         dataframes.get('crime_points'), 
         dataframes.get('network'),
@@ -144,9 +142,10 @@ def create_layout():
             html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=MAP_STYLES['Light']).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
             html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
             filter_panel,
+            # --- FIXED: Use the new single, combined control panel ---
             html.Div(
                 className="bottom-left-controls-container",
-                children=[create_layer_control_panel(), create_map_style_panel()]
+                children=[create_combined_panel()]
             ),
             html.Button("🐞", id="toggle-debug-btn", className="toggle-debug-btn"),
             html.Div(
