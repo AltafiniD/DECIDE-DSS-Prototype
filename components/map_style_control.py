@@ -7,9 +7,8 @@ def create_map_style_content():
     """
     Creates the HTML components for the map style selector.
     """
-    # Returns a list of components, not a full panel
+    # FIXED: Return only the radio items, not the header
     return [
-        html.H3("Map Style", style={"marginTop": 0, "marginBottom": "10px"}),
         dcc.RadioItems(
             id='map-style-radio',
             options=[{'label': label, 'value': url} for label, url in MAP_STYLES.items()],

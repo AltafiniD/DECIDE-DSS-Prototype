@@ -16,7 +16,8 @@ def register_callbacks(app, all_layers, dataframes):
     layer_toggle_inputs = [Input("flooding_toggle-toggle", "value")] + [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
     @app.callback(
-        [Output("deck-gl", "data"), Output("layers-loading-output", "children")],
+        # --- FIXED: Removed the non-existent 'layers-loading-output' ---
+        Output("deck-gl", "data"),
         [
             Input("apply-filters-btn", "n_clicks"),
             Input("map-style-radio", "value"),
@@ -67,7 +68,6 @@ def register_callbacks(app, all_layers, dataframes):
 
         for i, layer_id in enumerate(other_layer_ids):
             if i < len(other_toggles) and other_toggles[i]:
-                # --- REFACTORED: Special handling to recreate the buildings layer ---
                 if layer_id == 'buildings':
                     metric_config = BUILDING_COLOR_CONFIG.get(building_color_metric)
                     buildings_df = dataframes['buildings']
@@ -103,7 +103,7 @@ def register_callbacks(app, all_layers, dataframes):
                     new_building_layer = pdk.Layer("PolygonLayer", **building_layer_args)
                     visible_layers.append(new_building_layer)
                 
-                else: # For all other layers, use the original deepcopy method
+                else:
                     layer_copy = copy.deepcopy(all_layers[layer_id])
                     if layer_id == 'network' and network_metric and network_range:
                         original_network_df = dataframes['network']
@@ -152,4 +152,5 @@ def register_callbacks(app, all_layers, dataframes):
 
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
-        return deck.to_json(), None
+        # FIXED: Only return the deck data, not the second (now-removed) output
+        return deck.to_json()

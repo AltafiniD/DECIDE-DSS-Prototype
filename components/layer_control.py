@@ -37,8 +37,6 @@ def create_layer_control_content():
         ))
 
     if crime_layers:
-        children.append(html.Hr())
-        
         children.append(dcc.Checklist(
             id='crime-master-toggle',
             options=[{'label': "🚨 Crimes", 'value': 'crimes_on'}],
@@ -61,16 +59,6 @@ def create_layer_control_content():
                 )
             ]
         ))
-        children.append(html.Hr())
 
     # The header and the controls are returned as a list of components
-    return [
-        html.Div(
-            className="layer-panel-header",
-            children=[
-                html.H3("Layers", style={"marginTop": 0, "marginBottom": 0}),
-                dcc.Loading(id="layers-loading", type="circle", className="layer-spinner", children=html.Div(id="layers-loading-output"))
-            ]
-        ),
-        *children
-    ]
+    return children

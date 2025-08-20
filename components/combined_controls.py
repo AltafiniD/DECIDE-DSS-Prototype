@@ -7,8 +7,7 @@ from .map_style_control import create_map_style_content
 
 def create_combined_panel():
     """
-    Creates a single control panel by calling the content-creation functions
-    from the layer and map style component files and wrapping each in a widget-like container.
+    Creates a single control panel with collapsible sections for Layers and Map Style.
     """
     # Call the functions to get the component layouts
     layers_content = create_layer_control_content()
@@ -18,15 +17,45 @@ def create_combined_panel():
     panel = html.Div(
         className="control-panel",
         children=[
-            # The content for the layers section, wrapped in a styled container
+            # --- Collapsible Layers Section ---
             html.Div(
                 className="control-widget",
-                children=layers_content
+                children=[
+                    html.Button(
+                        className="collapsible-header",
+                        id="layers-collapse-toggle",
+                        n_clicks=0,
+                        children=[
+                            html.H3("Layers", style={"margin": 0}),
+                            html.Span("▼", className="chevron-icon")
+                        ]
+                    ),
+                    html.Div(
+                        id="layers-collapse-content",
+                        className="collapsible-content collapsible-content-visible", # Start expanded
+                        children=layers_content
+                    )
+                ]
             ),
-            # The content for the map style section, wrapped in a styled container
+            # --- Collapsible Map Style Section ---
             html.Div(
                 className="control-widget",
-                children=map_style_content
+                children=[
+                    html.Button(
+                        className="collapsible-header",
+                        id="style-collapse-toggle",
+                        n_clicks=0,
+                        children=[
+                            html.H3("Map Style", style={"margin": 0}),
+                            html.Span("▼", className="chevron-icon")
+                        ]
+                    ),
+                    html.Div(
+                        id="style-collapse-content",
+                        className="collapsible-content collapsible-content-hidden", # Start collapsed
+                        children=map_style_content
+                    )
+                ]
             )
         ]
     )
