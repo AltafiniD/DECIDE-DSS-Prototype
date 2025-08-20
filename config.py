@@ -4,12 +4,26 @@
 MAPBOX_API_KEY = "pk.eyJ1IjoiaGVucnl3aWxmIiwiYSI6ImNtZDdjcHoyMjBrOWkya3NjaXcyd3p1cXkifQ.yw-wKc3DW22df0U6jo9YKQ"
 
 # Mapbox Style Configuration
+# --- NEW: Added an 'image' key for each style for the new selector ---
 MAP_STYLES = {
-    "Light": "mapbox://styles/mapbox/light-v9",
-    "Dark": "mapbox://styles/mapbox/dark-v9",
-    "Streets": "mapbox://styles/mapbox/streets-v11",
-    "Satellite": "mapbox://styles/mapbox/satellite-streets-v11"
+    "Light": {
+        "url": "mapbox://styles/mapbox/light-v9",
+        "image": "https://placehold.co/150x120/EFEFEF/333333?text=Light"
+    },
+    "Dark": {
+        "url": "mapbox://styles/mapbox/dark-v9",
+        "image": "https://placehold.co/150x120/333333/EFEFEF?text=Dark"
+    },
+    "Streets": {
+        "url": "mapbox://styles/mapbox/streets-v11",
+        "image": "https://placehold.co/150x120/AACCFF/333333?text=Streets"
+    },
+    "Satellite": {
+        "url": "mapbox://styles/mapbox/satellite-streets-v11",
+        "image": "https://placehold.co/150x120/556B2F/FFFFFF?text=Satellite"
+    }
 }
+
 
 # Central configuration for all flood risk layers
 FLOOD_LAYER_CONFIG = {

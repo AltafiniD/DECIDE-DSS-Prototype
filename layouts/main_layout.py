@@ -134,15 +134,18 @@ def create_layout():
         dataframes.get('buildings')
     )
 
+    # --- THE FIX IS HERE ---
+    # We now correctly access the 'url' from the MAP_STYLES dictionary
+    initial_map_style = MAP_STYLES['Light']['url']
+
     layout = html.Div(
         style={"position": "relative", "width": "100vw", "height": "100vh", "overflow": "hidden"},
         children=[
             dcc.Store(id='selected-neighbourhood-store', data=None),
             dcc.Store(id='month-map-store', data=month_map),
-            html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=MAP_STYLES['Light']).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
+            html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=initial_map_style).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
             html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
             filter_panel,
-            # --- FIXED: Use the new single, combined control panel ---
             html.Div(
                 className="bottom-left-controls-container",
                 children=[create_combined_panel()]

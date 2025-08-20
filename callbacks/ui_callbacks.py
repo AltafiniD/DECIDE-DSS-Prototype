@@ -1,12 +1,42 @@
 # callbacks/ui_callbacks.py
 
-from dash.dependencies import Input, Output, State
-from dash import no_update
+from dash.dependencies import Input, Output, State, ALL
+from dash import no_update, ctx
 
 def register_callbacks(app):
     """
     Registers all UI-related callbacks to the Dash app.
     """
+    # --- NEW: Callback for the image-based map style selector ---
+    @app.callback(
+        Output('map-style-radio', 'value'),
+        Output({'type': 'map-style-button', 'index': ALL}, 'className'),
+        Input({'type': 'map-style-button', 'index': ALL}, 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def update_map_style_selection(n_clicks):
+        from config import MAP_STYLES # Import inside to avoid circular dependency issues
+        
+        # Determine which button was clicked
+        triggered_id = ctx.triggered_id
+        if not triggered_id:
+            return no_update, no_update
+            
+        # Get the style label (e.g., "Light") from the button's ID
+        selected_style_label = triggered_id['index']
+        
+        # Get the corresponding URL for the map callback
+        new_map_url = MAP_STYLES[selected_style_label]['url']
+        
+        # Update the classNames for all buttons to show which is selected
+        class_names = [
+            f"map-style-button{' selected' if label == selected_style_label else ''}"
+            for label in MAP_STYLES.keys()
+        ]
+        
+        return new_map_url, class_names
+
+
     # Callback for the right-side widget panel
     app.clientside_callback(
         """
@@ -54,7 +84,7 @@ def register_callbacks(app):
     def clear_crime_radio_selection(toggle_value):
         return None if not toggle_value else no_update
 
-    # --- NEW: Callbacks for collapsible control panel ---
+    # --- Callbacks for collapsible control panel ---
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {

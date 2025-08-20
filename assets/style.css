@@ -77,11 +77,11 @@ html, body {
 /* --- Control Panel (Bottom-Left) Specifics --- */
 .bottom-left-controls-container {
     position: absolute;
-    bottom: 525px;
+    bottom: 20px;
     left: 20px;
     z-index: 10;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 10px;
 }
 .control-panel {
@@ -131,7 +131,7 @@ html, body {
 .layer-spinner .dash-spinner { width: 20px; height: 20px; margin-left: 10px; }
 
 
-/* --- NEW: Collapsible Section Styles --- */
+/* --- Collapsible Section Styles --- */
 .collapsible-header {
     background: none; border: none; padding: 0;
     width: 100%;
@@ -148,7 +148,6 @@ html, body {
 }
 .collapsible-content-visible { max-height: 500px; opacity: 1; margin-top: 15px; }
 .collapsible-content-hidden { max-height: 0; opacity: 0; margin-top: 0; }
-/* Rotate chevron when content is hidden */
 .collapsible-header:has(+ .collapsible-content-hidden) .chevron-icon {
     transform: rotate(-90deg);
 }
@@ -176,4 +175,42 @@ html, body {
 .apply-filters-button:active, .toggle-filters-btn:active, .toggle-widget-btn:active, .toggle-debug-btn:active {
     transform: translateY(0px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* --- NEW: Map Style Image Selector Styles --- */
+.map-style-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+.map-style-button {
+    position: relative;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #ddd;
+    transition: border-color 0.2s ease-in-out, transform 0.2s ease;
+}
+.map-style-button:hover {
+    transform: scale(1.03);
+}
+.map-style-button.selected {
+    border-color: #0d6efd; /* Blue highlight for selected */
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+}
+.map-style-image {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.map-style-label {
+    position: absolute;
+    bottom: 5px;
+    left: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
