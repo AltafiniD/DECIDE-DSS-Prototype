@@ -7,7 +7,7 @@ html, body {
 }
 
 /* --- Toggle Button Styles --- */
-.toggle-filters-btn, .toggle-debug-btn {
+.toggle-debug-btn {
     position: absolute;
     z-index: 11;
     padding: 8px 16px;
@@ -21,7 +21,6 @@ html, body {
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s;
 }
 
-.toggle-filters-btn { bottom: 20px; left: 50%; transform: translateX(-50%); }
 .toggle-debug-btn { bottom: 20px; right: 50px; width: 40px; height: 40px; font-size: 20px; border-radius: 50%; padding: 0; }
 
 
@@ -46,36 +45,43 @@ html, body {
 }
 
 
-/* --- Filter Panel Specifics --- */
-/* MODIFIED: Changed to a column-based flex layout for stacking */
+/* --- MODIFIED: Filter Panel Styles --- */
 .filter-slide-panel {
-    bottom: 70px; left: 50%;
-    transform: translateX(-50%);
+    bottom: 60px; /* Positioned above the handle's final location */
+    left: 50%;
     width: 90%;
     max-width: 1200px;
+    transform: translateX(-50%);
     padding: 20px;
     display: flex;
-    flex-direction: column; /* Stacks the filter grid and the button */
+    flex-direction: column;
     align-items: center;
     gap: 20px;
     transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
 }
-.filter-hidden { transform: translate(-50%, calc(100% + 80px)); opacity: 0; }
-.filter-visible { transform: translate(-50%, 0); opacity: 1; }
 
-/* MODIFIED: Changed to a grid layout for the two columns */
+.filter-slide-panel.filter-hidden {
+    transform: translate(-50%, calc(100% + 60px));
+    opacity: 0;
+}
+
 .filter-inputs-wrapper {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+    grid-template-columns: 1fr 1fr;
     gap: 25px;
     width: 100%;
 }
 
-/* NEW: A container for the controls within each column */
 .filter-column {
     display: flex;
     flex-direction: column;
     gap: 20px;
+}
+
+.filter-column .control-widget {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .filter-control .rc-slider { margin-top: 5px; }
@@ -182,17 +188,17 @@ html, body {
     cursor: pointer;
     transition: background-color 0.15s ease-in-out, transform 0.15s ease, box-shadow 0.15s ease;
 }
-.apply-filters-button:hover, .toggle-filters-btn:hover, .toggle-debug-btn:hover {
+.apply-filters-button:hover, .toggle-debug-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 .apply-filters-button:hover {
     background-color: #0b5ed7;
 }
-.toggle-filters-btn:hover, .toggle-debug-btn:hover {
+.toggle-debug-btn:hover {
     background-color: rgba(240, 240, 240, 0.95);
 }
-.apply-filters-button:active, .toggle-filters-btn:active, .toggle-debug-btn:active {
+.apply-filters-button:active, .toggle-debug-btn:active {
     transform: translateY(0px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -239,7 +245,7 @@ html, body {
 #toggle-slideover-btn {
     position: absolute;
     top: 50%;
-    right: 0; /* Start position when panel is hidden */
+    right: 0;
     transform: translateY(-50%);
     width: 30px;
     height: 80px;
@@ -263,7 +269,37 @@ html, body {
     background-color: rgba(255, 255, 255, 0.9);
 }
 
-/* When the panel is visible, move the button to its left edge */
 .slideover-visible + #toggle-slideover-btn {
     right: calc(530px + 20px);
+}
+
+/* --- NEW: Filter Panel Handle Styles --- */
+#toggle-filters-handle {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 30px;
+    padding: 0;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    background-color: rgba(242, 242, 247, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 11;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#toggle-filters-handle:hover {
+    background-color: rgba(255, 255, 255, 0.9);
 }

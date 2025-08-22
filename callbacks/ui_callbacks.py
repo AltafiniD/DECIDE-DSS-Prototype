@@ -32,49 +32,47 @@ def register_callbacks(app):
         return new_map_url, class_names
 
 
-    # --- UPDATED: Callback for the right-side widget panel and its handle ---
+    # --- Callback for the right-side widget panel and its handle ---
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {
-            // This function is triggered when the handle button is clicked.
             if (!n_clicks) {
-                // On initial load, don't do anything.
                 return [window.dash_clientside.no_update, window.dash_clientside.no_update];
             }
-            // Check if the panel is currently hidden.
             const is_hidden = current_classname.includes('slideover-hidden');
-            
-            // Determine the new class for the panel.
             const new_classname = is_hidden
                 ? 'slideover-panel slideover-visible'
                 : 'slideover-panel slideover-hidden';
-            
-            // Determine the new icon for the button (right arrow for open, left for closed).
             const new_button_text = is_hidden ? '❯' : '❮';
-            
-            // Return both new values.
             return [new_classname, new_button_text];
         }
         """,
         Output("slideover-panel", "className"),
-        Output("toggle-slideover-btn", "children"), # The icon in the button
+        Output("toggle-slideover-btn", "children"),
         Input("toggle-slideover-btn", "n_clicks"),
         State("slideover-panel", "className")
     )
 
-    # Callback for the top-down filter panel
+    # --- MODIFIED: Simplified callback, rotation is now handled in CSS ---
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {
-            if (!n_clicks) { return window.dash_clientside.no_update; }
-            return current_classname.includes('filter-hidden')
-                ? 'filter-slide-panel filter-visible'
-                : 'filter-slide-panel filter-hidden';
+            if (!n_clicks) {
+                return window.dash_clientside.no_update;
+            }
+            // Check if the current classname is valid before using it
+            if (typeof current_classname !== 'string') {
+                return 'filter-wrapper filter-visible'; // Default to visible if state is unclear
+            }
+            const is_hidden = current_classname.includes('filter-hidden');
+            return is_hidden
+                ? 'filter-wrapper filter-visible'
+                : 'filter-wrapper filter-hidden';
         }
         """,
-        Output("filter-slide-panel", "className"),
-        Input("toggle-filters-btn", "n_clicks"),
-        State("filter-slide-panel", "className")
+        Output("filter-panel-wrapper", "className"),
+        Input("toggle-filters-handle", "n_clicks"),
+        State("filter-panel-wrapper", "className")
     )
 
     # Callback to show/hide the crime radio buttons
@@ -87,7 +85,7 @@ def register_callbacks(app):
 
     # Callback to clear radio selection when master toggle is off
     @app.callback(
-        Output('crime-viz-radio', 'value'),
+        Output('crime_viz-radio', 'value'),
         Input('crime-master-toggle', 'value'),
         prevent_initial_call=True
     )
@@ -139,3 +137,4 @@ def register_callbacks(app):
         Input("toggle-debug-btn", "n_clicks"),
         State("debug-panel", "className"),
     )
+

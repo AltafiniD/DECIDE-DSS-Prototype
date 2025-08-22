@@ -141,8 +141,11 @@ def create_layout():
             dcc.Store(id='selected-neighbourhood-store', data=None),
             dcc.Store(id='month-map-store', data=month_map),
             html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=initial_map_style).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
-            html.Button("Show Filters", id="toggle-filters-btn", className="toggle-filters-btn"),
+            
             filter_panel,
+            # --- MODIFIED: Changed the initial icon ---
+            html.Button("⌃", id="toggle-filters-handle", n_clicks=0),
+
             html.Div(
                 className="bottom-left-controls-container",
                 children=[create_combined_panel()]
@@ -153,8 +156,6 @@ def create_layout():
                 className="debug-panel-container debug-hidden",
                 children=[dcc.Markdown(id="selection-info-display")]
             ),
-            
-            # --- THE FIX IS HERE: The panel now comes BEFORE the button ---
             create_slideover_panel(dataframes, plotly_crime_colours),
             html.Button("❮", id="toggle-slideover-btn"),
         ]

@@ -6,7 +6,7 @@ from config import NETWORK_METRICS_EXCLUDE, FLOOD_LAYER_CONFIG, BUILDING_COLOR_C
 
 def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
     """
-    Creates the slide-down filter panel with all dynamic controls, arranged in two columns.
+    Creates the slide-down filter panel with controls grouped into styled boxes.
     """
     # --- Component creation logic (no changes here) ---
     crime_df['Month_dt'] = pd.to_datetime(crime_df['Month'], format='%Y-%m', errors='coerce')
@@ -39,7 +39,7 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
         clearable=False
     )
 
-    # --- MODIFIED: Panel layout now uses two columns ---
+    # --- MODIFIED: Panel layout now uses grouped control widgets ---
     panel = html.Div(
         id="filter-slide-panel",
         className="filter-slide-panel filter-hidden",
@@ -51,18 +51,45 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
                     html.Div(
                         className="filter-column",
                         children=[
-                            html.Div(className="filter-control", children=[html.Label("Time Range (Crimes)"), time_slider]),
-                            html.Div(className="filter-control", children=[html.Label("Crime Types"), crime_type_dropdown]),
-                            html.Div(className="filter-control", children=[html.Label("Building Coloring"), building_color_selector]),
+                            # Crime Group
+                            html.Div(className="control-widget", children=[
+                                html.H3("Crime Filters", style={'marginTop': 0}),
+                                html.Label("Crime Types"),
+                                crime_type_dropdown,
+                                html.Label("Time Range", style={'marginTop': '15px'}),
+                                time_slider
+                            ]),
+                            # Building Group
+                            html.Div(className="control-widget", children=[
+                                html.H3("Building Filters", style={'marginTop': 0}),
+                                html.Label("Building Coloring"),
+                                building_color_selector
+                            ]),
                         ]
                     ),
                     # --- Column 2 ---
                     html.Div(
                         className="filter-column",
                         children=[
-                            html.Div(className="filter-control", children=[html.Label("Network Metric"), network_metric_dropdown, network_range_slider]),
-                            html.Div(className="filter-control", children=[html.Label("Deprivation Category"), deprivation_dropdown]),
-                            html.Div(className="filter-control", children=[html.Label("Flood Risk Layer"), flood_risk_selector]),
+                            # Network Group
+                            html.Div(className="control-widget", children=[
+                                html.H3("Network Analysis", style={'marginTop': 0}),
+                                html.Label("Network Metric"),
+                                network_metric_dropdown,
+                                network_range_slider
+                            ]),
+                            # Deprivation Group
+                            html.Div(className="control-widget", children=[
+                                html.H3("Social Filters", style={'marginTop': 0}),
+                                html.Label("Deprivation Category"),
+                                deprivation_dropdown
+                            ]),
+                            # Flood Group
+                            html.Div(className="control-widget", children=[
+                                html.H3("Environmental Filters", style={'marginTop': 0}),
+                                html.Label("Flood Risk Layer"),
+                                flood_risk_selector
+                            ]),
                         ]
                     ),
                 ]
