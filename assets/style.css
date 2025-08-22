@@ -21,7 +21,7 @@ html, body {
     transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.2s;
 }
 
-.toggle-filters-btn { top: 20px; left: 50%; transform: translateX(-50%); }
+.toggle-filters-btn { bottom: 20px; left: 50%; transform: translateX(-50%); }
 .toggle-debug-btn { bottom: 20px; right: 50px; width: 40px; height: 40px; font-size: 20px; border-radius: 50%; padding: 0; }
 
 
@@ -47,17 +47,37 @@ html, body {
 
 
 /* --- Filter Panel Specifics --- */
+/* MODIFIED: Changed to a column-based flex layout for stacking */
 .filter-slide-panel {
-    top: 0; left: 0; right: 0;
+    bottom: 70px; left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 1200px;
     padding: 20px;
-    padding-top: 80px;
-    display: flex; align-items: flex-end; justify-content: center; gap: 20px;
+    display: flex;
+    flex-direction: column; /* Stacks the filter grid and the button */
+    align-items: center;
+    gap: 20px;
     transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
 }
-.filter-hidden { transform: translateY(calc(-100% - 20px)); opacity: 0; }
-.filter-visible { transform: translateY(0); opacity: 1; }
-.filter-inputs-wrapper { display: flex; gap: 20px; flex-grow: 1; justify-content: space-around; }
-.filter-control { flex: 1; min-width: 200px; max-width: 400px; }
+.filter-hidden { transform: translate(-50%, calc(100% + 80px)); opacity: 0; }
+.filter-visible { transform: translate(-50%, 0); opacity: 1; }
+
+/* MODIFIED: Changed to a grid layout for the two columns */
+.filter-inputs-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two equal-width columns */
+    gap: 25px;
+    width: 100%;
+}
+
+/* NEW: A container for the controls within each column */
+.filter-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 .filter-control .rc-slider { margin-top: 5px; }
 
 

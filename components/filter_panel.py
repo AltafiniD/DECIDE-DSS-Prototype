@@ -4,12 +4,11 @@ from dash import dcc, html
 import pandas as pd
 from config import NETWORK_METRICS_EXCLUDE, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG
 
-# --- UPDATED: Function now accepts buildings_df ---
 def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
     """
-    Creates the slide-down filter panel with all dynamic controls.
+    Creates the slide-down filter panel with all dynamic controls, arranged in two columns.
     """
-    # --- Time, Crime, Network, Deprivation, and Flood filters (no changes) ---
+    # --- Component creation logic (no changes here) ---
     crime_df['Month_dt'] = pd.to_datetime(crime_df['Month'], format='%Y-%m', errors='coerce')
     unique_months = sorted(crime_df['Month_dt'].dropna().unique())
     month_map = {i: month.strftime('%Y-%m') for i, month in enumerate(unique_months)}
@@ -29,8 +28,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
     deprivation_dropdown = dcc.Dropdown(id='deprivation-category-dropdown', options=deprivation_options, value='all', placeholder="Filter by Deprivation Category", clearable=False)
     flood_options = [{'label': config['label'], 'value': config['id']} for config in FLOOD_LAYER_CONFIG.values()]
     flood_risk_selector = dcc.Dropdown(id='flood-risk-selector', options=flood_options, value=['flood_sea'], multi=True, placeholder="Select Flood Risk Layers")
-
-    # --- NEW: Building Color Selector ---
     building_color_options = [
         {'label': config['label'], 'value': key}
         for key, config in BUILDING_COLOR_CONFIG.items()
@@ -38,10 +35,11 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
     building_color_selector = dcc.Dropdown(
         id='building-color-selector',
         options=building_color_options,
-        value='none', # Default to no specific coloring
+        value='none',
         clearable=False
     )
 
+    # --- MODIFIED: Panel layout now uses two columns ---
     panel = html.Div(
         id="filter-slide-panel",
         className="filter-slide-panel filter-hidden",
@@ -49,13 +47,24 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
             html.Div(
                 className="filter-inputs-wrapper",
                 children=[
-                    html.Div(className="filter-control", children=[html.Label("Time Range (Crimes)"), time_slider]),
-                    html.Div(className="filter-control", children=[html.Label("Crime Types"), crime_type_dropdown]),
-                    html.Div(className="filter-control", children=[html.Label("Network Metric"), network_metric_dropdown, network_range_slider]),
-                    html.Div(className="filter-control", children=[html.Label("Deprivation Category"), deprivation_dropdown]),
-                    html.Div(className="filter-control", children=[html.Label("Flood Risk Layer"), flood_risk_selector]),
-                    # --- Add new dropdown to the panel ---
-                    html.Div(className="filter-control", children=[html.Label("Building Coloring"), building_color_selector]),
+                    # --- Column 1 ---
+                    html.Div(
+                        className="filter-column",
+                        children=[
+                            html.Div(className="filter-control", children=[html.Label("Time Range (Crimes)"), time_slider]),
+                            html.Div(className="filter-control", children=[html.Label("Crime Types"), crime_type_dropdown]),
+                            html.Div(className="filter-control", children=[html.Label("Building Coloring"), building_color_selector]),
+                        ]
+                    ),
+                    # --- Column 2 ---
+                    html.Div(
+                        className="filter-column",
+                        children=[
+                            html.Div(className="filter-control", children=[html.Label("Network Metric"), network_metric_dropdown, network_range_slider]),
+                            html.Div(className="filter-control", children=[html.Label("Deprivation Category"), deprivation_dropdown]),
+                            html.Div(className="filter-control", children=[html.Label("Flood Risk Layer"), flood_risk_selector]),
+                        ]
+                    ),
                 ]
             ),
             html.Button("Apply Filters", id="apply-filters-btn", n_clicks=0, className="apply-filters-button")
