@@ -143,7 +143,6 @@ def create_layout():
             html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=initial_map_style).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
             
             filter_panel,
-            # --- MODIFIED: Changed the initial icon ---
             html.Button("⌃", id="toggle-filters-handle", n_clicks=0),
 
             html.Div(

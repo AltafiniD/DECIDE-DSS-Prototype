@@ -53,26 +53,28 @@ def register_callbacks(app):
         State("slideover-panel", "className")
     )
 
-    # --- MODIFIED: Simplified callback, rotation is now handled in CSS ---
+    # --- FIXED: Callback now correctly targets 'filter-slide-panel' and uses correct icons ---
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {
             if (!n_clicks) {
-                return window.dash_clientside.no_update;
+                return [window.dash_clientside.no_update, window.dash_clientside.no_update];
             }
-            // Check if the current classname is valid before using it
             if (typeof current_classname !== 'string') {
-                return 'filter-wrapper filter-visible'; // Default to visible if state is unclear
+                return ['filter-slide-panel filter-visible', '⌄'];
             }
             const is_hidden = current_classname.includes('filter-hidden');
-            return is_hidden
-                ? 'filter-wrapper filter-visible'
-                : 'filter-wrapper filter-hidden';
+            const new_classname = is_hidden
+                ? 'filter-slide-panel filter-visible'
+                : 'filter-slide-panel filter-hidden';
+            const new_button_text = is_hidden ? '⌄' : '⌃';
+            return [new_classname, new_button_text];
         }
         """,
-        Output("filter-panel-wrapper", "className"),
+        Output("filter-slide-panel", "className"),
+        Output("toggle-filters-handle", "children"),
         Input("toggle-filters-handle", "n_clicks"),
-        State("filter-panel-wrapper", "className")
+        State("filter-slide-panel", "className")
     )
 
     # Callback to show/hide the crime radio buttons
@@ -83,9 +85,9 @@ def register_callbacks(app):
     def toggle_crime_radio_buttons(toggle_value):
         return {'display': 'block', 'paddingLeft': '20px', 'marginTop': '5px'} if toggle_value else {'display': 'none'}
 
-    # Callback to clear radio selection when master toggle is off
+    # --- FIXED: Corrected the typo in the Output ID ---
     @app.callback(
-        Output('crime_viz-radio', 'value'),
+        Output('crime-viz-radio', 'value'),
         Input('crime-master-toggle', 'value'),
         prevent_initial_call=True
     )
