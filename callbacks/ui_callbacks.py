@@ -53,7 +53,7 @@ def register_callbacks(app):
         State("slideover-panel", "className")
     )
 
-    # --- FIXED: Callback now correctly targets 'filter-slide-panel' and uses correct icons ---
+    # --- FIXED: Callback now correctly targets the wrapper ID ---
     app.clientside_callback(
         """
         function(n_clicks, current_classname) {
@@ -61,20 +61,20 @@ def register_callbacks(app):
                 return [window.dash_clientside.no_update, window.dash_clientside.no_update];
             }
             if (typeof current_classname !== 'string') {
-                return ['filter-slide-panel filter-visible', '⌄'];
+                return ['filter-wrapper filter-visible', '⌄'];
             }
             const is_hidden = current_classname.includes('filter-hidden');
             const new_classname = is_hidden
-                ? 'filter-slide-panel filter-visible'
-                : 'filter-slide-panel filter-hidden';
+                ? 'filter-wrapper filter-visible'
+                : 'filter-wrapper filter-hidden';
             const new_button_text = is_hidden ? '⌄' : '⌃';
             return [new_classname, new_button_text];
         }
         """,
-        Output("filter-slide-panel", "className"),
+        Output("filter-panel-wrapper", "className"),
         Output("toggle-filters-handle", "children"),
         Input("toggle-filters-handle", "n_clicks"),
-        State("filter-slide-panel", "className")
+        State("filter-panel-wrapper", "className")
     )
 
     # Callback to show/hide the crime radio buttons

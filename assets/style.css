@@ -44,12 +44,12 @@ html, body {
     color: #f0f0f0;
 }
 
-/* --- MODIFIED: Chat Window Styles --- */
+/* --- Chat Window Styles --- */
 .chat-window-container {
     top: 20px;
     left: 20px;
-    width: 450px; /* Increased width from 350px */
-    height: 450px;
+    width: 650px;
+    height: 250px;
     display: flex;
     flex-direction: column;
     padding: 10px 15px;
@@ -131,24 +131,32 @@ html, body {
 }
 
 
-/* --- Filter Panel Styles --- */
-.filter-slide-panel {
-    bottom: 60px;
+/* --- MODIFIED: Filter Panel and Wrapper Styles --- */
+#filter-panel-wrapper {
+    position: absolute;
+    bottom: 0;
     left: 50%;
     width: 90%;
     max-width: 1200px;
     transform: translateX(-50%);
+    transition: transform 0.4s ease-in-out;
+    z-index: 10;
+}
+
+#filter-panel-wrapper.filter-hidden {
+    transform: translate(-50%, calc(100% - 30px)); /* Hide panel but leave handle showing */
+}
+
+.filter-slide-panel {
+    width: 100%;
     padding: 20px;
+    padding-top: 45px; /* Add space for the handle above */
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
-}
-
-.filter-slide-panel.filter-hidden {
-    transform: translate(-50%, calc(100% + 60px));
-    opacity: 0;
+    position: relative; /* Changed from absolute */
+    border-radius: 16px 16px 0 0;
 }
 
 .filter-inputs-wrapper {
@@ -359,12 +367,12 @@ html, body {
     right: calc(530px + 20px);
 }
 
-/* --- Filter Panel Handle Styles --- */
+/* --- MODIFIED: Filter Panel Handle Styles --- */
 #toggle-filters-handle {
     position: absolute;
-    bottom: 20px;
+    top: 0;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -100%);
     width: 80px;
     height: 30px;
     padding: 0;
@@ -379,7 +387,7 @@ html, body {
     border-radius: 12px 12px 0 0;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    z-index: 11;
+    z-index: 12;
     display: flex;
     align-items: center;
     justify-content: center;

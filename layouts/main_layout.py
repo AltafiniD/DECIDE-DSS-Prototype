@@ -12,7 +12,6 @@ from utils.colours import get_crime_colour_map
 from components.slideover_panel import create_slideover_panel
 from components.filter_panel import create_filter_panel
 from components.combined_controls import create_combined_panel
-# --- MODIFIED: Updated import path for the chat window ---
 from chat.chat_window import create_chat_window
 
 def create_layout():
@@ -128,7 +127,7 @@ def create_layout():
     initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG.get(layer_id, {}).get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
-    filter_panel, month_map = create_filter_panel(
+    filter_panel_content, month_map = create_filter_panel(
         dataframes.get('crime_points'), 
         dataframes.get('network'),
         dataframes.get('deprivation'),
@@ -146,8 +145,15 @@ def create_layout():
             
             create_chat_window(),
 
-            filter_panel,
-            html.Button("⌃", id="toggle-filters-handle", n_clicks=0),
+            # --- FIXED: The panel and handle are now inside a wrapper ---
+            html.Div(
+                id="filter-panel-wrapper",
+                className="filter-wrapper filter-hidden", # Start hidden
+                children=[
+                    filter_panel_content,
+                    html.Button("⌃", id="toggle-filters-handle", n_clicks=0),
+                ]
+            ),
 
             html.Div(
                 className="bottom-left-controls-container",
