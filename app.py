@@ -10,7 +10,6 @@ from callbacks.map_callbacks import register_callbacks as register_map_callbacks
 from callbacks.ui_callbacks import register_callbacks as register_ui_callbacks
 from callbacks.widget_callbacks import register_callbacks as register_widget_callbacks
 from callbacks.filter_callbacks import register_callbacks as register_filter_callbacks
-# --- MODIFIED: Updated import path ---
 from callbacks.chat_callbacks import register_callbacks as register_chat_callbacks
 from callbacks import widget_callbacks
 
@@ -24,10 +23,18 @@ app.layout, all_pydeck_layers, dataframes = create_layout()
 # Register the different sets of callbacks
 register_map_callbacks(app, all_pydeck_layers, dataframes)
 register_ui_callbacks(app)
-widget_callbacks.register_callbacks(app, dataframes['crime_points'], dataframes['neighbourhoods'], dataframes['network'])
+# --- MODIFIED: Pass buildings_df to widget callbacks ---
+widget_callbacks.register_callbacks(
+    app, 
+    dataframes['crime_points'], 
+    dataframes['neighbourhoods'], 
+    dataframes['network'],
+    dataframes['buildings']
+)
 register_filter_callbacks(app, dataframes['network'])
 register_chat_callbacks(app)
 
 # --- Run the Server ---
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=True)
+#     app.run(debug=True, host="0.0.0.0")

@@ -10,14 +10,14 @@ from utils.geometry import is_point_in_polygon
 from utils.colours import get_crime_colour_map
 from components.crime_widget import create_crime_histogram_figure
 from components.network_widget import create_network_histogram_figure
+from components.flood_risk_widget import create_flood_risk_pie_chart
 
-def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
+def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df):
     """
     Registers all widget-related callbacks.
     """
     plotly_colour_map, _ = get_crime_colour_map()
 
-    # --- Debug Callback ---
     @app.callback(
         Output("selection-info-display", "children"),
         Input("deck-gl", "clickInfo"),
@@ -28,7 +28,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
         pretty_json = json.dumps(click_info, indent=2)
         return f"#### Last Click Data\n\n```json\n{pretty_json}\n```"
 
-    # --- Neighbourhood selection ---
     @app.callback(
         Output("selected-neighbourhood-store", "data"),
         Input("deck-gl", "clickInfo"),
@@ -39,7 +38,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
             return click_info['object']['properties']
         return no_update
 
-    # --- MODIFIED: Callback to update filter slider from network histogram click ---
     @app.callback(
         Output('network-range-slider', 'value', allow_duplicate=True),
         Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
@@ -50,16 +48,9 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
     def update_slider_from_histogram_click(chart_click, n_clicks):
         if not chart_click:
             return no_update, no_update
-        
-        # --- FIXED: Extract the [start, end] range from the bar's customdata ---
-        # The customdata now contains [start_range, end_range, count]
-        # We only need the first two elements for the new range.
         new_range = chart_click['points'][0]['customdata'][:2]
-        
-        # Update the slider and programmatically click "Apply"
         return new_range, n_clicks + 1
 
-    # --- Crime histogram click -> update filters ---
     @app.callback(
         Output('time-filter-slider', 'value'),
         Output('crime-type-filter-dropdown', 'value'),
@@ -74,7 +65,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
         crime_type = chart_click['points'][0]['customdata'][0]
         return no_update, [crime_type], n_clicks + 1
 
-    # --- Clear crime filter button ---
     @app.callback(
         Output('time-filter-slider', 'value', allow_duplicate=True),
         Output('crime-type-filter-dropdown', 'value', allow_duplicate=True),
@@ -90,7 +80,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
         slider_reset_value = [0, len(month_map) - 1] if month_map else [0, 0]
         return slider_reset_value, [], n_clicks + 1
 
-    # --- Update crime widget ---
     @app.callback(
         [Output("crime-bar-chart", "figure"), Output("crime-widget-title", "children")],
         [Input("selected-neighbourhood-store", "data"), Input("apply-filters-btn", "n_clicks")],
@@ -125,7 +114,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
         fig = create_crime_histogram_figure(filtered_crime_df, plotly_colour_map, title=chart_title)
         return fig, widget_title
 
-    # --- Update network widget ---
     @app.callback(
         Output("network-histogram-chart", "figure"),
         Input("apply-filters-btn", "n_clicks"),
@@ -142,4 +130,20 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
         filtered_series = df.loc[mask, network_metric].dropna()
 
         fig = create_network_histogram_figure(filtered_series, network_metric)
+        return fig
+
+    @app.callback(
+        Output("flood-risk-pie-chart", "figure"),
+        Input("flood-risk-type-selector", "value")
+    )
+    def update_flood_risk_widget(risk_type):
+        """
+        Updates the flood risk pie chart based on the selected risk type.
+        """
+        if not risk_type:
+            return no_update
+        
+        # --- MODIFIED: Set title to an empty string to remove it ---
+        title = ""
+        fig = create_flood_risk_pie_chart(buildings_df, risk_type, title=title)
         return fig

@@ -10,7 +10,8 @@ def create_slideover_panel(dataframes, color_map):
     widgets_data = get_widgets(dataframes, color_map)
     widgets_data.sort(key=lambda w: w['size'][0] * w['size'][1], reverse=True)
     
-    grid_width = 3
+    # --- MODIFIED: Changed grid width from 3 to 2 for a better layout ---
+    grid_width = 2
     occupied_cells = set()
     placed_widgets = []
     
@@ -22,6 +23,9 @@ def create_slideover_panel(dataframes, color_map):
                 widget_to_place = None
                 for i, widget in enumerate(widgets_data):
                     w_width, w_height = widget['size']
+                    # Ensure width and height are integers for range()
+                    w_width, w_height = int(w_width), int(w_height)
+                    
                     if col + w_width <= grid_width:
                         can_place = all(
                             (row + r_offset, col + c_offset) not in occupied_cells
@@ -47,8 +51,8 @@ def create_slideover_panel(dataframes, color_map):
                             children=children
                         )
                     )
-                    for r_offset in range(w_height):
-                        for c_offset in range(w_width):
+                    for r_offset in range(int(w_height)):
+                        for c_offset in range(int(w_width)):
                             occupied_cells.add((row + r_offset, col + c_offset))
             col += 1
         row += 1
