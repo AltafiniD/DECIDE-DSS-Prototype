@@ -1,7 +1,5 @@
 # config.py
 
-from google.cloud import storage
-import json
 
 # Your Mapbox API key
 MAPBOX_API_KEY = "pk.eyJ1IjoiaGVucnl3aWxmIiwiYSI6ImNtZDdjcHoyMjBrOWkya3NjaXcyd3p1cXkifQ.yw-wKc3DW22df0U6jo9YKQ"
