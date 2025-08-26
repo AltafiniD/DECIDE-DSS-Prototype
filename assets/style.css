@@ -425,7 +425,7 @@ html, body {
 }
 
 .layer-button.selected {
-    border-color: #0d6efd;
+    border-color: #5b5b5b;
     box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
 }
 
