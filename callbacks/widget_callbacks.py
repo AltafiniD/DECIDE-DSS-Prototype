@@ -39,7 +39,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
             return click_info['object']['properties']
         return no_update
 
-    # --- NEW: Callback to update filter slider from network histogram click ---
+    # --- MODIFIED: Callback to update filter slider from network histogram click ---
     @app.callback(
         Output('network-range-slider', 'value', allow_duplicate=True),
         Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
@@ -51,8 +51,10 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df):
         if not chart_click:
             return no_update, no_update
         
-        # Extract the [start, end] range from the bar's customdata
-        new_range = chart_click['points'][0]['customdata']
+        # --- FIXED: Extract the [start, end] range from the bar's customdata ---
+        # The customdata now contains [start_range, end_range, count]
+        # We only need the first two elements for the new range.
+        new_range = chart_click['points'][0]['customdata'][:2]
         
         # Update the slider and programmatically click "Apply"
         return new_range, n_clicks + 1

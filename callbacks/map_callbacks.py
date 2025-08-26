@@ -16,7 +16,6 @@ def register_callbacks(app, all_layers, dataframes):
     layer_toggle_inputs = [Input("flooding_toggle-toggle", "value")] + [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
     @app.callback(
-        # --- FIXED: Removed the non-existent 'layers-loading-output' ---
         Output("deck-gl", "data"),
         [
             Input("apply-filters-btn", "n_clicks"),
@@ -112,18 +111,30 @@ def register_callbacks(app, all_layers, dataframes):
                         mask = (filtered_network_df[network_metric] >= network_range[0]) & (filtered_network_df[network_metric] <= network_range[1])
                         filtered_network_df = filtered_network_df[mask].copy()
                         metric_series = filtered_network_df[network_metric].dropna()
+                        
                         if not metric_series.empty:
-                            min_val, max_val = metric_series.min(), metric_series.max()
-                            norm_series = (metric_series - min_val) / (max_val - min_val) if max_val > min_val else 0.5
-                            def get_rainbow_color(norm):
-                                if pd.isna(norm): return [128, 128, 128, 150]
-                                r = int(255 * (norm * 2)) if norm > 0.5 else 0
-                                g = int(255 * (1 - abs(norm - 0.5) * 2))
-                                b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
-                                return [r, g, b, 150]
-                            filtered_network_df['color'] = norm_series.apply(get_rainbow_color)
-                            filtered_network_df['value'] = metric_series
-                            filtered_network_df['metric'] = network_metric
+                            try:
+                                # --- MODIFIED: Assign decile labels ---
+                                decile_labels = pd.qcut(metric_series, 10, labels=False, duplicates='drop')
+                                filtered_network_df['decile'] = decile_labels
+                                
+                                def get_rainbow_color(decile):
+                                    if pd.isna(decile): return [128, 128, 128, 150]
+                                    # --- MODIFIED: Normalize based on decile number (0-9) ---
+                                    norm = decile / 9.0 
+                                    r = int(255 * (norm * 2)) if norm > 0.5 else 0
+                                    g = int(255 * (1 - abs(norm - 0.5) * 2))
+                                    b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
+                                    return [r, g, b, 150]
+
+                                filtered_network_df['color'] = filtered_network_df['decile'].apply(get_rainbow_color)
+                                filtered_network_df['value'] = metric_series
+                                filtered_network_df['metric'] = network_metric
+                            except ValueError:
+                                # Fallback to grey if deciles can't be calculated
+                                filtered_network_df['color'] = [[128, 128, 128, 150]] * len(filtered_network_df)
+                                print("Could not calculate deciles for network coloring.")
+
                         layer_copy.data = filtered_network_df
                     elif layer_id == 'deprivation' and deprivation_category and deprivation_category != 'all':
                         original_dep_df = dataframes['deprivation']
@@ -152,5 +163,4 @@ def register_callbacks(app, all_layers, dataframes):
 
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
-        # FIXED: Only return the deck data, not the second (now-removed) output
         return deck.to_json()

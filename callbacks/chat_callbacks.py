@@ -1,4 +1,4 @@
-# callbacks/chat/chat_callbacks.py
+# callbacks/chat_callbacks.py
 
 from dash.dependencies import Input, Output, State
 from dash import html, no_update, ctx
