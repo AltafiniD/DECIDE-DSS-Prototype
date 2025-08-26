@@ -1,5 +1,8 @@
 # config.py
 
+from google.cloud import storage
+import json
+
 # Your Mapbox API key
 MAPBOX_API_KEY = "pk.eyJ1IjoiaGVucnl3aWxmIiwiYSI6ImNtZDdjcHoyMjBrOWkya3NjaXcyd3p1cXkifQ.yw-wKc3DW22df0U6jo9YKQ"
 
@@ -28,22 +31,22 @@ MAP_STYLES = {
 FLOOD_LAYER_CONFIG = {
     "indicators": {
         "id": "flood_indicators", "label": "Flooding Indicators",
-        "file_path": "data/flood/FI01_Cardiff_Flooding_Indicators.geojson",
+        "file_path": "https://storage.googleapis.com/geojson-bucket-dss/FI01_Cardiff_Flooding_Indicators.geojson",
         "color": [0, 191, 255, 100]
     },
     "rivers": {
         "id": "flood_rivers", "label": "Risk from Rivers",
-        "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
+        "file_path": "https://storage.googleapis.com/geojson-bucket-dss/FPM01_Risk_Rivers_Cardiff.geojson",
         "color": [72, 61, 139, 100]
     },
     "sea": {
         "id": "flood_sea", "label": "Risk from Sea",
-        "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
+        "file_path": "https://storage.googleapis.com/geojson-bucket-dss/FPM01_Risk_Sea_Cardiff.geojson",
         "color": [95, 158, 160, 100]
     },
     "watercourses": {
         "id": "flood_watercourses", "label": "Risk from Watercourses",
-        "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
+        "file_path": "https://storage.googleapis.com/geojson-bucket-dss/FPM01_Risk_Watercourses_Cardiff.geojson",
         "color": [123, 104, 238, 100]
     }
 }
@@ -65,7 +68,7 @@ INITIAL_VIEW_STATE_CONFIG = { "latitude": 51.4816, "longitude": -3.1791, "zoom":
 # --- MODIFIED: Added an 'image' key for each layer for the new buttons ---
 LAYER_CONFIG = {
     "stop_and_search": {
-        "id": "stop_and_search", "label": "Stop & Search", "file_path": "data/SC02_Stop_and_Search.geojson",
+        "id": "stop_and_search", "label": "Stop & Search", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/SC02_Stop_and_Search.geojson",
         "type": "scatterplot", "visible": False, "image": "assets/images/stopandsearch.png",
         "tooltip": {"html": "<b>{Type}</b><br/>Object: {Object of search}<br/>Outcome: {Outcome}"}
     },
@@ -74,42 +77,42 @@ LAYER_CONFIG = {
         "image": "assets/images/flooding.png"
     },
     "population": {
-        "id": "population", "label": "Population", "file_path": "data/POP01_Cardiff.geojson",
+        "id": "population", "label": "Population", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/POP01_Cardiff.geojson",
         "type": "polygon", "visible": False, "image": "assets/images/population.png",
         "tooltip": {"html": "<b>Residents:</b> {all_residents}<br/><b>Density:</b> {density}"}
     },
     "land_use": {
-        "id": "land_use", "label": "Land Use", "file_path": "data/LU00_Land_Use_Cardiff.geojson",
+        "id": "land_use", "label": "Land Use", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/LU00_Land_Use_Cardiff.geojson",
         "type": "polygon", "visible": False, "image": "assets/images/land_use.png",
         "tooltip": {"html": "<b>{high_level_landuse}</b><br/>{landuse_text}"}
     },
     "buildings": {
-        "id": "buildings", "label": "Buildings", "file_path": "data/IB01_Integrated_Buildings_Dataset.geojson",
+        "id": "buildings", "label": "Buildings", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/IB01_Integrated_Buildings_Dataset.geojson",
         "type": "polygon", "visible": False, "image": "assets/images/buildings.png",
         "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
     "deprivation": {
-        "id": "deprivation", "label": "Deprivation", "file_path": "data/HD00_OA_Household_Deprivation.geojson",
+        "id": "deprivation", "label": "Deprivation", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/HD00_OA_Household_Deprivation.geojson",
         "type": "polygon", "visible": False, "image": "assets/images/deprivation.png",
         "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "neighbourhoods": {
-        "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B04_Cardiff_Communities.geojson",
+        "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/B04_Cardiff_Communities.geojson",
         "type": "polygon", "visible": True, "image": "assets/images/neighbourhoods.png",
         "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "crime_heatmap": {
-        "id": "crime_heatmap", "label": "Crime Hexmap", "file_path": "data/SC01_Street_Crimes.geojson",
+        "id": "crime_heatmap", "label": "Crime Hexmap", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/SC01_Street_Crimes.geojson",
         "type": "hexagon", "visible": False,
         "tooltip": {"html": "<b>Number of crimes:</b> {elevationValue}"}
     },
     "crime_points": {
-        "id": "crime_points", "label": "Crime Points", "file_path": "data/SC01_Street_Crimes.geojson",
+        "id": "crime_points", "label": "Crime Points", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/SC01_Street_Crimes.geojson",
         "type": "scatterplot", "visible": False,
         "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
     },
     "network": {
-        "id": "network", "label": "Network Analysis", "file_path": "data/ASA02_Cardiff.geojson",
+        "id": "network", "label": "Network Analysis", "file_path": "https://storage.googleapis.com/geojson-bucket-dss/ASA02_Cardiff.geojson",
         "type": "linestring", "visible": False, "image": "assets/images/roads.png",
         "tooltip": {"html": "<b>{metric}:</b> {value}"}
     }
