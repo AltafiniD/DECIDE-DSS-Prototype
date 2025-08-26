@@ -48,6 +48,10 @@ def create_layout():
             elif layer_id == 'neighbourhoods':
                 layer_args.update({'extruded': False, 'get_fill_color': '[200, 200, 200, 100]', 'get_line_color': '[84, 84, 84, 200]'})
             elif layer_id == 'land_use':
+                # --- NEW: Filter out 'Principle Transport' before processing ---
+                if 'landuse_text' in df.columns:
+                    df = df[df['landuse_text'] != 'Principle Transport'].copy()
+
                 land_use_color_map = {
                     'Coastal water': [0, 1, 125, 160], 'Inland Water': [146, 203, 251, 160],
                     'Deciduous woodland': [92, 142, 63, 160], 'Coniferous and undifferentiated woodland': [1, 103, 0, 160],
@@ -61,7 +65,7 @@ def create_layout():
                     'Industrial areas': [71, 0, 89, 160], 'Business parks': [106, 3, 142, 160],
                     'Mining and spoil areas': [156, 54, 56, 160], 'Amenity': [181, 213, 142, 160],
                     'Recreational land': [110, 29, 4, 160], 'Transport': [190, 190, 190, 160],
-                    'Principle Transport': [171, 171, 171, 160], 'Community services': [140, 162, 215, 160],
+                    'Community services': [140, 162, 215, 160],
                     'Large complex buildings various use (travel/recreation/ retail)': [80, 80, 193, 160],
                     'Agriculture - mixed use': [172, 212, 99, 160], 'Agriculture - mainly crops': [218, 233, 154],
                     'Farms': [130, 208, 129, 160], 'Orchards': [255, 234, 77, 160], 'Glasshouses': [97, 218, 175, 160],
@@ -145,10 +149,9 @@ def create_layout():
             
             create_chat_window(),
 
-            # --- FIXED: The panel and handle are now inside a wrapper ---
             html.Div(
                 id="filter-panel-wrapper",
-                className="filter-wrapper filter-hidden", # Start hidden
+                className="filter-wrapper filter-hidden",
                 children=[
                     filter_panel_content,
                     html.Button("⌃", id="toggle-filters-handle", n_clicks=0),
