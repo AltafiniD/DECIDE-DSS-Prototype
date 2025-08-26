@@ -6,7 +6,11 @@ def create_chat_window():
     """
     Creates the layout for the chat window component.
     """
-    initial_message_text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    # --- MODIFIED: Only the first message is now created initially ---
+    initial_message_text = (
+        "Here is the narrative window. This is an AI assistant that will eventually display "
+        "dynamic information based on what's currently selected, helping you to make informed decisions."
+    )
 
     chat_window = html.Div(
         id="chat-window-container",
@@ -17,7 +21,7 @@ def create_chat_window():
                 id="chat-history",
                 className="chat-history",
                 children=[
-                    # --- MODIFIED: The initial message now includes the avatar ---
+                    # The initial message
                     html.Div(
                         className="chat-message bot-message",
                         children=[
@@ -34,7 +38,8 @@ def create_chat_window():
                     dcc.Input(
                         id="chat-input",
                         type="text",
-                        placeholder="Say something...",
+                        # --- MODIFIED: Placeholder text is updated for interactivity ---
+                        placeholder="Type anything to continue...",
                         autoComplete="off",
                         n_submit=0,
                     ),
