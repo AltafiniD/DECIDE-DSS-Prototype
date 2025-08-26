@@ -2,17 +2,25 @@
 
 import json
 import pandas as pd
-import numpy as np
+import requests
 
 def process_geojson_features(file_path):
     """
     Loads a GeoJSON file and processes its features, correctly handling
     Polygons, MultiPolygons, Points, and LineStrings.
+    Supports both local file paths and URLs.
     """
     try:
-        with open(file_path, 'r') as f:
-            geojson_data = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
+        if file_path.startswith("http://") or file_path.startswith("https://"):
+            # Fetch the file content from the URL
+            response = requests.get(file_path)
+            response.raise_for_status()  # Raise an error for bad HTTP responses
+            geojson_data = response.json()
+        else:
+            # Load the file from the local file system
+            with open(file_path, 'r') as f:
+                geojson_data = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError, requests.RequestException) as e:
         print(f"Error loading {file_path}: {e}")
         return pd.DataFrame()
 
@@ -74,5 +82,5 @@ def process_geojson_features(file_path):
     if 'contour' in df.columns:
         df = df[df['contour'].apply(lambda x: isinstance(x, list) and len(x) > 0)]
 
-    df = df.replace({np.nan: None})
+    df = df.replace({pd.NA: None})
     return df
