@@ -23,7 +23,7 @@ def register_callbacks(app):
         class_names = [f"map-style-button{' selected' if label == selected_style_label else ''}" for label in MAP_STYLES.keys()]
         return new_map_url, class_names
 
-    # --- NEW: Callback for the new layer pill-buttons ---
+    # --- Layer pill-buttons callback (unchanged) ---
     other_layer_ids = [k for k in LAYER_CONFIG if not k.startswith('crime_')]
     layer_button_outputs = [Output(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
     layer_button_states = [State(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
@@ -47,14 +47,13 @@ def register_callbacks(app):
         clicked_idx = other_layer_ids.index(clicked_layer_id)
 
         new_values = list(states)
-        # Toggle the value: if it's an empty list, set it to [layer_id]; otherwise, empty it.
         new_values[clicked_idx] = [clicked_layer_id] if not states[clicked_idx] else []
 
         new_classnames = [f"layer-button{' selected' if val else ''}" for val in new_values]
         
         return new_classnames + new_values
 
-    # --- NEW: Callback for the master crime button ---
+    # --- Master crime button callback (unchanged) ---
     @app.callback(
         Output('crime-master-toggle', 'value'),
         Output('crime-master-toggle-btn', 'className'),
@@ -74,7 +73,7 @@ def register_callbacks(app):
             style = {'display': 'none', 'paddingLeft': '20px', 'marginTop': '10px'}
         return new_value, className, style
 
-    # --- Callback to clear crime radio selection when master toggle is turned off ---
+    # --- Clear crime radio selection callback (unchanged) ---
     @app.callback(
         Output('crime-viz-radio', 'value'),
         Input('crime-master-toggle', 'value'),
@@ -83,7 +82,48 @@ def register_callbacks(app):
     def clear_crime_radio_selection(toggle_value):
         return None if not toggle_value else no_update
 
-    # --- Clientside callbacks for panels (unchanged) ---
+    # --- NEW: Clientside callback for chat window hover effect ---
+    app.clientside_callback(
+        """
+        function(_) {
+            // This ensures the setup runs only once after the component is on the page
+            if (window.chatHoverInitialized) {
+                return window.dash_clientside.no_update;
+            }
+            window.chatHoverInitialized = true;
+
+            const chatWindow = document.getElementById('chat-window-container');
+            if (!chatWindow) return '';
+
+            let timeoutId = null;
+
+            const activateChat = () => {
+                clearTimeout(timeoutId);
+                chatWindow.classList.add('chat-active');
+            };
+
+            const deactivateChat = () => {
+                timeoutId = setTimeout(() => {
+                    chatWindow.classList.remove('chat-active');
+                }, 5000); // 5 seconds
+            };
+
+            chatWindow.addEventListener('mouseenter', activateChat);
+            chatWindow.addEventListener('mouseleave', deactivateChat);
+            
+            // Initially activate and then set a timer to deactivate
+            activateChat();
+            deactivateChat();
+
+            return ''; // No output needed, just setting up listeners
+        }
+        """,
+        Output('chat-window-container', 'data-hover-setup'), # Use a dummy data-* attribute
+        Input('chat-window-container', 'id')
+    )
+
+
+    # --- Existing clientside callbacks for panels (unchanged) ---
     app.clientside_callback(
         "function(n,c){if(!n)return[window.dash_clientside.no_update,window.dash_clientside.no_update];const i=c.includes('hidden');return[i?'slideover-panel slideover-visible':'slideover-panel slideover-hidden',i?'❯':'❮']}",
         Output("slideover-panel", "className"), Output("toggle-slideover-btn", "children"),

@@ -53,6 +53,22 @@ html, body {
     display: flex;
     flex-direction: column;
     padding: 10px 15px;
+    /* --- MODIFIED: Make background transparent by default and add transition --- */
+    background-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    box-shadow: none;
+    transition: background-color 0.5s ease-in-out, backdrop-filter 0.5s ease-in-out, border 0.5s ease-in-out;
+}
+
+/* --- NEW: Style for when the chat window is active (hovered) --- */
+.chat-window-container.chat-active {
+    background-color: rgba(242, 242, 247, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .chat-avatar {
@@ -110,7 +126,16 @@ html, body {
     gap: 10px;
     padding-top: 10px;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
+    /* --- MODIFIED: Make input area transparent by default and add transition --- */
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
+
+/* --- NEW: Make input visible when chat is active --- */
+.chat-window-container.chat-active .chat-input-area {
+    opacity: 1;
+}
+
 
 .chat-input-area input {
     flex-grow: 1;
@@ -226,7 +251,6 @@ html, body {
 
 
 /* --- Inner Widget & Layer Panel Styles --- */
-/* --- MODIFIED: Changed grid to 2 columns --- */
 .widget-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; grid-auto-rows: 150px; }
 .widget {
     background-color: rgba(255, 255, 255, 0.7);
@@ -437,17 +461,15 @@ html, body {
     object-fit: cover;
     opacity: 0.6;
     transition: opacity 0.2s ease-in-out;
-    filter: blur(5px);
+    filter: blur(0.5px);
 }
 
 .layer-button.selected .layer-button-bg {
     opacity: 0.9;
-    filter:blur(0.5px);
 }
 
 .layer-button-label {
     position: absolute;
-    /* --- MODIFIED: Positioned to the bottom right --- */
     bottom: 5px;
     left: 5px;
     color: white;
