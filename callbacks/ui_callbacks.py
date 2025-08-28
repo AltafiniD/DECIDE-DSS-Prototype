@@ -8,6 +8,44 @@ def register_callbacks(app):
     """
     Registers all UI-related callbacks to the Dash app.
     """
+    # This callback aggregates all map-related inputs into a single store.
+    # This store then becomes the single trigger for the expensive map update callback.
+    other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
+    layer_toggle_inputs = [Input("flooding_toggle-toggle", "value")] + [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
+
+    @app.callback(
+        Output("map-update-trigger-store", "data"),
+        [
+            Input("apply-filters-btn", "n_clicks"),
+            Input("map-style-radio", "value"),
+            Input("crime-viz-radio", "value"),
+            *layer_toggle_inputs
+        ],
+        [
+            State("time-filter-slider", "value"),
+            State("crime-type-filter-dropdown", "value"),
+            State("network-metric-dropdown", "value"),
+            State("network-range-slider", "value"),
+            State("deprivation-category-dropdown", "value"),
+            State("flood-risk-selector", "value"),
+            State("building-color-selector", "value")
+        ],
+        prevent_initial_call=True
+    )
+    def aggregate_map_inputs(n_clicks, map_style, crime_viz, *args):
+        # This callback runs instantly when any input changes.
+        # It bundles all the current settings into a dictionary.
+        num_states = 7
+        toggle_values = args[:-num_states]
+        state_values = args[-num_states:]
+        
+        return {
+            "map_style": map_style,
+            "crime_viz": crime_viz,
+            "toggles": toggle_values,
+            "states": state_values
+        }
+
     # --- Map style selector callback (unchanged) ---
     @app.callback(
         Output('map-style-radio', 'value'),
@@ -24,7 +62,6 @@ def register_callbacks(app):
         return new_map_url, class_names
 
     # --- Layer pill-buttons callback (unchanged) ---
-    other_layer_ids = [k for k in LAYER_CONFIG if not k.startswith('crime_')]
     layer_button_outputs = [Output(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
     layer_button_states = [State(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
@@ -82,7 +119,7 @@ def register_callbacks(app):
     def clear_crime_radio_selection(toggle_value):
         return None if not toggle_value else no_update
 
-    # --- NEW: Clientside callback for chat window hover effect ---
+    # --- Clientside callback for chat window hover effect ---
     app.clientside_callback(
         """
         function(_) {
@@ -146,3 +183,4 @@ def register_callbacks(app):
         "function(n,c){if(!n)return window.dash_clientside.no_update;return c.includes('debug-hidden')?'debug-panel-container debug-visible':'debug-panel-container debug-hidden'}",
         Output("debug-panel", "className"), Input("toggle-debug-btn", "n_clicks"), State("debug-panel", "className")
     )
+

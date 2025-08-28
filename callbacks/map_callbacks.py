@@ -1,6 +1,7 @@
 # callbacks/map_callbacks.py
 
 from dash.dependencies import Input, Output, State
+from dash import no_update
 import pydeck as pdk
 import copy
 import pandas as pd
@@ -12,38 +13,31 @@ def register_callbacks(app, all_layers, dataframes):
     """
     Registers all map-related callbacks to the Dash app.
     """
-    other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
-    layer_toggle_inputs = [Input("flooding_toggle-toggle", "value")] + [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
-
     @app.callback(
-        Output("deck-gl", "data"),
-        [
-            Input("apply-filters-btn", "n_clicks"),
-            Input("map-style-radio", "value"),
-            Input("crime-viz-radio", "value"),
-            *layer_toggle_inputs
-        ],
-        [
-            State("time-filter-slider", "value"),
-            State("crime-type-filter-dropdown", "value"),
-            State("month-map-store", "data"),
-            State("network-metric-dropdown", "value"),
-            State("network-range-slider", "value"),
-            State("deprivation-category-dropdown", "value"),
-            State("flood-risk-selector", "value"),
-            State("building-color-selector", "value")
-        ]
+        [Output("deck-gl", "data"), Output("layers-loading-output", "children")],
+        Input("map-update-trigger-store", "data"),
+        State("month-map-store", "data"),
+        prevent_initial_call=True
     )
-    def update_map_view(n_clicks, map_style, crime_viz_selection, *args):
+    def update_map_view(trigger_data, month_map):
         """
-        This callback reconstructs the map with the correct layers, view, and style.
+        This callback reconstructs the map and controls the loading spinner.
+        It's triggered only when the aggregated input data changes in the store.
         """
-        num_other_layers = len(other_layer_ids)
-        flooding_toggle = args[0]
-        other_toggles = args[1:num_other_layers+1]
-        time_range, selected_crime_types, month_map, network_metric, network_range, deprivation_category, flood_selection, building_color_metric = args[num_other_layers+1:]
+        if not trigger_data:
+            return no_update, no_update
+
+        # Unpack all the values from the trigger_data dictionary
+        map_style = trigger_data["map_style"]
+        crime_viz_selection = trigger_data["crime_viz"]
+        
+        flooding_toggle, *other_toggles = trigger_data["toggles"]
+        
+        time_range, selected_crime_types, network_metric, network_range, \
+        deprivation_category, flood_selection, building_color_metric = trigger_data["states"]
 
         visible_layers = []
+        other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
 
         if crime_viz_selection and crime_viz_selection in all_layers:
             layer_copy = copy.deepcopy(all_layers[crime_viz_selection])
@@ -60,6 +54,7 @@ def register_callbacks(app, all_layers, dataframes):
                 filtered_crime_df = filtered_crime_df[filtered_crime_df['Crime type'].isin(selected_crime_types)]
             layer_copy.data = filtered_crime_df
             visible_layers.append(layer_copy)
+
         if flooding_toggle and flood_selection:
             for layer_id in flood_selection:
                 if layer_id in all_layers:
@@ -114,13 +109,11 @@ def register_callbacks(app, all_layers, dataframes):
                         
                         if not metric_series.empty:
                             try:
-                                # --- MODIFIED: Assign decile labels ---
                                 decile_labels = pd.qcut(metric_series, 10, labels=False, duplicates='drop')
                                 filtered_network_df['decile'] = decile_labels
                                 
                                 def get_rainbow_color(decile):
                                     if pd.isna(decile): return [128, 128, 128, 150]
-                                    # --- MODIFIED: Normalize based on decile number (0-9) ---
                                     norm = decile / 9.0 
                                     r = int(255 * (norm * 2)) if norm > 0.5 else 0
                                     g = int(255 * (1 - abs(norm - 0.5) * 2))
@@ -131,7 +124,6 @@ def register_callbacks(app, all_layers, dataframes):
                                 filtered_network_df['value'] = metric_series
                                 filtered_network_df['metric'] = network_metric
                             except ValueError:
-                                # Fallback to grey if deciles can't be calculated
                                 filtered_network_df['color'] = [[128, 128, 128, 150]] * len(filtered_network_df)
                                 print("Could not calculate deciles for network coloring.")
 
@@ -163,4 +155,4 @@ def register_callbacks(app, all_layers, dataframes):
 
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
-        return deck.to_json()
+        return deck.to_json(), None

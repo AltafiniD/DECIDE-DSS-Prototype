@@ -1,6 +1,6 @@
 # components/combined_controls.py
 
-from dash import html
+from dash import html, dcc
 # Import the content-creation functions from the original component files
 from .layer_control import create_layer_control_content
 from .map_style_control import create_map_style_content
@@ -26,7 +26,15 @@ def create_combined_panel():
                         id="layers-collapse-toggle",
                         n_clicks=0,
                         children=[
-                            html.H3("Layers", style={"margin": 0}),
+                            html.Div(style={'display': 'flex', 'alignItems': 'center'}, children=[
+                                html.H3("Layers", style={"margin": 0}),
+                                dcc.Loading(
+                                    id="layers-loading",
+                                    type="circle",
+                                    className="layer-spinner",
+                                    children=html.Div(id="layers-loading-output")
+                                )
+                            ]),
                             html.Span("▼", className="chevron-icon")
                         ]
                     ),

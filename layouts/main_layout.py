@@ -29,17 +29,17 @@ def create_layout():
 
     for layer_id, config in LAYER_CONFIG.items():
         if config.get('type') == 'toggle_only': continue
-        
+
         df = unique_files[config['file_path']]
         dataframes[layer_id] = df
         if df.empty: continue
-        
+
         layer_type = config.get('type')
         layer_args = { 'data': df.copy(), 'id': config.get('id', layer_id), 'opacity': 0.8, 'pickable': True }
 
         if layer_type == 'polygon':
             layer_args.update({'stroked': True, 'get_polygon': 'contour', 'filled': True, 'get_line_width': 20})
-            
+
             if layer_id == 'buildings':
                 layer_args.update({
                     'extruded': True, 'wireframe': True, 'get_elevation': 'height',
@@ -48,7 +48,6 @@ def create_layout():
             elif layer_id == 'neighbourhoods':
                 layer_args.update({'extruded': False, 'get_fill_color': '[200, 200, 200, 100]', 'get_line_color': '[84, 84, 84, 200]'})
             elif layer_id == 'land_use':
-                # --- NEW: Filter out 'Principle Transport' before processing ---
                 if 'landuse_text' in df.columns:
                     df = df[df['landuse_text'] != 'Principle Transport'].copy()
 
@@ -132,7 +131,7 @@ def create_layout():
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
     filter_panel_content, month_map = create_filter_panel(
-        dataframes.get('crime_points'), 
+        dataframes.get('crime_points'),
         dataframes.get('network'),
         dataframes.get('deprivation'),
         dataframes.get('buildings')
@@ -145,8 +144,10 @@ def create_layout():
         children=[
             dcc.Store(id='selected-neighbourhood-store', data=None),
             dcc.Store(id='month-map-store', data=month_map),
+            dcc.Store(id='map-update-trigger-store'),
+
             html.Div(dash_deck.DeckGL(id="deck-gl", mapboxKey=MAPBOX_API_KEY, data=pdk.Deck(layers=initial_visible_layers, initial_view_state=initial_view_state, map_style=initial_map_style).to_json(), tooltip=True, enableEvents=['click']), style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}),
-            
+
             create_chat_window(),
 
             html.Div(
