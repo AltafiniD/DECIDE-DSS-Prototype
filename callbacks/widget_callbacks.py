@@ -11,12 +11,18 @@ from utils.colours import get_crime_colour_map
 from components.crime_widget import create_crime_histogram_figure
 from components.network_widget import create_network_histogram_figure
 from components.flood_risk_widget import create_flood_risk_pie_chart
+# --- NEW: Import the land use chart function ---
+from components.land_use_widget import create_land_use_donut_chart
+# --- NEW: Import shapely for efficient spatial operations ---
+from shapely.geometry import Point, Polygon
 
-def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df):
+def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df, land_use_df):
     """
     Registers all widget-related callbacks.
     """
     plotly_colour_map, _ = get_crime_colour_map()
+
+    # ... (existing callbacks remain unchanged) ...
 
     @app.callback(
         Output("selection-info-display", "children"),
@@ -137,13 +143,41 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         Input("flood-risk-type-selector", "value")
     )
     def update_flood_risk_widget(risk_type):
-        """
-        Updates the flood risk pie chart based on the selected risk type.
-        """
         if not risk_type:
             return no_update
         
-        # --- MODIFIED: Set title to an empty string to remove it ---
         title = ""
         fig = create_flood_risk_pie_chart(buildings_df, risk_type, title=title)
         return fig
+
+    # --- NEW: Callback for the Land Use Donut Chart ---
+    @app.callback(
+        [Output("land-use-donut-chart", "figure"), Output("land-use-widget-title", "children")],
+        Input("selected-neighbourhood-store", "data")
+    )
+    def update_land_use_widget(selected_neighbourhood):
+        widget_title = "#### Land Use for Cardiff"
+        chart_title = "Land Use Distribution"
+        filtered_land_use_df = land_use_df.copy()
+
+        if selected_neighbourhood:
+            name = selected_neighbourhood.get('NAME')
+            if name:
+                widget_title = f"#### Land Use for {name}"
+                chart_title = f"Land Use in {name}"
+                poly_row = neighbourhoods_df[neighbourhoods_df['NAME'] == name]
+                if not poly_row.empty:
+                    # Create a shapely Polygon for efficient checking
+                    neighbourhood_polygon = Polygon(poly_row.iloc[0]['contour'])
+                    
+                    # Define a function to check if a land use polygon is within the neighbourhood
+                    def is_land_use_in_neighbourhood(row):
+                        # Check if the representative point of the land use polygon is inside
+                        land_use_poly = Polygon(row['contour'])
+                        return neighbourhood_polygon.contains(land_use_poly.representative_point())
+
+                    mask = filtered_land_use_df.apply(is_land_use_in_neighbourhood, axis=1)
+                    filtered_land_use_df = filtered_land_use_df[mask]
+
+        fig = create_land_use_donut_chart(filtered_land_use_df, title=chart_title)
+        return fig, widget_title

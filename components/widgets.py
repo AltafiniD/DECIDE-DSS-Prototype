@@ -4,6 +4,7 @@ import pandas as pd
 from .crime_widget import create_crime_histogram_figure
 from .network_widget import create_network_histogram_figure
 from .flood_risk_widget import create_flood_risk_pie_chart
+from .land_use_widget import create_land_use_donut_chart
 
 def get_widgets(dataframes, color_map):
     """
@@ -12,6 +13,7 @@ def get_widgets(dataframes, color_map):
     crime_df = dataframes.get('crime_points', pd.DataFrame())
     network_df = dataframes.get('network', pd.DataFrame())
     buildings_df = dataframes.get('buildings', pd.DataFrame())
+    land_use_df = dataframes.get('land_use', pd.DataFrame())
     
     initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
     
@@ -19,12 +21,12 @@ def get_widgets(dataframes, color_map):
     initial_metric_series = network_df[initial_metric] if initial_metric and not network_df.empty else pd.Series()
     initial_network_fig = create_network_histogram_figure(initial_metric_series, initial_metric)
 
-    # --- MODIFIED: Create initial figure with no title ---
     initial_flood_risk_fig = create_flood_risk_pie_chart(buildings_df, 'Sea_risk', title="")
+    
+    initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
 
 
     crime_statistics_widget = {
-        # --- MODIFIED: Adjusted width for 2-column grid ---
         "size": (2, 3),
         "content": [
             html.Div(
@@ -39,7 +41,6 @@ def get_widgets(dataframes, color_map):
     }
 
     network_statistics_widget = {
-        # --- MODIFIED: Adjusted width for 2-column grid ---
         "size": (2, 2),
         "content": [
             dcc.Graph(id="network-histogram-chart", figure=initial_network_fig, style={'height': '100%'})
@@ -47,7 +48,6 @@ def get_widgets(dataframes, color_map):
     }
 
     flood_risk_widget = {
-        # --- MODIFIED: Set to 1 column width to be half of the others ---
         "size": (1, 2),
         "content": [
             dcc.Markdown("#### Building Flood Risk"),
@@ -65,9 +65,19 @@ def get_widgets(dataframes, color_map):
         ]
     }
 
+    land_use_widget = {
+        # --- MODIFIED: Changed width from 1 to 2 to make it larger ---
+        "size": (2, 2),
+        "content": [
+            dcc.Markdown(id="land-use-widget-title", children="#### Land Use"),
+            dcc.Graph(id="land-use-donut-chart", figure=initial_land_use_fig, style={'height': '80%'})
+        ]
+    }
+
     widgets = [
         crime_statistics_widget,
         network_statistics_widget,
         flood_risk_widget,
+        land_use_widget,
     ]
     return widgets
