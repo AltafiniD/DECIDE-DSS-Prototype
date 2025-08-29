@@ -6,6 +6,7 @@ from .network_widget import create_network_histogram_figure
 from .flood_risk_widget import create_flood_risk_pie_chart
 from .land_use_widget import create_land_use_donut_chart
 from .jenks_histogram_widget import create_jenks_histogram_figure
+from .buildings_at_risk_widget import create_buildings_at_risk_widget # --- NEW: Import the refactored function ---
 
 def get_widgets(dataframes, color_map):
     """
@@ -18,17 +19,22 @@ def get_widgets(dataframes, color_map):
     
     initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
     
-    # --- Both network charts will now use the same initial data ---
     initial_metric = 'NAIN' if 'NAIN' in network_df.columns else None
     initial_metric_series = network_df[initial_metric] if initial_metric and not network_df.empty else pd.Series()
     initial_network_fig = create_network_histogram_figure(initial_metric_series, initial_metric)
     initial_jenks_fig = create_jenks_histogram_figure(initial_metric_series, initial_metric)
 
-    # --- FIX: Re-add the missing line to create the initial flood risk figure ---
     initial_flood_risk_fig = create_flood_risk_pie_chart(buildings_df, 'Sea_risk', title="")
     
     initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
 
+    # --- MODIFIED: Call the new function to create the widget content ---
+    buildings_at_risk_content = create_buildings_at_risk_widget(buildings_df)
+
+    buildings_at_risk_widget = {
+        "size": (1, 1), # A small 1x1 widget
+        "content": buildings_at_risk_content # Use the content from the new function
+    }
 
     crime_statistics_widget = {
         "size": (2, 3),
@@ -96,6 +102,7 @@ def get_widgets(dataframes, color_map):
         crime_statistics_widget,
         network_statistics_widget,
         jenks_widget,
+        buildings_at_risk_widget,
         flood_risk_widget,
         land_use_widget,
     ]
