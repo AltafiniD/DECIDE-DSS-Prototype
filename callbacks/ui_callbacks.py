@@ -8,8 +8,12 @@ def register_callbacks(app):
     """
     Registers all UI-related callbacks to the Dash app.
     """
-    other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
-    layer_toggle_inputs = [Input("flooding_toggle-toggle", "value")] + [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
+    # --- MODIFIED: The definition of other_layer_ids is now consistent ---
+    # It now includes all non-crime layers, including the 'flooding_toggle'.
+    other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')]
+    
+    # --- MODIFIED: The hardcoded input for flooding is removed, as it's now handled by the generic list ---
+    layer_toggle_inputs = [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
     @app.callback(
         Output("map-update-trigger-store", "data"),
@@ -32,8 +36,6 @@ def register_callbacks(app):
         prevent_initial_call=True
     )
     def aggregate_map_inputs(n_clicks, map_style, crime_viz, *args):
-        # This callback runs instantly when any input changes.
-        # It bundles all the current settings into a dictionary.
         num_states = 8
         toggle_values = args[:-num_states]
         state_values = args[-num_states:]
@@ -59,6 +61,7 @@ def register_callbacks(app):
         class_names = [f"map-style-button{' selected' if label == selected_style_label else ''}" for label in MAP_STYLES.keys()]
         return new_map_url, class_names
 
+    # --- MODIFIED: This callback now handles all non-crime layer buttons, including flooding ---
     layer_button_outputs = [Output(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
     layer_button_states = [State(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
@@ -121,29 +124,22 @@ def register_callbacks(app):
                 return window.dash_clientside.no_update;
             }
             window.chatHoverInitialized = true;
-
             const chatWindow = document.getElementById('chat-window-container');
             if (!chatWindow) return '';
-
             let timeoutId = null;
-
             const activateChat = () => {
                 clearTimeout(timeoutId);
                 chatWindow.classList.add('chat-active');
             };
-
             const deactivateChat = () => {
                 timeoutId = setTimeout(() => {
                     chatWindow.classList.remove('chat-active');
-                }, 5000); // 5 seconds
+                }, 5000);
             };
-
             chatWindow.addEventListener('mouseenter', activateChat);
             chatWindow.addEventListener('mouseleave', deactivateChat);
-            
             activateChat();
             deactivateChat();
-
             return '';
         }
         """,

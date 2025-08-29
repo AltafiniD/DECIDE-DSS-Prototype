@@ -20,23 +20,24 @@ def register_callbacks(app, all_layers, dataframes):
         prevent_initial_call=True
     )
     def update_map_view(trigger_data, month_map):
-        """
-        This callback reconstructs the map and controls the loading spinner.
-        It's triggered only when the aggregated input data changes in the store.
-        """
         if not trigger_data:
             return no_update, no_update
 
         map_style = trigger_data["map_style"]
         crime_viz_selection = trigger_data["crime_viz"]
         
-        flooding_toggle, *other_toggles = trigger_data["toggles"]
+        # --- MODIFIED: Create a dictionary of toggle states for easy lookup ---
+        all_toggle_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')]
+        toggles_dict = dict(zip(all_toggle_ids, trigger_data["toggles"]))
         
-        # --- FIXED: Correctly unpack all 8 state variables ---
+        flooding_toggle = toggles_dict.get('flooding_toggle', False)
+        
         time_range, selected_crime_types, network_metric, network_range, \
         deprivation_category, selected_land_use, flood_selection, building_color_metric = trigger_data["states"]
 
         visible_layers = []
+        
+        # This list defines the layers that are controlled by the main buttons (excluding special toggles)
         other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
 
         if crime_viz_selection and crime_viz_selection in all_layers:
@@ -60,8 +61,9 @@ def register_callbacks(app, all_layers, dataframes):
                 if layer_id in all_layers:
                     visible_layers.append(all_layers[layer_id])
 
-        for i, layer_id in enumerate(other_layer_ids):
-            if i < len(other_toggles) and other_toggles[i]:
+        # --- MODIFIED: Loop logic now uses the dictionary for state checking ---
+        for layer_id in other_layer_ids:
+            if toggles_dict.get(layer_id):
                 if layer_id == 'buildings':
                     metric_config = BUILDING_COLOR_CONFIG.get(building_color_metric)
                     buildings_df = dataframes['buildings']
@@ -133,7 +135,6 @@ def register_callbacks(app, all_layers, dataframes):
                         category_col = "Household deprivation (6 categories)"
                         filtered_dep_df = original_dep_df[original_dep_df[category_col] == deprivation_category].copy()
                         layer_copy.data = filtered_dep_df
-                    
                     elif layer_id == 'land_use' and selected_land_use:
                         original_land_use_df = dataframes['land_use']
                         filtered_land_use_df = original_land_use_df[original_land_use_df['landuse_text'].isin(selected_land_use)].copy()

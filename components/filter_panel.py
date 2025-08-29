@@ -74,6 +74,12 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                                 html.Label("Building Coloring"),
                                 building_color_selector
                             ]),
+                            # Flood Group
+                            html.Div(className="control-widget", children=[
+                                html.H3("Environmental Filters", style={'marginTop': 0}),
+                                html.Label("Flood Risk Layer"),
+                                flood_risk_selector
+                            ]),
                         ]
                     ),
                     # --- Column 2 ---
@@ -97,12 +103,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                                 html.H3("Land Use Filters", style={'marginTop': 0}),
                                 html.Label("Land Use Type"),
                                 land_use_type_dropdown
-                            ]),
-                            # Flood Group
-                            html.Div(className="control-widget", children=[
-                                html.H3("Environmental Filters", style={'marginTop': 0}),
-                                html.Label("Flood Risk Layer"),
-                                flood_risk_selector
                             ]),
                         ]
                     ),

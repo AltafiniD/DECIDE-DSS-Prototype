@@ -20,7 +20,7 @@ def create_buildings_at_risk_widget(buildings_df):
     content = html.Div(
         style={'textAlign': 'center', 'paddingTop': '20px'},
         children=[
-            dcc.Markdown("#### Buildings At Risk"),
+            dcc.Markdown("#### Total Number of Buildings at Flood Risk"),
             html.H2(f"{num_at_risk:,}", style={'fontSize': '48px', 'margin': '0'})
         ]
     )
