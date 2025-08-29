@@ -4,7 +4,7 @@ from dash import dcc, html
 import pandas as pd
 from config import NETWORK_METRICS_EXCLUDE, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG
 
-def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
+def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land_use_df):
     """
     Creates the slide-down filter panel with controls grouped into styled boxes.
     """
@@ -26,6 +26,17 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
         categories = sorted(deprivation_df[deprivation_category_col].dropna().unique())
         deprivation_options = [{'label': 'All Categories', 'value': 'all'}] + [{'label': cat, 'value': cat} for cat in categories]
     deprivation_dropdown = dcc.Dropdown(id='deprivation-category-dropdown', options=deprivation_options, value='all', placeholder="Filter by Deprivation Category", clearable=False)
+    
+    
+    all_land_use_types = sorted(land_use_df['landuse_text'].dropna().unique())
+    land_use_type_dropdown = dcc.Dropdown(
+        id='land-use-type-dropdown',
+        options=[{'label': lu_type, 'value': lu_type} for lu_type in all_land_use_types],
+        value=[],
+        multi=True,
+        placeholder="Filter by Land Use Type"
+    )
+
     flood_options = [{'label': config['label'], 'value': config['id']} for config in FLOOD_LAYER_CONFIG.values()]
     flood_risk_selector = dcc.Dropdown(id='flood-risk-selector', options=flood_options, value=['flood_sea'], multi=True, placeholder="Select Flood Risk Layers")
     building_color_options = [
@@ -39,7 +50,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
         clearable=False
     )
 
-    # --- MODIFIED: Panel layout now uses grouped control widgets ---
     panel = html.Div(
         id="filter-slide-panel",
         className="filter-slide-panel filter-hidden",
@@ -83,6 +93,12 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df):
                                 html.H3("Social Filters", style={'marginTop': 0}),
                                 html.Label("Deprivation Category"),
                                 deprivation_dropdown
+                            ]),
+                            # --- NEW: Add the Land Use filter widget ---
+                            html.Div(className="control-widget", children=[
+                                html.H3("Land Use Filters", style={'marginTop': 0}),
+                                html.Label("Land Use Type"),
+                                land_use_type_dropdown
                             ]),
                             # Flood Group
                             html.Div(className="control-widget", children=[

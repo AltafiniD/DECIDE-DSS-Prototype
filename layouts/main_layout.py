@@ -66,7 +66,8 @@ def create_layout():
                     'Recreational land': [110, 29, 4, 160], 'Transport': [190, 190, 190, 160],
                     'Community services': [140, 162, 215, 160],
                     'Large complex buildings various use (travel/recreation/ retail)': [80, 80, 193, 160],
-                    'Agriculture - mixed use': [172, 212, 99, 160], 'Agriculture - mainly crops': [218, 233, 154],
+                    'Agriculture - mixed use': [172, 212, 99, 160], 
+                    'Agriculture - mainly crops': [218, 233, 154, 160],
                     'Farms': [130, 208, 129, 160], 'Orchards': [255, 234, 77, 160], 'Glasshouses': [97, 218, 175, 160],
                 }
                 default_color = [128, 128, 128, 120]
@@ -74,8 +75,16 @@ def create_layout():
                     df['color'] = df['landuse_text'].map(land_use_color_map).apply(lambda x: x if isinstance(x, list) else default_color)
                 else:
                     df['color'] = [default_color] * len(df)
+                
+               
+                dataframes[layer_id] = df.copy()
                 layer_args['data'] = df.copy()
-                layer_args.update({'get_fill_color': 'color', 'stroked': False})
+
+                layer_args.update({
+                    'get_fill_color': 'color', 
+                    'stroked': False,
+                })
+
             elif layer_id == 'population':
                 df['density'] = pd.to_numeric(df['density'], errors='coerce')
                 df_non_zero = df[df['density'] > 0].copy()
@@ -134,7 +143,8 @@ def create_layout():
         dataframes.get('crime_points'),
         dataframes.get('network'),
         dataframes.get('deprivation'),
-        dataframes.get('buildings')
+        dataframes.get('buildings'),
+        dataframes.get('land_use')
     )
 
     initial_map_style = MAP_STYLES['Light']['url']
@@ -174,3 +184,4 @@ def create_layout():
         ]
     )
     return layout, all_layers, dataframes
+

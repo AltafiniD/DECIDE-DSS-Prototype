@@ -34,7 +34,7 @@ def register_callbacks(app, all_layers, dataframes):
         flooding_toggle, *other_toggles = trigger_data["toggles"]
         
         time_range, selected_crime_types, network_metric, network_range, \
-        deprivation_category, flood_selection, building_color_metric = trigger_data["states"]
+        deprivation_category, selected_land_use, flood_selection, building_color_metric = trigger_data["states"]
 
         visible_layers = []
         other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
@@ -134,6 +134,11 @@ def register_callbacks(app, all_layers, dataframes):
                         filtered_dep_df = original_dep_df[original_dep_df[category_col] == deprivation_category].copy()
                         layer_copy.data = filtered_dep_df
                     
+                    elif layer_id == 'land_use' and selected_land_use:
+                        original_land_use_df = dataframes['land_use']
+                        filtered_land_use_df = original_land_use_df[original_land_use_df['landuse_text'].isin(selected_land_use)].copy()
+                        layer_copy.data = filtered_land_use_df
+                    
                     visible_layers.append(layer_copy)
 
         view_config = INITIAL_VIEW_STATE_CONFIG.copy()
@@ -156,3 +161,4 @@ def register_callbacks(app, all_layers, dataframes):
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
         return deck.to_json(), None
+

@@ -27,6 +27,7 @@ def register_callbacks(app):
             State("network-metric-dropdown", "value"),
             State("network-range-slider", "value"),
             State("deprivation-category-dropdown", "value"),
+            State("land-use-type-dropdown", "value"),
             State("flood-risk-selector", "value"),
             State("building-color-selector", "value")
         ],
@@ -35,7 +36,7 @@ def register_callbacks(app):
     def aggregate_map_inputs(n_clicks, map_style, crime_viz, *args):
         # This callback runs instantly when any input changes.
         # It bundles all the current settings into a dictionary.
-        num_states = 7
+        num_states = 8
         toggle_values = args[:-num_states]
         state_values = args[-num_states:]
         
@@ -183,4 +184,3 @@ def register_callbacks(app):
         "function(n,c){if(!n)return window.dash_clientside.no_update;return c.includes('debug-hidden')?'debug-panel-container debug-visible':'debug-panel-container debug-hidden'}",
         Output("debug-panel", "className"), Input("toggle-debug-btn", "n_clicks"), State("debug-panel", "className")
     )
-
