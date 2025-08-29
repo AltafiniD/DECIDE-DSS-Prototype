@@ -5,6 +5,7 @@ from .crime_widget import create_crime_histogram_figure
 from .network_widget import create_network_histogram_figure
 from .flood_risk_widget import create_flood_risk_pie_chart
 from .land_use_widget import create_land_use_donut_chart
+from .jenks_histogram_widget import create_jenks_histogram_figure
 
 def get_widgets(dataframes, color_map):
     """
@@ -17,10 +18,13 @@ def get_widgets(dataframes, color_map):
     
     initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
     
+    # --- Both network charts will now use the same initial data ---
     initial_metric = 'NAIN' if 'NAIN' in network_df.columns else None
     initial_metric_series = network_df[initial_metric] if initial_metric and not network_df.empty else pd.Series()
     initial_network_fig = create_network_histogram_figure(initial_metric_series, initial_metric)
+    initial_jenks_fig = create_jenks_histogram_figure(initial_metric_series, initial_metric)
 
+    # --- FIX: Re-add the missing line to create the initial flood risk figure ---
     initial_flood_risk_fig = create_flood_risk_pie_chart(buildings_df, 'Sea_risk', title="")
     
     initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
@@ -43,7 +47,8 @@ def get_widgets(dataframes, color_map):
     network_statistics_widget = {
         "size": (2, 2),
         "content": [
-            dcc.Graph(id="network-histogram-chart", figure=initial_network_fig, style={'height': '100%'})
+            dcc.Markdown("#### Network Metric Distribution (Deciles)"),
+            dcc.Graph(id="network-histogram-chart", figure=initial_network_fig, style={'height': '85%'})
         ]
     }
 
@@ -66,9 +71,8 @@ def get_widgets(dataframes, color_map):
     }
 
     land_use_widget = {
-        "size": (2, 3),
+        "size": (2, 2),
         "content": [
-            # --- MODIFIED: Add a div with a title and a clear button ---
             html.Div(
                 style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'},
                 children=[
@@ -80,10 +84,20 @@ def get_widgets(dataframes, color_map):
         ]
     }
 
+    jenks_widget = {
+        "size": (2, 2),
+        "content": [
+            dcc.Markdown("#### Network Metric Distribution (Jenks Breaks)"),
+            dcc.Graph(id="jenks-histogram-chart", figure=initial_jenks_fig, style={'height': '85%'})
+        ]
+    }
+
     widgets = [
         crime_statistics_widget,
         network_statistics_widget,
+        jenks_widget,
         flood_risk_widget,
         land_use_widget,
     ]
     return widgets
+

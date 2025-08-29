@@ -60,8 +60,8 @@ def create_network_histogram_figure(metric_series, metric_name):
             ))
 
             fig.update_layout(
-                title=f"Density Distribution of {metric_name} by Decile",
-                yaxis_title="Density (Count / Value Range)",
+                # title=f"Density Distribution of {metric_name} by Decile",
+                yaxis_title="Number of Road Segments",
                 xaxis_title=f"Value of {metric_name}",
                 showlegend=False,
                 bargap=0,

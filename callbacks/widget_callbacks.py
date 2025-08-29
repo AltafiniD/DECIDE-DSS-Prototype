@@ -12,6 +12,7 @@ from components.crime_widget import create_crime_histogram_figure
 from components.network_widget import create_network_histogram_figure
 from components.flood_risk_widget import create_flood_risk_pie_chart
 from components.land_use_widget import create_land_use_donut_chart
+from components.jenks_histogram_widget import create_jenks_histogram_figure
 from shapely.geometry import Point, Polygon
 
 def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df, land_use_df):
@@ -82,7 +83,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         slider_reset_value = [0, len(month_map) - 1] if month_map else [0, 0]
         return slider_reset_value, [], n_clicks + 1
 
-    # --- NEW: Callback to update land use filter when bar chart is clicked ---
     @app.callback(
         Output('land-use-type-dropdown', 'value'),
         Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
@@ -101,7 +101,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
 
         return [land_use_type], n_clicks + 1
 
-    # --- NEW: Callback for the clear land use filter button ---
     @app.callback(
         Output('land-use-type-dropdown', 'value', allow_duplicate=True),
         Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
@@ -149,23 +148,27 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         fig = create_crime_histogram_figure(filtered_crime_df, plotly_colour_map, title=chart_title)
         return fig, widget_title
 
+    # --- MODIFIED: This callback now updates BOTH network histograms ---
     @app.callback(
-        Output("network-histogram-chart", "figure"),
+        [Output("network-histogram-chart", "figure"), Output("jenks-histogram-chart", "figure")],
         Input("apply-filters-btn", "n_clicks"),
         [State("network-metric-dropdown", "value"), State("network-range-slider", "value")],
         prevent_initial_call=True
     )
-    def update_network_widget(n_clicks, network_metric, network_range):
+    def update_network_widgets(n_clicks, network_metric, network_range):
         if not n_clicks or not network_metric or not network_range:
-            return no_update
+            return no_update, no_update
 
         df = network_df.copy()
         df[network_metric] = pd.to_numeric(df[network_metric], errors='coerce')
         mask = (df[network_metric] >= network_range[0]) & (df[network_metric] <= network_range[1])
         filtered_series = df.loc[mask, network_metric].dropna()
 
-        fig = create_network_histogram_figure(filtered_series, network_metric)
-        return fig
+        # Create both figures from the same filtered data
+        decile_fig = create_network_histogram_figure(filtered_series, network_metric)
+        jenks_fig = create_jenks_histogram_figure(filtered_series, network_metric)
+        
+        return decile_fig, jenks_fig
 
     @app.callback(
         Output("flood-risk-pie-chart", "figure"),
@@ -178,7 +181,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         title = ""
         fig = create_flood_risk_pie_chart(buildings_df, risk_type, title=title)
         return fig
-
+    
     @app.callback(
         [Output("land-use-donut-chart", "figure"), Output("land-use-widget-title", "children")],
         [Input("selected-neighbourhood-store", "data"), Input("apply-filters-btn", "n_clicks")],
