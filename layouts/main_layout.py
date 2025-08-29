@@ -31,8 +31,10 @@ def create_layout():
         if config.get('type') == 'toggle_only': continue
 
         df = unique_files[config['file_path']]
-        dataframes[layer_id] = df
-        if df.empty: continue
+        
+        if df.empty: 
+            dataframes[layer_id] = df
+            continue
 
         layer_type = config.get('type')
         layer_args = { 'data': df.copy(), 'id': config.get('id', layer_id), 'opacity': 0.8, 'pickable': True }
@@ -66,8 +68,7 @@ def create_layout():
                     'Recreational land': [110, 29, 4, 160], 'Transport': [190, 190, 190, 160],
                     'Community services': [140, 162, 215, 160],
                     'Large complex buildings various use (travel/recreation/ retail)': [80, 80, 193, 160],
-                    'Agriculture - mixed use': [172, 212, 99, 160], 
-                    'Agriculture - mainly crops': [218, 233, 154, 160],
+                    'Agriculture - mixed use': [172, 212, 99, 160], 'Agriculture - mainly crops': [218, 233, 154, 160],
                     'Farms': [130, 208, 129, 160], 'Orchards': [255, 234, 77, 160], 'Glasshouses': [97, 218, 175, 160],
                 }
                 default_color = [128, 128, 128, 120]
@@ -76,14 +77,8 @@ def create_layout():
                 else:
                     df['color'] = [default_color] * len(df)
                 
-               
-                dataframes[layer_id] = df.copy()
                 layer_args['data'] = df.copy()
-
-                layer_args.update({
-                    'get_fill_color': 'color', 
-                    'stroked': False,
-                })
+                layer_args.update({'get_fill_color': 'color', 'stroked': False})
 
             elif layer_id == 'population':
                 df['density'] = pd.to_numeric(df['density'], errors='coerce')
@@ -127,6 +122,8 @@ def create_layout():
             layer_args.update({'get_source_position': 'source_position', 'get_target_position': 'target_position', 'get_color': 'color', 'get_width': 5})
             layer = pdk.Layer("LineLayer", **layer_args)
         else: continue
+
+        dataframes[layer_id] = df.copy()
         all_layers[layer_id] = layer
 
     for layer_key, config in FLOOD_LAYER_CONFIG.items():

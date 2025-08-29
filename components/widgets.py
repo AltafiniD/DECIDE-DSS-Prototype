@@ -66,10 +66,16 @@ def get_widgets(dataframes, color_map):
     }
 
     land_use_widget = {
-        # --- MODIFIED: Changed width from 1 to 2 to make it larger ---
-        "size": (2, 2),
+        "size": (2, 3),
         "content": [
-            dcc.Markdown(id="land-use-widget-title", children="#### Land Use"),
+            # --- MODIFIED: Add a div with a title and a clear button ---
+            html.Div(
+                style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'},
+                children=[
+                    dcc.Markdown(id="land-use-widget-title", children="#### Land Use"),
+                    html.Button("Clear Filter", id="clear-land-use-filter-btn", n_clicks=0, style={'fontSize': '12px'})
+                ]
+            ),
             dcc.Graph(id="land-use-donut-chart", figure=initial_land_use_fig, style={'height': '80%'})
         ]
     }

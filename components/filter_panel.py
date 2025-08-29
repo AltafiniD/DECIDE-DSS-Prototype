@@ -27,7 +27,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
         deprivation_options = [{'label': 'All Categories', 'value': 'all'}] + [{'label': cat, 'value': cat} for cat in categories]
     deprivation_dropdown = dcc.Dropdown(id='deprivation-category-dropdown', options=deprivation_options, value='all', placeholder="Filter by Deprivation Category", clearable=False)
     
-    
     all_land_use_types = sorted(land_use_df['landuse_text'].dropna().unique())
     land_use_type_dropdown = dcc.Dropdown(
         id='land-use-type-dropdown',
@@ -94,7 +93,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                                 html.Label("Deprivation Category"),
                                 deprivation_dropdown
                             ]),
-                            # --- NEW: Add the Land Use filter widget ---
                             html.Div(className="control-widget", children=[
                                 html.H3("Land Use Filters", style={'marginTop': 0}),
                                 html.Label("Land Use Type"),
@@ -115,3 +113,4 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     )
     
     return panel, month_map
+

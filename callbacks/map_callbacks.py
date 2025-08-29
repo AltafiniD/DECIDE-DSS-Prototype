@@ -27,12 +27,12 @@ def register_callbacks(app, all_layers, dataframes):
         if not trigger_data:
             return no_update, no_update
 
-        # Unpack all the values from the trigger_data dictionary
         map_style = trigger_data["map_style"]
         crime_viz_selection = trigger_data["crime_viz"]
         
         flooding_toggle, *other_toggles = trigger_data["toggles"]
         
+        # --- FIXED: Correctly unpack all 8 state variables ---
         time_range, selected_crime_types, network_metric, network_range, \
         deprivation_category, selected_land_use, flood_selection, building_color_metric = trigger_data["states"]
 

@@ -109,7 +109,7 @@ LAYER_CONFIG = {
         "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
     },
     "network": {
-        "id": "network", "label": "Network Analysis", "file_path": "data/ASA02_Cardiff.geojson",
+        "id": "network", "label": "Network Analysis", "file_path": "data/IR00_Integrated_Roads_Dataset.geojson",
         "type": "linestring", "visible": False, "image": "assets/images/roads.png",
         "tooltip": {"html": "<b>{metric}:</b> {value}"}
     }

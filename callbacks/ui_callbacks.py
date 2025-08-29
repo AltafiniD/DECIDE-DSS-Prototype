@@ -8,8 +8,6 @@ def register_callbacks(app):
     """
     Registers all UI-related callbacks to the Dash app.
     """
-    # This callback aggregates all map-related inputs into a single store.
-    # This store then becomes the single trigger for the expensive map update callback.
     other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
     layer_toggle_inputs = [Input("flooding_toggle-toggle", "value")] + [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
@@ -47,7 +45,6 @@ def register_callbacks(app):
             "states": state_values
         }
 
-    # --- Map style selector callback (unchanged) ---
     @app.callback(
         Output('map-style-radio', 'value'),
         Output({'type': 'map-style-button', 'index': ALL}, 'className'),
@@ -62,7 +59,6 @@ def register_callbacks(app):
         class_names = [f"map-style-button{' selected' if label == selected_style_label else ''}" for label in MAP_STYLES.keys()]
         return new_map_url, class_names
 
-    # --- Layer pill-buttons callback (unchanged) ---
     layer_button_outputs = [Output(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
     layer_button_states = [State(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
@@ -91,7 +87,6 @@ def register_callbacks(app):
         
         return new_classnames + new_values
 
-    # --- Master crime button callback (unchanged) ---
     @app.callback(
         Output('crime-master-toggle', 'value'),
         Output('crime-master-toggle-btn', 'className'),
@@ -111,7 +106,6 @@ def register_callbacks(app):
             style = {'display': 'none', 'paddingLeft': '20px', 'marginTop': '10px'}
         return new_value, className, style
 
-    # --- Clear crime radio selection callback (unchanged) ---
     @app.callback(
         Output('crime-viz-radio', 'value'),
         Input('crime-master-toggle', 'value'),
@@ -120,11 +114,9 @@ def register_callbacks(app):
     def clear_crime_radio_selection(toggle_value):
         return None if not toggle_value else no_update
 
-    # --- Clientside callback for chat window hover effect ---
     app.clientside_callback(
         """
         function(_) {
-            // This ensures the setup runs only once after the component is on the page
             if (window.chatHoverInitialized) {
                 return window.dash_clientside.no_update;
             }
@@ -149,19 +141,16 @@ def register_callbacks(app):
             chatWindow.addEventListener('mouseenter', activateChat);
             chatWindow.addEventListener('mouseleave', deactivateChat);
             
-            // Initially activate and then set a timer to deactivate
             activateChat();
             deactivateChat();
 
-            return ''; // No output needed, just setting up listeners
+            return '';
         }
         """,
-        Output('chat-window-container', 'data-hover-setup'), # Use a dummy data-* attribute
+        Output('chat-window-container', 'data-hover-setup'),
         Input('chat-window-container', 'id')
     )
 
-
-    # --- Existing clientside callbacks for panels (unchanged) ---
     app.clientside_callback(
         "function(n,c){if(!n)return[window.dash_clientside.no_update,window.dash_clientside.no_update];const i=c.includes('hidden');return[i?'slideover-panel slideover-visible':'slideover-panel slideover-hidden',i?'❯':'❮']}",
         Output("slideover-panel", "className"), Output("toggle-slideover-btn", "children"),
@@ -184,3 +173,4 @@ def register_callbacks(app):
         "function(n,c){if(!n)return window.dash_clientside.no_update;return c.includes('debug-hidden')?'debug-panel-container debug-visible':'debug-panel-container debug-hidden'}",
         Output("debug-panel", "className"), Input("toggle-debug-btn", "n_clicks"), State("debug-panel", "className")
     )
+

@@ -11,9 +11,7 @@ from utils.colours import get_crime_colour_map
 from components.crime_widget import create_crime_histogram_figure
 from components.network_widget import create_network_histogram_figure
 from components.flood_risk_widget import create_flood_risk_pie_chart
-# --- NEW: Import the land use chart function ---
 from components.land_use_widget import create_land_use_donut_chart
-# --- NEW: Import shapely for efficient spatial operations ---
 from shapely.geometry import Point, Polygon
 
 def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df, land_use_df):
@@ -21,8 +19,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
     Registers all widget-related callbacks.
     """
     plotly_colour_map, _ = get_crime_colour_map()
-
-    # ... (existing callbacks remain unchanged) ...
 
     @app.callback(
         Output("selection-info-display", "children"),
@@ -85,6 +81,39 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
             return no_update, no_update, no_update
         slider_reset_value = [0, len(month_map) - 1] if month_map else [0, 0]
         return slider_reset_value, [], n_clicks + 1
+
+    # --- NEW: Callback to update land use filter when bar chart is clicked ---
+    @app.callback(
+        Output('land-use-type-dropdown', 'value'),
+        Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
+        Input('land-use-donut-chart', 'clickData'),
+        State('apply-filters-btn', 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def update_filter_from_land_use_click(chart_click, n_clicks):
+        if not chart_click:
+            return no_update, no_update
+        
+        land_use_type = chart_click['points'][0]['customdata'][0]
+        
+        if land_use_type == 'Other':
+            return no_update, no_update
+
+        return [land_use_type], n_clicks + 1
+
+    # --- NEW: Callback for the clear land use filter button ---
+    @app.callback(
+        Output('land-use-type-dropdown', 'value', allow_duplicate=True),
+        Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
+        Input('clear-land-use-filter-btn', 'n_clicks'),
+        State('apply-filters-btn', 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def clear_land_use_filter(clear_clicks, n_clicks):
+        if not clear_clicks:
+            return no_update, no_update
+        
+        return [], n_clicks + 1
 
     @app.callback(
         [Output("crime-bar-chart", "figure"), Output("crime-widget-title", "children")],
@@ -150,15 +179,16 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         fig = create_flood_risk_pie_chart(buildings_df, risk_type, title=title)
         return fig
 
-    # --- NEW: Callback for the Land Use Donut Chart ---
     @app.callback(
         [Output("land-use-donut-chart", "figure"), Output("land-use-widget-title", "children")],
-        Input("selected-neighbourhood-store", "data")
+        [Input("selected-neighbourhood-store", "data"), Input("apply-filters-btn", "n_clicks")],
+        [State("land-use-type-dropdown", "value")]
     )
-    def update_land_use_widget(selected_neighbourhood):
+    def update_land_use_widget(selected_neighbourhood, n_clicks, selected_land_use):
         widget_title = "#### Land Use for Cardiff"
         chart_title = "Land Use Distribution"
-        filtered_land_use_df = land_use_df.copy()
+        
+        df_to_render = land_use_df.copy()
 
         if selected_neighbourhood:
             name = selected_neighbourhood.get('NAME')
@@ -167,17 +197,13 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
                 chart_title = f"Land Use in {name}"
                 poly_row = neighbourhoods_df[neighbourhoods_df['NAME'] == name]
                 if not poly_row.empty:
-                    # Create a shapely Polygon for efficient checking
                     neighbourhood_polygon = Polygon(poly_row.iloc[0]['contour'])
-                    
-                    # Define a function to check if a land use polygon is within the neighbourhood
                     def is_land_use_in_neighbourhood(row):
-                        # Check if the representative point of the land use polygon is inside
                         land_use_poly = Polygon(row['contour'])
                         return neighbourhood_polygon.contains(land_use_poly.representative_point())
+                    mask = df_to_render.apply(is_land_use_in_neighbourhood, axis=1)
+                    df_to_render = df_to_render[mask]
 
-                    mask = filtered_land_use_df.apply(is_land_use_in_neighbourhood, axis=1)
-                    filtered_land_use_df = filtered_land_use_df[mask]
-
-        fig = create_land_use_donut_chart(filtered_land_use_df, title=chart_title)
+        fig = create_land_use_donut_chart(df_to_render, title=chart_title)
         return fig, widget_title
+
