@@ -26,18 +26,18 @@ def register_callbacks(app, all_layers, dataframes):
         map_style = trigger_data["map_style"]
         crime_viz_selection = trigger_data["crime_viz"]
         
-        # --- MODIFIED: Create a dictionary of toggle states for easy lookup ---
         all_toggle_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')]
         toggles_dict = dict(zip(all_toggle_ids, trigger_data["toggles"]))
         
         flooding_toggle = toggles_dict.get('flooding_toggle', False)
         
+        # --- MODIFIED: Unpack the new neighbourhood filter state ---
         time_range, selected_crime_types, network_metric, network_range, \
-        deprivation_category, selected_land_use, flood_selection, building_color_metric = trigger_data["states"]
+        deprivation_category, selected_land_use, flood_selection, \
+        building_color_metric, selected_neighbourhoods = trigger_data["states"]
 
         visible_layers = []
         
-        # This list defines the layers that are controlled by the main buttons (excluding special toggles)
         other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
 
         if crime_viz_selection and crime_viz_selection in all_layers:
@@ -61,7 +61,6 @@ def register_callbacks(app, all_layers, dataframes):
                 if layer_id in all_layers:
                     visible_layers.append(all_layers[layer_id])
 
-        # --- MODIFIED: Loop logic now uses the dictionary for state checking ---
         for layer_id in other_layer_ids:
             if toggles_dict.get(layer_id):
                 if layer_id == 'buildings':
@@ -80,10 +79,7 @@ def register_callbacks(app, all_layers, dataframes):
 
                         def get_building_color(risk_level):
                             risk_level_str = str(risk_level).lower()
-                            if risk_level_str == 'low': return colors.get('low', white_color)
-                            if risk_level_str == 'medium': return colors.get('medium', white_color)
-                            if risk_level_str == 'high': return colors.get('high', white_color)
-                            return white_color
+                            return colors.get(risk_level_str, white_color)
 
                         if column_name in buildings_df.columns:
                             buildings_df_copy = buildings_df.copy()
@@ -91,7 +87,6 @@ def register_callbacks(app, all_layers, dataframes):
                             building_layer_args['data'] = buildings_df_copy
                             building_layer_args['get_fill_color'] = 'color'
                         else:
-                            print(f"Warning: Column '{column_name}' not found for building coloring.")
                             building_layer_args['get_fill_color'] = BUILDING_COLOR_CONFIG['none']['color']
                     else:
                         building_layer_args['get_fill_color'] = BUILDING_COLOR_CONFIG['none']['color']
@@ -127,18 +122,29 @@ def register_callbacks(app, all_layers, dataframes):
                                 filtered_network_df['metric'] = network_metric
                             except ValueError:
                                 filtered_network_df['color'] = [[128, 128, 128, 150]] * len(filtered_network_df)
-                                print("Could not calculate deciles for network coloring.")
 
                         layer_copy.data = filtered_network_df
-                    elif layer_id == 'deprivation' and deprivation_category and deprivation_category != 'all':
+                    elif layer_id == 'deprivation' and deprivation_category:
                         original_dep_df = dataframes['deprivation']
                         category_col = "Household deprivation (6 categories)"
-                        filtered_dep_df = original_dep_df[original_dep_df[category_col] == deprivation_category].copy()
-                        layer_copy.data = filtered_dep_df
+                        
+                        if deprivation_category == '4+':
+                            keywords = ['four', 'five', 'six']
+                            mask = original_dep_df[category_col].str.contains('|'.join(keywords), na=False, case=False)
+                            layer_copy.data = original_dep_df[mask].copy()
+                        else:
+                            layer_copy.data = original_dep_df[original_dep_df[category_col] == deprivation_category].copy()
+
                     elif layer_id == 'land_use' and selected_land_use:
                         original_land_use_df = dataframes['land_use']
                         filtered_land_use_df = original_land_use_df[original_land_use_df['landuse_text'].isin(selected_land_use)].copy()
                         layer_copy.data = filtered_land_use_df
+                    
+                    # --- NEW: Filter the neighbourhoods layer based on the dropdown selection ---
+                    elif layer_id == 'neighbourhoods' and selected_neighbourhoods is not None:
+                        original_df = dataframes['neighbourhoods']
+                        filtered_df = original_df[original_df['NAME'].isin(selected_neighbourhoods)].copy()
+                        layer_copy.data = filtered_df
                     
                     visible_layers.append(layer_copy)
 
@@ -162,4 +168,3 @@ def register_callbacks(app, all_layers, dataframes):
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
         return deck.to_json(), None
-

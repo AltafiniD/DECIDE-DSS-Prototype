@@ -4,7 +4,7 @@ from dash import dcc, html
 import pandas as pd
 from config import NETWORK_METRICS_EXCLUDE, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG
 
-def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land_use_df):
+def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land_use_df, neighbourhoods_df):
     """
     Creates the slide-down filter panel with controls grouped into styled boxes.
     """
@@ -23,7 +23,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     network_metric_dropdown = dcc.Dropdown(id='network-metric-dropdown', options=[{'label': metric, 'value': metric} for metric in network_metrics], value='NAIN', clearable=False)
     network_range_slider = dcc.RangeSlider(id='network-range-slider', min=0, max=1, value=[0, 1], step=0.01, tooltip={"placement": "bottom", "always_visible": True})
 
-    # --- MODIFIED: Cleaned up deprivation dropdown options and set a new default ---
     deprivation_options = [
         {'label': 'Not Deprived', 'value': 'Household is not deprived in any dimension'},
         {'label': '1 Dimension', 'value': 'Household is deprived in one dimension'},
@@ -34,7 +33,7 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     deprivation_dropdown = dcc.Dropdown(
         id='deprivation-category-dropdown',
         options=deprivation_options,
-        value='Household is deprived in one dimension', # Set new default
+        value='Household is deprived in one dimension',
         clearable=False
     )
     
@@ -46,6 +45,16 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     
     building_color_options = [{'label': config['label'], 'value': key} for key, config in BUILDING_COLOR_CONFIG.items()]
     building_color_selector = dcc.Dropdown(id='building-color-selector', options=building_color_options, value='none', clearable=False)
+    
+    # --- NEW: Neighbourhood Filter ---
+    all_neighbourhoods = sorted(neighbourhoods_df['NAME'].dropna().unique()) if neighbourhoods_df is not None and not neighbourhoods_df.empty else []
+    neighbourhood_dropdown = dcc.Dropdown(
+        id='neighbourhood-filter-dropdown',
+        options=[{'label': name, 'value': name} for name in all_neighbourhoods],
+        value=all_neighbourhoods, 
+        multi=True, 
+        placeholder="Filter by Neighbourhood"
+    )
 
     panel = html.Div(
         id="filter-slide-panel",
@@ -58,6 +67,12 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                     html.Div(
                         className="filter-column",
                         children=[
+                            # --- NEW: Neighbourhood Filter Widget ---
+                            html.Div(className="control-widget", children=[
+                                html.H3("Neighbourhood Filters", style={'marginTop': 0}),
+                                html.Label("Select Neighbourhoods"),
+                                neighbourhood_dropdown
+                            ]),
                             html.Div(className="control-widget", children=[
                                 html.H3("Crime Filters", style={'marginTop': 0}),
                                 html.Label("Crime Types"), crime_type_dropdown,
@@ -66,10 +81,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                             html.Div(className="control-widget", children=[
                                 html.H3("Building Filters", style={'marginTop': 0}),
                                 html.Label("Building Coloring"), building_color_selector
-                            ]),
-                            html.Div(className="control-widget", children=[
-                                html.H3("Environmental Filters", style={'marginTop': 0}),
-                                html.Label("Flood Risk Layer"), flood_risk_selector
                             ]),
                         ]
                     ),
@@ -87,8 +98,9 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                                 html.Label("Deprivation Category"), deprivation_dropdown
                             ]),
                             html.Div(className="control-widget", children=[
-                                html.H3("Land Use Filters", style={'marginTop': 0}),
-                                html.Label("Land Use Type"), land_use_type_dropdown
+                                html.H3("Environmental & Land Use", style={'marginTop': 0}),
+                                html.Label("Flood Risk Layer"), flood_risk_selector,
+                                html.Label("Land Use Type", style={'marginTop': '15px'}), land_use_type_dropdown
                             ]),
                         ]
                     ),
@@ -99,3 +111,4 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     )
     
     return panel, month_map
+

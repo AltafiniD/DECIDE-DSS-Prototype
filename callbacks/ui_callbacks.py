@@ -8,11 +8,7 @@ def register_callbacks(app):
     """
     Registers all UI-related callbacks to the Dash app.
     """
-    # --- MODIFIED: The definition of other_layer_ids is now consistent ---
-    # It now includes all non-crime layers, including the 'flooding_toggle'.
     other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')]
-    
-    # --- MODIFIED: The hardcoded input for flooding is removed, as it's now handled by the generic list ---
     layer_toggle_inputs = [Input(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
     @app.callback(
@@ -31,12 +27,14 @@ def register_callbacks(app):
             State("deprivation-category-dropdown", "value"),
             State("land-use-type-dropdown", "value"),
             State("flood-risk-selector", "value"),
-            State("building-color-selector", "value")
+            State("building-color-selector", "value"),
+            State("neighbourhood-filter-dropdown", "value")
         ],
         prevent_initial_call=True
     )
     def aggregate_map_inputs(n_clicks, map_style, crime_viz, *args):
-        num_states = 8
+        # --- MODIFIED: Increased number of states to account for new dropdown ---
+        num_states = 9
         toggle_values = args[:-num_states]
         state_values = args[-num_states:]
         
@@ -61,7 +59,6 @@ def register_callbacks(app):
         class_names = [f"map-style-button{' selected' if label == selected_style_label else ''}" for label in MAP_STYLES.keys()]
         return new_map_url, class_names
 
-    # --- MODIFIED: This callback now handles all non-crime layer buttons, including flooding ---
     layer_button_outputs = [Output(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
     layer_button_states = [State(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
 
@@ -169,4 +166,3 @@ def register_callbacks(app):
         "function(n,c){if(!n)return window.dash_clientside.no_update;return c.includes('debug-hidden')?'debug-panel-container debug-visible':'debug-panel-container debug-hidden'}",
         Output("debug-panel", "className"), Input("toggle-debug-btn", "n_clicks"), State("debug-panel", "className")
     )
-

@@ -136,12 +136,14 @@ def create_layout():
     initial_visible_layers = [layer for layer_id, layer in all_layers.items() if LAYER_CONFIG.get(layer_id, {}).get('visible', False)]
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
 
+    # --- MODIFIED: Pass neighbourhoods_df to the filter panel ---
     filter_panel_content, month_map = create_filter_panel(
         dataframes.get('crime_points'),
         dataframes.get('network'),
         dataframes.get('deprivation'),
         dataframes.get('buildings'),
-        dataframes.get('land_use')
+        dataframes.get('land_use'),
+        dataframes.get('neighbourhoods')
     )
 
     initial_map_style = MAP_STYLES['Light']['url']
@@ -181,4 +183,3 @@ def create_layout():
         ]
     )
     return layout, all_layers, dataframes
-
