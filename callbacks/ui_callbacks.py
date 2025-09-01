@@ -33,11 +33,9 @@ def register_callbacks(app):
         prevent_initial_call=True
     )
     def aggregate_map_inputs(n_clicks, map_style, crime_viz, *args):
-        # --- MODIFIED: Increased number of states to account for new dropdown ---
         num_states = 9
         toggle_values = args[:-num_states]
         state_values = args[-num_states:]
-        
         return {
             "map_style": map_style,
             "crime_viz": crime_viz,
@@ -53,10 +51,14 @@ def register_callbacks(app):
     )
     def update_map_style_selection(n_clicks):
         triggered_id = ctx.triggered_id
-        if not triggered_id: return no_update, no_update
+        if not triggered_id:
+            return no_update, no_update
         selected_style_label = triggered_id['index']
         new_map_url = MAP_STYLES[selected_style_label]['url']
-        class_names = [f"map-style-button{' selected' if label == selected_style_label else ''}" for label in MAP_STYLES.keys()]
+        class_names = [
+            f"map-style-button{' selected' if label == selected_style_label else ''}"
+            for label in MAP_STYLES.keys()
+        ]
         return new_map_url, class_names
 
     layer_button_outputs = [Output(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
@@ -70,21 +72,15 @@ def register_callbacks(app):
     )
     def update_layer_selections(*args):
         num_layers = len(other_layer_ids)
-        clicks = args[:num_layers]
-        states = args[num_layers:]
-        
+        clicks, states = args[:num_layers], args[num_layers:]
         triggered_id = ctx.triggered_id
         if not triggered_id:
             return [no_update] * (2 * num_layers)
-
         clicked_layer_id = triggered_id['index']
         clicked_idx = other_layer_ids.index(clicked_layer_id)
-
         new_values = list(states)
         new_values[clicked_idx] = [clicked_layer_id] if not states[clicked_idx] else []
-
         new_classnames = [f"layer-button{' selected' if val else ''}" for val in new_values]
-        
         return new_classnames + new_values
 
     @app.callback(
@@ -113,6 +109,18 @@ def register_callbacks(app):
     )
     def clear_crime_radio_selection(toggle_value):
         return None if not toggle_value else no_update
+
+    @app.callback(
+        Output('settings-modal-overlay', 'className'),
+        Output('main-container', 'className'),
+        [Input('settings-btn', 'n_clicks'),
+         Input('settings-modal-close-btn', 'n_clicks')],
+        prevent_initial_call=True
+    )
+    def toggle_settings_modal(open_clicks, close_clicks):
+        if ctx.triggered_id == 'settings-btn':
+            return 'settings-modal-overlay-visible', 'blurred'
+        return 'settings-modal-overlay-hidden', ''
 
     app.clientside_callback(
         """
@@ -145,24 +153,85 @@ def register_callbacks(app):
     )
 
     app.clientside_callback(
-        "function(n,c){if(!n)return[window.dash_clientside.no_update,window.dash_clientside.no_update];const i=c.includes('hidden');return[i?'slideover-panel slideover-visible':'slideover-panel slideover-hidden',i?'❯':'❮']}",
-        Output("slideover-panel", "className"), Output("toggle-slideover-btn", "children"),
-        Input("toggle-slideover-btn", "n_clicks"), State("slideover-panel", "className")
+        """
+        function(n_clicks, current_className) {
+            if (!n_clicks) {
+                return [window.dash_clientside.no_update, window.dash_clientside.no_update];
+            }
+            const is_hidden = current_className.includes('hidden');
+            const new_className = is_hidden ? 'slideover-panel slideover-visible' : 'slideover-panel slideover-hidden';
+            const new_button_text = is_hidden ? '❯' : '❮';
+            return [new_className, new_button_text];
+        }
+        """,
+        Output("slideover-panel", "className"),
+        Output("toggle-slideover-btn", "children"),
+        Input("toggle-slideover-btn", "n_clicks"),
+        State("slideover-panel", "className")
     )
+
     app.clientside_callback(
-        "function(n,c){if(!n)return[window.dash_clientside.no_update,window.dash_clientside.no_update];if(typeof c!=='string')return['filter-wrapper filter-visible','⌄'];const i=c.includes('hidden');return[i?'filter-wrapper filter-visible':'filter-wrapper filter-hidden',i?'⌄':'⌃']}",
-        Output("filter-panel-wrapper", "className"), Output("toggle-filters-handle", "children"),
-        Input("toggle-filters-handle", "n_clicks"), State("filter-panel-wrapper", "className")
+        """
+        function(n_clicks, current_className) {
+            if (!n_clicks) {
+                return [window.dash_clientside.no_update, window.dash_clientside.no_update];
+            }
+            if (typeof current_className !== 'string') {
+                return ['filter-wrapper filter-visible', '⌄'];
+            }
+            const is_hidden = current_className.includes('hidden');
+            const new_className = is_hidden ? 'filter-wrapper filter-visible' : 'filter-wrapper filter-hidden';
+            const new_button_text = is_hidden ? '⌄' : '⌃';
+            return [new_className, new_button_text];
+        }
+        """,
+        Output("filter-panel-wrapper", "className"),
+        Output("toggle-filters-handle", "children"),
+        Input("toggle-filters-handle", "n_clicks"),
+        State("filter-panel-wrapper", "className")
     )
+
     app.clientside_callback(
-        "function(n,c){if(n===0)return window.dash_clientside.no_update;const i=c.includes('hidden');return i?'collapsible-content collapsible-content-visible':'collapsible-content collapsible-content-hidden'}",
-        Output("layers-collapse-content", "className"), Input("layers-collapse-toggle", "n_clicks"), State("layers-collapse-content", "className")
+        """
+        function(n_clicks, current_className) {
+            if (n_clicks === 0) {
+                return window.dash_clientside.no_update;
+            }
+            const is_hidden = current_className.includes('hidden');
+            return is_hidden ? 'collapsible-content collapsible-content-visible' : 'collapsible-content collapsible-content-hidden';
+        }
+        """,
+        Output("layers-collapse-content", "className"),
+        Input("layers-collapse-toggle", "n_clicks"),
+        State("layers-collapse-content", "className")
     )
+
     app.clientside_callback(
-        "function(n,c){if(n===0)return window.dash_clientside.no_update;const i=c.includes('hidden');return i?'collapsible-content collapsible-content-visible':'collapsible-content collapsible-content-hidden'}",
-        Output("style-collapse-content", "className"), Input("style-collapse-toggle", "n_clicks"), State("style-collapse-content", "className")
+        """
+        function(n_clicks, current_className) {
+            if (n_clicks === 0) {
+                return window.dash_clientside.no_update;
+            }
+            const is_hidden = current_className.includes('hidden');
+            return is_hidden ? 'collapsible-content collapsible-content-visible' : 'collapsible-content collapsible-content-hidden';
+        }
+        """,
+        Output("style-collapse-content", "className"),
+        Input("style-collapse-toggle", "n_clicks"),
+        State("style-collapse-content", "className")
     )
+
     app.clientside_callback(
-        "function(n,c){if(!n)return window.dash_clientside.no_update;return c.includes('debug-hidden')?'debug-panel-container debug-visible':'debug-panel-container debug-hidden'}",
-        Output("debug-panel", "className"), Input("toggle-debug-btn", "n_clicks"), State("debug-panel", "className")
+        """
+        function(n_clicks, current_className) {
+            if (!n_clicks) {
+                return window.dash_clientside.no_update;
+            }
+            return current_className.includes('debug-hidden') ? 'debug-panel-container debug-visible' : 'debug-panel-container debug-hidden';
+        }
+        """,
+        Output("debug-panel", "className"),
+        Input("toggle-debug-btn", "n_clicks"),
+        State("debug-panel", "className")
     )
+

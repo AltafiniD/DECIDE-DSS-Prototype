@@ -7,13 +7,12 @@ from .map_style_control import create_map_style_content
 
 def create_combined_panel():
     """
-    Creates a single control panel with collapsible sections for Layers and Map Style.
+    Creates a single control panel with collapsible sections for Layers and Map Style,
+    plus a new settings panel.
     """
-    # Call the functions to get the component layouts
     layers_content = create_layer_control_content()
     map_style_content = create_map_style_content()
 
-    # Assemble the final panel
     panel = html.Div(
         className="control-panel",
         children=[
@@ -29,9 +28,7 @@ def create_combined_panel():
                             html.Div(style={'display': 'flex', 'alignItems': 'center'}, children=[
                                 html.H3("Layers", style={"margin": 0}),
                                 dcc.Loading(
-                                    id="layers-loading",
-                                    type="circle",
-                                    className="layer-spinner",
+                                    id="layers-loading", type="circle", className="layer-spinner",
                                     children=html.Div(id="layers-loading-output")
                                 )
                             ]),
@@ -40,7 +37,7 @@ def create_combined_panel():
                     ),
                     html.Div(
                         id="layers-collapse-content",
-                        className="collapsible-content collapsible-content-visible", # Start expanded
+                        className="collapsible-content collapsible-content-visible",
                         children=layers_content
                     )
                 ]
@@ -60,12 +57,21 @@ def create_combined_panel():
                     ),
                     html.Div(
                         id="style-collapse-content",
-                        className="collapsible-content collapsible-content-hidden", # Start collapsed
+                        className="collapsible-content collapsible-content-hidden",
                         children=map_style_content
                     )
+                ]
+            ),
+            # --- NEW: Settings and Share Panel ---
+            html.Div(
+                className="settings-panel",
+                children=[
+                    html.Button("⚙️", id="settings-btn", className="settings-button"),
+                    html.Button("🔗 Share", id="share-btn", className="share-button")
                 ]
             )
         ]
     )
     
     return panel
+

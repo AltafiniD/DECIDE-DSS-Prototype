@@ -17,12 +17,13 @@ app = dash.Dash(__name__, assets_folder='assets')
 server = app.server
 
 # --- Create Layout and Register Callbacks ---
+# This line is critical. It calls create_layout() which builds ALL components
+# (including the settings modal) and assigns the entire structure to app.layout.
 app.layout, all_pydeck_layers, dataframes = create_layout()
 
-# Register the different sets of callbacks
+# Callbacks are registered AFTER the layout is fully defined.
 register_map_callbacks(app, all_pydeck_layers, dataframes)
 register_ui_callbacks(app)
-# --- MODIFIED: Pass deprivation_df to widget callbacks ---
 widget_callbacks.register_callbacks(
     app,
     dataframes['crime_points'],
@@ -30,7 +31,7 @@ widget_callbacks.register_callbacks(
     dataframes['network'],
     dataframes['buildings'],
     dataframes['land_use'],
-    dataframes['deprivation'] # Add the new dataframe here
+    dataframes['deprivation']
 )
 register_filter_callbacks(app, dataframes['network'])
 register_chat_callbacks(app)
