@@ -2,6 +2,7 @@
 
 import dash
 import sys
+import os
 sys.path.append('.')
 
 from layouts.main_layout import create_layout
@@ -10,7 +11,11 @@ from callbacks.ui_callbacks import register_callbacks as register_ui_callbacks
 from callbacks.widget_callbacks import register_callbacks as register_widget_callbacks
 from callbacks.filter_callbacks import register_callbacks as register_filter_callbacks
 from callbacks.chat_callbacks import register_callbacks as register_chat_callbacks
+from callbacks.settings_callbacks import register_callbacks as register_settings_callbacks
 from callbacks import widget_callbacks
+
+# --- Create a temporary directory for uploads ---
+os.makedirs('temp', exist_ok=True)
 
 # --- Dash App Initialization ---
 app = dash.Dash(__name__, assets_folder='assets')
@@ -35,7 +40,9 @@ widget_callbacks.register_callbacks(
 )
 register_filter_callbacks(app, dataframes['network'])
 register_chat_callbacks(app)
+register_settings_callbacks(app)
 
 # --- Run the Server ---
 if __name__ == "__main__":
     app.run(debug=True)
+

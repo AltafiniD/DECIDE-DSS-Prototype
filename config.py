@@ -38,7 +38,7 @@ FLOOD_LAYER_CONFIG = {
     },
     "sea": {
         "id": "flood_sea", "label": "Risk from Sea",
-        "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
+        "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson", # changed from sea to rivers for testing 
         "color": [95, 158, 160, 100]
     },
     "watercourses": {
