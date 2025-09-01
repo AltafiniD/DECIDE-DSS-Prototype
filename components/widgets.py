@@ -7,7 +7,7 @@ from .flood_risk_widget import create_flood_risk_pie_chart
 from .land_use_widget import create_land_use_donut_chart
 from .jenks_histogram_widget import create_jenks_histogram_figure
 from .buildings_at_risk_widget import create_buildings_at_risk_widget
-from .deprivation_widget import create_deprivation_pie_chart # --- NEW: Import the deprivation chart function ---
+from .deprivation_widget import create_deprivation_bar_chart 
 
 def get_widgets(dataframes, color_map):
     """
@@ -17,7 +17,7 @@ def get_widgets(dataframes, color_map):
     network_df = dataframes.get('network', pd.DataFrame())
     buildings_df = dataframes.get('buildings', pd.DataFrame())
     land_use_df = dataframes.get('land_use', pd.DataFrame())
-    deprivation_df = dataframes.get('deprivation', pd.DataFrame()) # --- NEW: Get the deprivation dataframe ---
+    deprivation_df = dataframes.get('deprivation', pd.DataFrame())
     
     initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
     
@@ -32,15 +32,26 @@ def get_widgets(dataframes, color_map):
 
     buildings_at_risk_content = create_buildings_at_risk_widget(buildings_df)
 
-    # --- NEW: Create the initial figure for the deprivation widget ---
-    initial_deprivation_fig = create_deprivation_pie_chart(deprivation_df, title="Cardiff Deprivation Overview")
+    initial_deprivation_fig = create_deprivation_bar_chart(deprivation_df)
 
-    # --- NEW: Define the deprivation widget ---
+    # --- MODIFIED: Removed 'All' option and corrected 'Not Deprived' value ---
     deprivation_widget = {
-        "size": (1, 2),
+        "size": (2, 2),
         "content": [
-            dcc.Markdown(id="deprivation-widget-title", children="#### Household Deprivation"),
-            dcc.Graph(id="deprivation-pie-chart", figure=initial_deprivation_fig, style={'height': '85%'})
+            dcc.Markdown(id="deprivation-widget-title", children="#### Household Deprivation by Percentile"),
+            dcc.RadioItems(
+                id='deprivation-dimension-selector',
+                options=[
+                    {'label': 'Not Deprived', 'value': 'Household is not deprived in any dimension'},
+                    {'label': '1D', 'value': 'Household is deprived in one dimension'},
+                    {'label': '2D', 'value': 'Household is deprived in two dimensions'},
+                    {'label': '3D', 'value': 'Household is deprived in three dimensions'},
+                    {'label': '4D+', 'value': '4+'},
+                ],
+                value='Household is not deprived in any dimension', # Set a new default
+                labelStyle={'display': 'inline-block', 'marginRight': '10px', 'fontSize': '12px'}
+            ),
+            dcc.Graph(id="deprivation-bar-chart", figure=initial_deprivation_fig, style={'height': 'calc(100% - 60px)'})
         ]
     }
 
@@ -115,7 +126,7 @@ def get_widgets(dataframes, color_map):
         crime_statistics_widget,
         network_statistics_widget,
         jenks_widget,
-        deprivation_widget, # --- NEW: Add the widget to the list ---
+        deprivation_widget,
         buildings_at_risk_widget,
         flood_risk_widget,
         land_use_widget,

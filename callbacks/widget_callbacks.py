@@ -13,7 +13,7 @@ from components.network_widget import create_network_histogram_figure
 from components.flood_risk_widget import create_flood_risk_pie_chart
 from components.land_use_widget import create_land_use_donut_chart
 from components.jenks_histogram_widget import create_jenks_histogram_figure
-from components.deprivation_widget import create_deprivation_pie_chart # --- NEW: Import deprivation chart function ---
+from components.deprivation_widget import create_deprivation_bar_chart
 from shapely.geometry import Point, Polygon
 
 def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df, land_use_df, deprivation_df):
@@ -53,7 +53,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         if not chart_click:
             return no_update, no_update
         
-        # Add a check for customdata existence
         if not chart_click['points'][0].get('customdata'):
             return no_update, no_update
 
@@ -98,10 +97,8 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         widget_title = "#### Crime Statistics for Cardiff"
         chart_title = "Crimes per Month by Type"
         
-        # Use the full crime dataframe as the base for filtering
         df_to_filter = crime_df.copy()
 
-        # Apply neighborhood filter first if a neighborhood is selected
         if selected_neighbourhood:
             name = selected_neighbourhood.get('NAME')
             if name:
@@ -113,7 +110,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
                     mask = df_to_filter.apply(lambda row: is_point_in_polygon((row['Longitude'], row['Latitude']), polygon), axis=1)
                     df_to_filter = df_to_filter[mask]
 
-        # Apply time and type filters to the (potentially) neighborhood-filtered data
         if time_range and month_map:
             start_month_str, end_month_str = month_map.get(str(time_range[0])), month_map.get(str(time_range[1]))
             if start_month_str and end_month_str:
@@ -220,33 +216,44 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         fig = create_land_use_donut_chart(df_to_filter, title=chart_title)
         return fig, widget_title
 
-    # --- NEW: Callback for the Deprivation Widget ---
+    # --- MODIFIED: Simplified the callback logic for the new radio buttons ---
     @app.callback(
-        [Output("deprivation-pie-chart", "figure"), Output("deprivation-widget-title", "children")],
-        Input("selected-neighbourhood-store", "data")
+        [Output("deprivation-bar-chart", "figure"), Output("deprivation-widget-title", "children")],
+        [Input("selected-neighbourhood-store", "data"), Input("deprivation-dimension-selector", "value")]
     )
-    def update_deprivation_widget(selected_neighbourhood):
+    def update_deprivation_widget(selected_neighbourhood, selected_dimension):
         widget_title = "#### Deprivation for Cardiff"
-        chart_title = "Deprivation Overview"
-        filtered_deprivation_df = deprivation_df.copy()
+        chart_title = "Households by Deprivation Percentile"
+        filtered_df = deprivation_df.copy()
 
+        # 1. Filter by selected neighbourhood (if any)
         if selected_neighbourhood:
             name = selected_neighbourhood.get('NAME')
             if name:
                 widget_title = f"#### Deprivation for {name}"
-                chart_title = f"Deprivation in {name}"
                 poly_row = neighbourhoods_df[neighbourhoods_df['NAME'] == name]
                 if not poly_row.empty:
                     neighbourhood_polygon = Polygon(poly_row.iloc[0]['contour'])
                     
-                    # Filter deprivation polygons whose representative point is within the selected neighbourhood
                     def is_in_neighbourhood(row):
                         dep_poly = Polygon(row['contour'])
                         return neighbourhood_polygon.contains(dep_poly.representative_point())
 
-                    mask = filtered_deprivation_df.apply(is_in_neighbourhood, axis=1)
-                    filtered_deprivation_df = filtered_deprivation_df[mask]
+                    mask = filtered_df.apply(is_in_neighbourhood, axis=1)
+                    filtered_df = filtered_df[mask]
 
-        fig = create_deprivation_pie_chart(filtered_deprivation_df, title=chart_title)
+        # 2. Filter by the selected deprivation dimension from the radio buttons
+        category_col = "Household deprivation (6 categories)"
+        if selected_dimension:
+            if selected_dimension == '4+':
+                # Special case for '4+' which includes 4, 5, and 6 dimensions
+                keywords = ['four', 'five', 'six']
+                mask = filtered_df[category_col].str.contains('|'.join(keywords), na=False, case=False)
+                filtered_df = filtered_df[mask]
+            else:
+                # Exact match for other dimension categories
+                filtered_df = filtered_df[filtered_df[category_col] == selected_dimension]
+
+        fig = create_deprivation_bar_chart(filtered_df, title=chart_title)
         return fig, widget_title
 

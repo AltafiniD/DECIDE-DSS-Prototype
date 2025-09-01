@@ -1,60 +1,75 @@
 # components/deprivation_widget.py
-import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
+import math
 
-def create_deprivation_pie_chart(deprivation_df, title=""):
+def create_deprivation_bar_chart(deprivation_df, title=""):
     """
-    Creates a pie chart for household deprivation distribution.
+    Creates a horizontal bar chart summing household observations by deprivation percentile.
     """
-    category_col = "Household deprivation (6 categories)"
-
-    if deprivation_df.empty or category_col not in deprivation_df.columns:
-        fig = px.pie()
+    if deprivation_df.empty or 'Percentile' not in deprivation_df.columns or 'Observation' not in deprivation_df.columns:
+        fig = go.Figure()
         fig.update_layout(
             annotations=[dict(text='No Data Available', showarrow=False, font=dict(size=16))],
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            xaxis={'visible': False}, yaxis={'visible': False}
         )
         return fig
 
-    # Count the occurrences of each deprivation category
-    category_counts = deprivation_df[category_col].value_counts().reset_index()
-    category_counts.columns = [category_col, 'count']
-    
-    # Define a specific color map for deprivation categories
-    color_map = {
-        'Not deprived in any dimension': '#7cd37c',
-        'Deprived in 1 dimension': '#a6d86e',
-        'Deprived in 2 dimensions': '#d3dc64',
-        'Deprived in 3 dimensions': '#f6d859',
-        'Deprived in 4 dimensions': '#faaf48',
-        'Deprived in 5 dimensions': '#f77e3c',
-        'Deprived in 6 dimensions': '#f04d2f',
-    }
+    # Ensure required columns are numeric and handle potential errors
+    deprivation_df['Percentile'] = pd.to_numeric(deprivation_df['Percentile'], errors='coerce')
+    deprivation_df['Observation'] = pd.to_numeric(deprivation_df['Observation'], errors='coerce')
+    deprivation_df.dropna(subset=['Percentile', 'Observation'], inplace=True)
 
-    fig = px.pie(
-        category_counts,
-        names=category_col,
-        values='count',
-        color=category_col,
-        color_discrete_map=color_map
+    if deprivation_df.empty:
+        fig = go.Figure()
+        fig.update_layout(
+            annotations=[dict(text='No matching data', showarrow=False, font=dict(size=16))],
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            xaxis={'visible': False}, yaxis={'visible': False}
+        )
+        return fig
+
+
+    # Create 10 percentile bins (0-10, 10-20, etc.)
+    bins = list(range(0, 101, 10))
+    labels = [f'{i}-{i+10}%' for i in range(0, 100, 10)]
+    deprivation_df['percentile_bin'] = pd.cut(
+        deprivation_df['Percentile'],
+        bins=bins,
+        labels=labels,
+        right=False,
+        include_lowest=True
     )
-    
-    fig.update_traces(
-        textposition='inside', 
-        textinfo='percent+label', 
-        textfont_size=12,
-        marker=dict(line=dict(color='#FFFFFF', width=2))
-    )
-    
+
+    # --- MODIFIED: Added observed=True to silence the FutureWarning ---
+    observation_sum = deprivation_df.groupby('percentile_bin', observed=True)['Observation'].sum().reindex(labels, fill_value=0).sort_index()
+
+    # Define color scale similar to the map's blue gradient
+    blue_scale = [
+        '#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6',
+        '#2171b5', '#08519c', '#08306b', '#08306b', '#08306b'
+    ]
+
+    fig = go.Figure(go.Bar(
+        y=observation_sum.index,
+        x=observation_sum.values,
+        orientation='h',
+        marker_color=blue_scale,
+        text=[f'{v:,.0f}' for v in observation_sum.values], # Format numbers with commas
+        textposition='auto',
+    ))
+
     fig.update_layout(
         title_text=title,
-        margin=dict(l=20, r=20, t=40, b=20),
+        xaxis_title="Number of Households",
+        yaxis_title="Deprivation Percentile",
+        yaxis=dict(autorange="reversed"), # Show 0-10% at the top
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="black"),
-        showlegend=False,
-        uniformtext_minsize=12, 
-        uniformtext_mode='hide'
+        margin=dict(l=80, r=20, t=40, b=40),
+        font=dict(color="black")
     )
+
     return fig
+
