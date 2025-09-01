@@ -34,24 +34,12 @@ def get_widgets(dataframes, color_map):
 
     initial_deprivation_fig = create_deprivation_bar_chart(deprivation_df)
 
-    # --- MODIFIED: Removed 'All' option and corrected 'Not Deprived' value ---
+    # --- MODIFIED: Removed the radio buttons from the widget layout ---
     deprivation_widget = {
         "size": (2, 2),
         "content": [
             dcc.Markdown(id="deprivation-widget-title", children="#### Household Deprivation by Percentile"),
-            dcc.RadioItems(
-                id='deprivation-dimension-selector',
-                options=[
-                    {'label': 'Not Deprived', 'value': 'Household is not deprived in any dimension'},
-                    {'label': '1D', 'value': 'Household is deprived in one dimension'},
-                    {'label': '2D', 'value': 'Household is deprived in two dimensions'},
-                    {'label': '3D', 'value': 'Household is deprived in three dimensions'},
-                    {'label': '4D+', 'value': '4+'},
-                ],
-                value='Household is not deprived in any dimension', # Set a new default
-                labelStyle={'display': 'inline-block', 'marginRight': '10px', 'fontSize': '12px'}
-            ),
-            dcc.Graph(id="deprivation-bar-chart", figure=initial_deprivation_fig, style={'height': 'calc(100% - 60px)'})
+            dcc.Graph(id="deprivation-bar-chart", figure=initial_deprivation_fig, style={'height': 'calc(100% - 30px)'})
         ]
     }
 

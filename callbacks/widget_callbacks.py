@@ -216,12 +216,13 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         fig = create_land_use_donut_chart(df_to_filter, title=chart_title)
         return fig, widget_title
 
-    # --- MODIFIED: Simplified the callback logic for the new radio buttons ---
+    # --- MODIFIED: Callback now listens to the main filter dropdown and apply button ---
     @app.callback(
         [Output("deprivation-bar-chart", "figure"), Output("deprivation-widget-title", "children")],
-        [Input("selected-neighbourhood-store", "data"), Input("deprivation-dimension-selector", "value")]
+        [Input("selected-neighbourhood-store", "data"), Input("apply-filters-btn", "n_clicks")],
+        [State("deprivation-category-dropdown", "value")]
     )
-    def update_deprivation_widget(selected_neighbourhood, selected_dimension):
+    def update_deprivation_widget(selected_neighbourhood, n_clicks, deprivation_category):
         widget_title = "#### Deprivation for Cardiff"
         chart_title = "Households by Deprivation Percentile"
         filtered_df = deprivation_df.copy()
@@ -242,17 +243,15 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
                     mask = filtered_df.apply(is_in_neighbourhood, axis=1)
                     filtered_df = filtered_df[mask]
 
-        # 2. Filter by the selected deprivation dimension from the radio buttons
+        # 2. Filter by the selected deprivation category from the main dropdown
         category_col = "Household deprivation (6 categories)"
-        if selected_dimension:
-            if selected_dimension == '4+':
-                # Special case for '4+' which includes 4, 5, and 6 dimensions
+        if deprivation_category:
+            if deprivation_category == '4+':
                 keywords = ['four', 'five', 'six']
                 mask = filtered_df[category_col].str.contains('|'.join(keywords), na=False, case=False)
                 filtered_df = filtered_df[mask]
             else:
-                # Exact match for other dimension categories
-                filtered_df = filtered_df[filtered_df[category_col] == selected_dimension]
+                filtered_df = filtered_df[filtered_df[category_col] == deprivation_category]
 
         fig = create_deprivation_bar_chart(filtered_df, title=chart_title)
         return fig, widget_title
