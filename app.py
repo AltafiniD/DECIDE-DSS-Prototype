@@ -22,14 +22,15 @@ app.layout, all_pydeck_layers, dataframes = create_layout()
 # Register the different sets of callbacks
 register_map_callbacks(app, all_pydeck_layers, dataframes)
 register_ui_callbacks(app)
-# --- MODIFIED: Pass land_use_df to widget callbacks ---
+# --- MODIFIED: Pass deprivation_df to widget callbacks ---
 widget_callbacks.register_callbacks(
     app,
     dataframes['crime_points'],
     dataframes['neighbourhoods'],
     dataframes['network'],
     dataframes['buildings'],
-    dataframes['land_use'] # Add the new dataframe here
+    dataframes['land_use'],
+    dataframes['deprivation'] # Add the new dataframe here
 )
 register_filter_callbacks(app, dataframes['network'])
 register_chat_callbacks(app)

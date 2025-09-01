@@ -6,7 +6,8 @@ from .network_widget import create_network_histogram_figure
 from .flood_risk_widget import create_flood_risk_pie_chart
 from .land_use_widget import create_land_use_donut_chart
 from .jenks_histogram_widget import create_jenks_histogram_figure
-from .buildings_at_risk_widget import create_buildings_at_risk_widget # --- NEW: Import the refactored function ---
+from .buildings_at_risk_widget import create_buildings_at_risk_widget
+from .deprivation_widget import create_deprivation_pie_chart # --- NEW: Import the deprivation chart function ---
 
 def get_widgets(dataframes, color_map):
     """
@@ -16,6 +17,7 @@ def get_widgets(dataframes, color_map):
     network_df = dataframes.get('network', pd.DataFrame())
     buildings_df = dataframes.get('buildings', pd.DataFrame())
     land_use_df = dataframes.get('land_use', pd.DataFrame())
+    deprivation_df = dataframes.get('deprivation', pd.DataFrame()) # --- NEW: Get the deprivation dataframe ---
     
     initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
     
@@ -28,12 +30,23 @@ def get_widgets(dataframes, color_map):
     
     initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
 
-    # --- MODIFIED: Call the new function to create the widget content ---
     buildings_at_risk_content = create_buildings_at_risk_widget(buildings_df)
 
+    # --- NEW: Create the initial figure for the deprivation widget ---
+    initial_deprivation_fig = create_deprivation_pie_chart(deprivation_df, title="Cardiff Deprivation Overview")
+
+    # --- NEW: Define the deprivation widget ---
+    deprivation_widget = {
+        "size": (1, 2),
+        "content": [
+            dcc.Markdown(id="deprivation-widget-title", children="#### Household Deprivation"),
+            dcc.Graph(id="deprivation-pie-chart", figure=initial_deprivation_fig, style={'height': '85%'})
+        ]
+    }
+
     buildings_at_risk_widget = {
-        "size": (1, 1), # A small 1x1 widget
-        "content": buildings_at_risk_content # Use the content from the new function
+        "size": (1, 1),
+        "content": buildings_at_risk_content
     }
 
     crime_statistics_widget = {
@@ -102,6 +115,7 @@ def get_widgets(dataframes, color_map):
         crime_statistics_widget,
         network_statistics_widget,
         jenks_widget,
+        deprivation_widget, # --- NEW: Add the widget to the list ---
         buildings_at_risk_widget,
         flood_risk_widget,
         land_use_widget,
