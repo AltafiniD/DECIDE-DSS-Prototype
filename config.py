@@ -25,26 +25,31 @@ MAP_STYLES = {
 
 
 # Central configuration for all flood risk layers
+# FIX: Added "type": "polygon" to each flood layer so they are correctly created.
 FLOOD_LAYER_CONFIG = {
     "indicators": {
         "id": "flood_indicators", "label": "Flooding Indicators",
         "file_path": "data/flood/FI01_Cardiff_Flooding_Indicators.geojson",
-        "color": [0, 191, 255, 100]
+        "color": [0, 191, 255, 100],
+        "type": "polygon"
     },
     "rivers": {
         "id": "flood_rivers", "label": "Risk from Rivers",
         "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
-        "color": [72, 61, 139, 100]
+        "color": [72, 61, 139, 100],
+        "type": "polygon"
     },
     "sea": {
         "id": "flood_sea", "label": "Risk from Sea",
-        "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson", # changed from sea to rivers for testing 
-        "color": [95, 158, 160, 100]
+        "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
+        "color": [95, 158, 160, 100],
+        "type": "polygon"
     },
     "watercourses": {
         "id": "flood_watercourses", "label": "Risk from Watercourses",
         "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
-        "color": [123, 104, 238, 100]
+        "color": [123, 104, 238, 100],
+        "type": "polygon"
     }
 }
 
