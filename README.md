@@ -107,12 +107,14 @@ Navigate to the IP address displayed in your terminal with your web browser to v
   - Click the "⚙️" icon in the bottom-left control panel to open the Settings modal.
   - Click "Upload File" next to the layer you wish to replace.
   - Select a valid GeoJSON file from your computer.
+  - Custom data must use the `EPSG:4326 WGS 84` co-ordinate format. 
   - The server will automatically restart and load your new data for the current session. Your original data files in the /data directory will not be affected.
 
 ## Troubleshooting
 - KeyError on startup: This usually means a GeoJSON file specified in `config.py` is missing a required property (e.g., a 'NAME' column for neighbourhoods). Ensure your custom data files have the same schema as the originals.
 - Installation issues: If `pip install` fails, try creating a fresh virtual environment to resolve potential dependency conflicts.
 - In-app uploads arent being recognised: Kill the server with `Control(⌃) + c` and rerun with `python3 app.py`.
+
 
 
 
