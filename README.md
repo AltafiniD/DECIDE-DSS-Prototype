@@ -53,13 +53,14 @@ The DECIDE (Decoding Cities for Decision Making) DSS is a web based application 
 ## Disclaimer ⚠️
 
 This application is a prototype. Its code is not optimized for production, and some features may be incomplete or contain bugs.
-Loading the app for the first time will likely take a few minutes as the datasets have to be loaded into memory. Additionally, when changing selections with larger datasets loaded (e.g. Buildings) the map will be unresponsive for a while as the data is reloaded. The application may occasionally crash, just reload your tab and the app will should responsive again. 
+Loading the app for the first time will likely take a few minutes as the datasets have to be loaded into memory. Additionally, when changing selections with larger datasets loaded (e.g. Buildings) the map will be unresponsive for a while as the data is reloaded. The application may occasionally crash, just reload your tab and the app should be responsive again. 
 
 # Setup and Installation
 To run this application locally, please follow these steps:
 1. Prerequisites:
 - `Python 3.12` or higher
 - A macOS or Windows machine (at least 16GB RAM reccomended)
+- Safari or Firefox (Chrome and Edge not recommended) 
 - `pip` package installer
 
 2. Clone the Repository:
@@ -80,7 +81,8 @@ python3 -m venv venv
 pip install -r requirements.txt
 ```
 
-5. Mapbox API Key
+5. Mapbox API Key:
+
 Sign up for a free mapbox account [here](https://www.mapbox.com). Copy your public access token and paste it into line 4 of `config.py` here:
 ```
 # Your Mapbox API key
@@ -101,16 +103,23 @@ Navigate to the IP address displayed in your terminal with your web browser to v
 - Layers & Map Style: Use the control panel in the bottom-left to toggle data layers on and off and to change the base map style (Light, Dark, Satellite, Streets).
 - Filtering Data: Click the handle at the bottom-center of the screen to slide up the filter panel. Adjust the sliders and dropdowns and click "Apply Filters" to update the data shown on the map. Clicking on segments within certain graphs (e.g., the Crime or Land Use charts) also acts as a filter and will update the map data automatically.
 - Viewing Widgets: Click the handle on the right edge of the screen to open the widget slide-over panel containing detailed charts and statistics. These will update automatically as you apply filters.
+- Click and drag to move around the map. Change zoom level by scrolling on a trackpad or mouse. To pan hold `Command ⌘` or `Ctrl` then click and drag. 
 - Uploading Custom Data:
--- Click the "⚙️" icon in the bottom-left control panel to open the Settings modal.
--- Click "Upload File" next to the layer you wish to replace.
--- Select a valid GeoJSON file from your computer.
--- The server will automatically restart and load your new data for the current session. Your original data files in the /data directory will not be affected.
+  - Click the "⚙️" icon in the bottom-left control panel to open the Settings modal.
+  - Click "Upload File" next to the layer you wish to replace.
+  - Select a valid GeoJSON file from your computer.
+  - Custom data must use the `EPSG:4326 WGS 84` co-ordinate format. 
+  - The server will automatically restart and load your new data for the current session. Your original data files in the /data directory will not be affected.
 
 ## Troubleshooting
 - KeyError on startup: This usually means a GeoJSON file specified in `config.py` is missing a required property (e.g., a 'NAME' column for neighbourhoods). Ensure your custom data files have the same schema as the originals.
 - Installation issues: If `pip install` fails, try creating a fresh virtual environment to resolve potential dependency conflicts.
 - In-app uploads arent being recognised: Kill the server with `Control(⌃) + c` and rerun with `python3 app.py`.
+
+
+
+
+
 
 
 
