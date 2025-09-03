@@ -102,6 +102,7 @@ Navigate to the IP address displayed in your terminal with your web browser to v
 - Layers & Map Style: Use the control panel in the bottom-left to toggle data layers on and off and to change the base map style (Light, Dark, Satellite, Streets).
 - Filtering Data: Click the handle at the bottom-center of the screen to slide up the filter panel. Adjust the sliders and dropdowns and click "Apply Filters" to update the data shown on the map. Clicking on segments within certain graphs (e.g., the Crime or Land Use charts) also acts as a filter and will update the map data automatically.
 - Viewing Widgets: Click the handle on the right edge of the screen to open the widget slide-over panel containing detailed charts and statistics. These will update automatically as you apply filters.
+- Click and drag to move around the map. Change zoom level by scrolling on a trackpad or mouse. To pan hold `Command ⌘` or `Ctrl` then click and drag. 
 - Uploading Custom Data:
   - Click the "⚙️" icon in the bottom-left control panel to open the Settings modal.
   - Click "Upload File" next to the layer you wish to replace.
@@ -112,6 +113,7 @@ Navigate to the IP address displayed in your terminal with your web browser to v
 - KeyError on startup: This usually means a GeoJSON file specified in `config.py` is missing a required property (e.g., a 'NAME' column for neighbourhoods). Ensure your custom data files have the same schema as the originals.
 - Installation issues: If `pip install` fails, try creating a fresh virtual environment to resolve potential dependency conflicts.
 - In-app uploads arent being recognised: Kill the server with `Control(⌃) + c` and rerun with `python3 app.py`.
+
 
 
 
