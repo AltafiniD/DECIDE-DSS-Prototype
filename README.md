@@ -53,7 +53,7 @@ The DECIDE (Decoding Cities for Decision Making) DSS is a web based application 
 ## Disclaimer ⚠️
 
 This application is a prototype. Its code is not optimized for production, and some features may be incomplete or contain bugs.
-Loading the app for the first time will likely take a few minutes as the datasets have to be loaded into memory. Additionally, when changing selections with larger datasets loaded (e.g. Buildings) the map will be unresponsive for a while as the data is reloaded. The application may occasionally crash, just reload your tab and the app will should responsive again. 
+Loading the app for the first time will likely take a few minutes as the datasets have to be loaded into memory. Additionally, when changing selections with larger datasets loaded (e.g. Buildings) the map will be unresponsive for a while as the data is reloaded. The application may occasionally crash, just reload your tab and the app should be responsive again. 
 
 # Setup and Installation
 To run this application locally, please follow these steps:
@@ -111,6 +111,7 @@ Navigate to the IP address displayed in your terminal with your web browser to v
 - KeyError on startup: This usually means a GeoJSON file specified in `config.py` is missing a required property (e.g., a 'NAME' column for neighbourhoods). Ensure your custom data files have the same schema as the originals.
 - Installation issues: If `pip install` fails, try creating a fresh virtual environment to resolve potential dependency conflicts.
 - In-app uploads arent being recognised: Kill the server with `Control(⌃) + c` and rerun with `python3 app.py`.
+
 
 
 
