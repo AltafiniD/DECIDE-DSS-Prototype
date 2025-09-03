@@ -80,7 +80,8 @@ python3 -m venv venv
 pip install -r requirements.txt
 ```
 
-5. Mapbox API Key
+5. Mapbox API Key:
+
 Sign up for a free mapbox account [here](https://www.mapbox.com). Copy your public access token and paste it into line 4 of `config.py` here:
 ```
 # Your Mapbox API key
@@ -102,15 +103,16 @@ Navigate to the IP address displayed in your terminal with your web browser to v
 - Filtering Data: Click the handle at the bottom-center of the screen to slide up the filter panel. Adjust the sliders and dropdowns and click "Apply Filters" to update the data shown on the map. Clicking on segments within certain graphs (e.g., the Crime or Land Use charts) also acts as a filter and will update the map data automatically.
 - Viewing Widgets: Click the handle on the right edge of the screen to open the widget slide-over panel containing detailed charts and statistics. These will update automatically as you apply filters.
 - Uploading Custom Data:
--- Click the "⚙️" icon in the bottom-left control panel to open the Settings modal.
--- Click "Upload File" next to the layer you wish to replace.
--- Select a valid GeoJSON file from your computer.
--- The server will automatically restart and load your new data for the current session. Your original data files in the /data directory will not be affected.
+  - Click the "⚙️" icon in the bottom-left control panel to open the Settings modal.
+  - Click "Upload File" next to the layer you wish to replace.
+  - Select a valid GeoJSON file from your computer.
+  - The server will automatically restart and load your new data for the current session. Your original data files in the /data directory will not be affected.
 
 ## Troubleshooting
 - KeyError on startup: This usually means a GeoJSON file specified in `config.py` is missing a required property (e.g., a 'NAME' column for neighbourhoods). Ensure your custom data files have the same schema as the originals.
 - Installation issues: If `pip install` fails, try creating a fresh virtual environment to resolve potential dependency conflicts.
 - In-app uploads arent being recognised: Kill the server with `Control(⌃) + c` and rerun with `python3 app.py`.
+
 
 
 
