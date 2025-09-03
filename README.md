@@ -5,14 +5,14 @@ The DECIDE (Decoding Cities for Decision Making) DSS is a web based application 
 
 ## Features
 - Interactive 3D Map: Utilizes pydeck and Mapbox to render an extruded 3D map of the city, providing a rich and immersive user experience.
-- Multi-Layer Data Visualization: Toggle and overlay various datasets, including:
--- Neighbourhood Boundaries
--- Building Footprints
--- Crime Incidents (as points or a hexmap)
--- Population Density
--- Land Use
--- Road Network Analysis
--- Flood Risk Zones 
+- Multi-Layer Data Visualization: Toggle and overlay various datasets, including: 
+  - Neighbourhood Boundaries
+  - Building Footprints
+  - Crime Incidents (as points or a hexmap)
+  - Population Density
+  - Land Use
+  - Road Network Analysis
+  - Flood Risk Zones 
 - Interactive Widgets Panel: Dynamically updating graphs and KPIs that update based on selected data. 
 - Custom Data Upload: User uploaded GeoJSON files are able to be use within the app.
 - Data sharing functionality via a link or a PDF.*
@@ -101,5 +101,6 @@ Navigate to the IP address displayed in your terminal with your web browser to v
 -- Click "Upload File" next to the layer you wish to replace.
 -- Select a valid GeoJSON file from your computer.
 -- The server will automatically restart and load your new data for the current session. Your original data files in the /data directory will not be affected.
+
 
 
