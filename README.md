@@ -60,6 +60,7 @@ To run this application locally, please follow these steps:
 1. Prerequisites:
 - `Python 3.12` or higher
 - A macOS or Windows machine (at least 16GB RAM reccomended)
+- Safari or Firefox (Chrome and Edge not recommended) 
 - `pip` package installer
 
 2. Clone the Repository:
@@ -114,6 +115,7 @@ Navigate to the IP address displayed in your terminal with your web browser to v
 - KeyError on startup: This usually means a GeoJSON file specified in `config.py` is missing a required property (e.g., a 'NAME' column for neighbourhoods). Ensure your custom data files have the same schema as the originals.
 - Installation issues: If `pip install` fails, try creating a fresh virtual environment to resolve potential dependency conflicts.
 - In-app uploads arent being recognised: Kill the server with `Control(⌃) + c` and rerun with `python3 app.py`.
+
 
 
 
