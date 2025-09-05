@@ -8,6 +8,7 @@ def create_network_histogram_figure(metric_series, metric_name):
     """
     Creates a histogram with 100 bins, colored by 10 decile breaks,
     to show data density. Clicking a bin filters by its decile.
+    Color scale changes based on the metric name.
     """
     if metric_series is None or metric_series.empty or metric_name is None:
         fig = go.Figure()
@@ -37,14 +38,25 @@ def create_network_histogram_figure(metric_series, metric_name):
             bar_colors = []
             custom_data_list = []
             
-            # Define the rainbow color scale for the 10 deciles
+            # --- NEW: Conditional Color Scale ---
             decile_colors = []
-            for i in range(10):
-                norm = i / 9.0
-                r = int(255 * (norm * 2)) if norm > 0.5 else 0
-                g = int(255 * (1 - abs(norm - 0.5) * 2))
-                b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
-                decile_colors.append(f'rgb({r},{g},{b})')
+            if 'risk' in metric_name.lower():
+                # Blue scale for risk-related metrics
+                blue_hex = ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6',
+                            '#2171b5', '#08519c', '#08306b', '#08306b', '#08306b']
+                for hex_color in blue_hex:
+                    hex_color = hex_color.lstrip('#')
+                    rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+                    decile_colors.append(f'rgb({rgb[0]},{rgb[1]},{rgb[2]})')
+            else:
+                # Rainbow scale for all other metrics
+                for i in range(10):
+                    norm = i / 9.0
+                    r = int(255 * (norm * 2)) if norm > 0.5 else 0
+                    g = int(255 * (1 - abs(norm - 0.5) * 2))
+                    b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
+                    decile_colors.append(f'rgb({r},{g},{b})')
+
 
             for center in bar_centers:
                 # Find which decile the center of the bar falls into
@@ -108,3 +120,4 @@ def create_network_histogram_figure(metric_series, metric_name):
         font=dict(color="black")
     )
     return fig
+
