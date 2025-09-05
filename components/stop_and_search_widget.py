@@ -37,7 +37,9 @@ def create_stop_and_search_histogram_figure(df, title="Stop & Search by Month"):
         title=title,
         labels={'count': 'Number of Events'},
         # --- NEW: Use the color map to make all stacks the same color ---
-        color_discrete_map=color_map
+        color_discrete_map=color_map,
+        # --- NEW: Add custom_data to ensure 'Object of search' is available on click ---
+        custom_data=['Object of search']
     )
 
     fig.update_layout(
@@ -46,7 +48,8 @@ def create_stop_and_search_histogram_figure(df, title="Stop & Search by Month"):
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="black"),
         # --- Keep the legend hidden as requested ---
-        showlegend=False
+        showlegend=False,
+        # --- NEW: Make the bars clickable ---
+        clickmode='event+select'
     )
     return fig
-

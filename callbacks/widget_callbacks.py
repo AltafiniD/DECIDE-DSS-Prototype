@@ -20,6 +20,8 @@ from components.deprivation_widget import create_deprivation_bar_chart
 from components.population_widget import create_population_density_histogram
 # --- NEW: Import the stop and search widget function ---
 from components.stop_and_search_widget import create_stop_and_search_histogram_figure
+# --- NEW: Import the gender pie chart widget function ---
+from components.sas_gender_widget import create_sas_gender_pie_chart
 from shapely.geometry import Point, Polygon
 
 # --- MODIFIED: Added stop_and_search_df to the function signature ---
@@ -74,14 +76,29 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
                 filtered_sas_df = filtered_sas_df[filtered_sas_df['Object of search'].isin(selected_sas_objects)]
 
             sas_fig = create_stop_and_search_histogram_figure(filtered_sas_df)
+            sas_gender_fig = create_sas_gender_pie_chart(filtered_sas_df)
             
             widgets_data.append({
                 "size": (2, 3),
                 "content": [
-                    dcc.Markdown("#### Stop & Search Events"),
+                    # --- MODIFIED: Added a clear button ---
+                    html.Div(style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[
+                        dcc.Markdown("#### Stop & Search Events"),
+                        html.Button("Clear Filter", id="clear-sas-filter-btn", n_clicks=0, style={'fontSize': '12px'})
+                    ]),
                     dcc.Graph(id="stop-and-search-chart", figure=sas_fig, style={'height': '85%'})
                 ]
             })
+            
+            # --- NEW: Add the gender pie chart widget to the display ---
+            widgets_data.append({
+                "size": (1, 2),
+                "content": [
+                    dcc.Markdown("#### S&S Gender Distribution"),
+                    dcc.Graph(id="sas-gender-pie-chart", figure=sas_gender_fig, style={'height': '85%'})
+                ]
+            })
+
 
         if crime_viz_selection:
             initial_crime_fig = create_crime_histogram_figure(crime_df, plotly_colour_map)
@@ -216,6 +233,34 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
             return no_update, no_update, no_update
         slider_reset_value = [0, len(month_map) - 1] if month_map else [0, 0]
         return slider_reset_value, [], (n_clicks or 0) + 1
+        
+    # --- NEW: Callback to handle clicks on the Stop & Search chart ---
+    @app.callback(
+        Output('sas-object-filter-dropdown', 'value'),
+        Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
+        Input('stop-and-search-chart', 'clickData'),
+        State('apply-filters-btn', 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def update_sas_filter_from_graph_click(chart_click, n_clicks):
+        if not chart_click:
+            return no_update, no_update
+        
+        object_of_search = chart_click['points'][0]['customdata'][0]
+        return [object_of_search], (n_clicks or 0) + 1
+
+    # --- NEW: Callback to handle clearing the Stop & Search filter ---
+    @app.callback(
+        Output('sas-object-filter-dropdown', 'value', allow_duplicate=True),
+        Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
+        Input('clear-sas-filter-btn', 'n_clicks'),
+        State('apply-filters-btn', 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def clear_sas_graph_filter(clear_clicks, n_clicks):
+        if not clear_clicks or clear_clicks == 0:
+            return no_update, no_update
+        return [], (n_clicks or 0) + 1
 
     @app.callback(
         [Output("crime-bar-chart", "figure"), Output("crime-widget-title", "children")],
