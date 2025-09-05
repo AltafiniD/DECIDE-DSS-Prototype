@@ -4,13 +4,14 @@ from dash import html, dcc
 import dash_deck
 import pydeck as pdk
 import pandas as pd
+import numpy as np
 import math
 import os
 import copy
 
 from config import (
     MAPBOX_API_KEY, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG,
-    INITIAL_VIEW_STATE_CONFIG, MAP_STYLES
+    INITIAL_VIEW_STATE_CONFIG, MAP_STYLES, NETWORK_METRICS_EXCLUDE
 )
 from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
@@ -19,6 +20,19 @@ from components.filter_panel import create_filter_panel
 from components.combined_controls import create_combined_panel
 from chat.chat_window import create_chat_window
 from components.settings import create_settings_modal
+
+def load_data_efficiently(file_path):
+    """
+    Loads data from Parquet if it exists, otherwise falls back to GeoJSON.
+    """
+    parquet_path = file_path.replace('.geojson', '.parquet')
+    
+    if os.path.exists(parquet_path):
+        print(f"Loading from fast Parquet file: {parquet_path}")
+        return pd.read_parquet(parquet_path)
+    else:
+        print(f"Loading from GeoJSON file: {file_path}")
+        return process_geojson_features(file_path)
 
 def create_layout():
     """
@@ -41,28 +55,43 @@ def create_layout():
                 print(f"Loading temporary file for '{layer_key}': {temp_path}")
                 config['file_path'] = temp_path
     
-    files_to_load = {v['file_path']: v for v in effective_configs.values() if 'file_path' in v}
-    unique_files = {path: process_geojson_features(path) for path in files_to_load}
+    unique_file_paths = {v['file_path'] for v in effective_configs.values() if 'file_path' in v}
+    loaded_files = {path: load_data_efficiently(path) for path in unique_file_paths}
 
-    # --- MODIFIED: Simplified and corrected the main layer processing loop ---
+    # Sanitize data types in loaded dataframes to prevent JSON errors ---
+    # This ensures that values used are standard Python floats.
+    buildings_path = LAYER_CONFIG['buildings']['file_path']
+    if buildings_path in loaded_files and 'height' in loaded_files[buildings_path].columns:
+        df = loaded_files[buildings_path]
+        df['height'] = pd.to_numeric(df['height'], errors='coerce').astype(float)
+
+    network_path = LAYER_CONFIG['network']['file_path']
+    if network_path in loaded_files:
+        df = loaded_files[network_path]
+        numeric_cols = df.select_dtypes(include=np.number).columns
+        for col in numeric_cols:
+            if col not in NETWORK_METRICS_EXCLUDE:
+                df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
+
+
     for layer_key, config in effective_configs.items():
         if config.get('type') == 'toggle_only': 
             continue
 
-        # Use the 'id' field from the config as the definitive layer ID
         layer_id = config.get('id', layer_key)
         
-        df = unique_files.get(config.get('file_path'))
+        df = loaded_files.get(config.get('file_path'))
         if df is None or df.empty:
             dataframes[layer_id] = pd.DataFrame()
             continue
             
-        layer_type = config.get('type')
-        layer_args = {'data': df.copy(), 'id': layer_id, 'opacity': 0.8, 'pickable': True}
+        layer_type_str = None
+        layer_args = {'data': df, 'id': layer_id, 'opacity': 0.8, 'pickable': True}
         
-        if layer_type == 'polygon':
+        if config.get('type') == 'polygon':
+            layer_type_str = "PolygonLayer"
             layer_args.update({'stroked': True, 'get_polygon': 'contour', 'filled': True, 'get_line_width': 20})
-            if 'flood' in layer_id: # Generic flood layer styling
+            if 'flood' in layer_id:
                  layer_args.update({'stroked': False, 'get_fill_color': config.get('color', [128, 128, 128, 100])})
             elif layer_id == 'buildings':
                 layer_args.update({'extruded': True, 'wireframe': True, 'get_elevation': 'height', 'get_fill_color': BUILDING_COLOR_CONFIG['none']['color']})
@@ -94,27 +123,35 @@ def create_layout():
                     return blue_scale[min(math.floor(p / 10), 9)] + [180] if p >= 10 else [200, 200, 200, 128]
                 df['color'] = df['Percentile'].apply(get_deprivation_color)
                 layer_args.update({'extruded': False, 'get_fill_color': 'color', 'get_line_color': [80, 80, 80, 50], 'stroked': True, 'get_line_width': 5})
-            layer = pdk.Layer("PolygonLayer", **layer_args)
-        elif layer_type == 'scatterplot':
+        
+        elif config.get('type') == 'scatterplot':
+            layer_type_str = "ScatterplotLayer"
             if layer_id == 'crime_points':
                 df['color'] = df['Crime type'].map(pydeck_crime_colours).apply(lambda x: x if isinstance(x, list) else [128, 128, 128, 100])
                 layer_args.update({'data': df.copy(), 'get_position': 'coordinates', 'get_radius': 15, 'get_fill_color': 'color'})
             elif layer_id == 'stop_and_search':
                 layer_args.update({'get_position': 'coordinates', 'get_radius': 10, 'get_fill_color': [220, 20, 60, 200]})
-            layer = pdk.Layer("ScatterplotLayer", **layer_args)
-        elif layer_type == 'hexagon':
+
+        elif config.get('type') == 'hexagon':
+            layer_type_str = "HexagonLayer"
             layer_args.update({'get_position': 'coordinates', 'radius': 100, 'elevation_scale': 4, 'elevation_range': [0, 1000], 'extruded': True, 'color_range': [[255, 255, 178, 25], [254, 204, 92, 85], [253, 141, 60, 135], [240, 59, 32, 185], [189, 0, 38, 255]]})
-            layer = pdk.Layer("HexagonLayer", **layer_args)
-        elif layer_type == 'linestring':
+
+        elif config.get('type') == 'linestring':
+            layer_type_str = "LineLayer"
             layer_args.update({'get_source_position': 'source_position', 'get_target_position': 'target_position', 'get_color': 'color', 'get_width': 5})
-            layer = pdk.Layer("LineLayer", **layer_args)
+
         else:
             continue
             
-        dataframes[layer_id] = df.copy()
-        all_layers[layer_id] = layer
+        dataframes[layer_id] = df
+        all_layers[layer_id] = (layer_type_str, layer_args)
 
-    initial_visible_layers = [layer for layer_id, layer in all_layers.items() if all_configs.get(layer_id, {}).get('visible', False) or all_configs.get(next((k for k, v in all_configs.items() if v.get('id') == layer_id), None), {}).get('visible', False)]
+    initial_visible_layers = [
+        pdk.Layer(layer_type, **args)
+        for layer_id, (layer_type, args) in all_layers.items()
+        if all_configs.get(layer_id, {}).get('visible', False)
+    ]
+
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
     filter_panel_content, month_map = create_filter_panel(dataframes.get('crime_points'), dataframes.get('network'), dataframes.get('deprivation'), dataframes.get('buildings'), dataframes.get('land_use'), dataframes.get('neighbourhoods'))
     initial_map_style = MAP_STYLES['Light']['url']
@@ -122,7 +159,7 @@ def create_layout():
     layout = html.Div(
         id="main-container",
         children=[
-            dcc.Location(id='url', refresh=True), # Needed for reload callback
+            dcc.Location(id='url', refresh=True),
             dcc.Store(id='selected-neighbourhood-store', data=None),
             dcc.Store(id='month-map-store', data=month_map),
             dcc.Store(id='map-update-trigger-store'),

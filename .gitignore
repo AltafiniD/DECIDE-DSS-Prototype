@@ -34,3 +34,5 @@ data/
 temp/
 
 Procfile
+
+convert_to_parquet.py
