@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import jenkspy
 
-def create_jenks_histogram_figure(data_series, metric_name, num_breaks=5):
+def create_jenks_histogram_figure(data_series, metric_name, num_breaks=3):
     """
     Creates a histogram with variable-width bins based on Jenks natural breaks.
     """

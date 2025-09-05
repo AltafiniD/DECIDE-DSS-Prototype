@@ -71,12 +71,13 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                             # --- MODIFIED: Removed the select all/none buttons for simplicity ---
                             html.Div(className="control-widget", children=[
                                 html.H3("Neighbourhood Filters", style={'marginTop': 0}),
-                                html.Label("Select Neighbourhoods"),
+                                # html.Label("Select Neighbourhoods"),
                                 neighbourhood_dropdown
                             ]),
                             html.Div(className="control-widget", children=[
                                 html.H3("Crime Filters", style={'marginTop': 0}),
-                                html.Label("Crime Types"), crime_type_dropdown,
+                                # html.Label("Crime Types"), 
+                                crime_type_dropdown,
                                 html.Label("Time Range", style={'marginTop': '15px'}), time_slider
                             ]),
                             html.Div(className="control-widget", children=[
@@ -91,12 +92,14 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                         children=[
                             html.Div(className="control-widget", children=[
                                 html.H3("Network Analysis", style={'marginTop': 0}),
-                                html.Label("Network Metric"), network_metric_dropdown,
+                                # html.Label("Network Metric"),
+                                network_metric_dropdown,
                                 network_range_slider
                             ]),
                             html.Div(className="control-widget", children=[
-                                html.H3("Social Filters", style={'marginTop': 0}),
-                                html.Label("Deprivation Category"), deprivation_dropdown
+                                html.H3("Deprivation Category", style={'marginTop': 0}),
+                                # html.Label("Deprivation Category"), 
+                                deprivation_dropdown
                             ]),
                             html.Div(className="control-widget", children=[
                                 html.H3("Environmental & Land Use", style={'marginTop': 0}),

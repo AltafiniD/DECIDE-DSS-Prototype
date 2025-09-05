@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 from pydeck.bindings import json_tools
 
+
+
 from layouts.main_layout import create_layout
 from callbacks.map_callbacks import register_callbacks as register_map_callbacks
 from callbacks.ui_callbacks import register_callbacks as register_ui_callbacks
@@ -48,14 +50,12 @@ json_tools.default_serialize = _custom_serializer
 
 sys.path.append('.')
 
-
-
 # --- Create a temporary directory for uploads ---
 os.makedirs('temp', exist_ok=True)
 
 # --- Dash App Initialization ---
-# --- MODIFIED: Added suppress_callback_exceptions=True to handle dynamic layouts ---
-app = dash.Dash(__name__, assets_folder='assets', suppress_callback_exceptions=True, title='DECIDE DSS Prototype v1')
+# --- FIXED: Corrected syntax and re-added suppress_callback_exceptions ---
+app = dash.Dash(__name__, assets_folder='assets', title='Cardiff Data Explorer', suppress_callback_exceptions=True)
 server = app.server
 
 # --- Create Layout and Register Callbacks ---
@@ -64,6 +64,7 @@ app.layout, all_pydeck_layers, dataframes = create_layout()
 # Callbacks are registered AFTER the layout is fully defined.
 register_map_callbacks(app, all_pydeck_layers, dataframes)
 register_ui_callbacks(app)
+# --- MODIFIED: Pass the population dataframe to the widget callbacks ---
 widget_callbacks.register_callbacks(
     app,
     dataframes['crime_points'],
@@ -71,7 +72,8 @@ widget_callbacks.register_callbacks(
     dataframes['network'],
     dataframes['buildings'],
     dataframes['land_use'],
-    dataframes['deprivation']
+    dataframes['deprivation'],
+    dataframes['population'] # New dataframe added
 )
 register_filter_callbacks(app, dataframes['network'])
 register_chat_callbacks(app)
@@ -80,3 +82,4 @@ register_settings_callbacks(app)
 # --- Run the Server ---
 if __name__ == "__main__":
     app.run(debug=True)
+
