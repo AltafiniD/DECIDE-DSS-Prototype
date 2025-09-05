@@ -16,22 +16,16 @@ def register_callbacks(app, all_layers, dataframes):
         [Output("deck-gl", "data"), Output("layers-loading-output", "children")],
         Input("map-update-trigger-store", "data"),
         State("month-map-store", "data"),
+        State("sas-month-map-store", "data"),
         prevent_initial_call=True
     )
-    def update_map_view(trigger_data, month_map):
+    def update_map_view(trigger_data, crime_month_map, sas_month_map):
         if not trigger_data:
             return no_update, no_update
 
-        # --- DEFINITIVE FIX: Robust Data Sanitization ---
-        # This function converts a DataFrame into a format that is guaranteed to be
-        # JSON-serializable by pydeck. It replaces all numpy/pandas nulls with
-        # Python's None and then converts the DataFrame to a list of dictionaries,
-        # which forces all special numeric types (e.g., int64) into standard Python types.
         def sanitize_data_for_json(df):
             df_copy = df.copy()
-            # Replace all recognized null-like values with None
             df_copy.replace({pd.NA: None, np.nan: None, pd.NaT: None}, inplace=True)
-            # Convert to a list of records to force all types to native Python
             return df_copy.to_dict('records')
 
         map_style = trigger_data["map_style"]
@@ -44,11 +38,11 @@ def register_callbacks(app, all_layers, dataframes):
         
         time_range, selected_crime_types, network_metric, network_range, \
         deprivation_category, selected_land_use, flood_selection, \
-        building_color_metric, selected_neighbourhoods = trigger_data["states"]
+        building_color_metric, selected_neighbourhoods, \
+        selected_sas_objects, sas_time_range = trigger_data["states"]
 
         visible_layers = []
         
-        # --- Handle Crime Layers ---
         if crime_viz_selection and crime_viz_selection in all_layers:
             layer_type, original_args = all_layers[crime_viz_selection]
             new_layer_args = original_args.copy()
@@ -56,8 +50,8 @@ def register_callbacks(app, all_layers, dataframes):
             original_crime_df = dataframes[crime_viz_selection]
             filtered_crime_df = original_crime_df.copy()
             
-            if time_range and month_map:
-                start_month_str, end_month_str = month_map.get(str(time_range[0])), month_map.get(str(time_range[1]))
+            if time_range and crime_month_map:
+                start_month_str, end_month_str = crime_month_map.get(str(time_range[0])), crime_month_map.get(str(time_range[1]))
                 if start_month_str and end_month_str:
                     filtered_crime_df['Month_dt'] = pd.to_datetime(filtered_crime_df['Month'], errors='coerce')
                     start_date, end_date = pd.to_datetime(start_month_str), pd.to_datetime(end_month_str)
@@ -69,7 +63,6 @@ def register_callbacks(app, all_layers, dataframes):
             new_layer_args['data'] = sanitize_data_for_json(filtered_crime_df)
             visible_layers.append(pdk.Layer(layer_type, **new_layer_args))
 
-        # --- Handle Flood Layers ---
         if flooding_toggle and flood_selection:
             for layer_id in flood_selection:
                 if layer_id in all_layers:
@@ -78,7 +71,6 @@ def register_callbacks(app, all_layers, dataframes):
                     new_args['data'] = sanitize_data_for_json(layer_args['data'])
                     visible_layers.append(pdk.Layer(layer_type, **new_args))
 
-        # --- Handle Other Toggleable Layers ---
         other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_') and v.get('type') != 'toggle_only']
         for layer_id in other_layer_ids:
             if toggles_dict.get(layer_id):
@@ -86,7 +78,17 @@ def register_callbacks(app, all_layers, dataframes):
                 new_layer_args = original_args.copy()
                 df_to_process = dataframes[layer_id].copy()
 
-                if layer_id == 'buildings':
+                if layer_id == 'stop_and_search':
+                    if sas_time_range and sas_month_map:
+                        start_month_str, end_month_str = sas_month_map.get(str(sas_time_range[0])), sas_month_map.get(str(sas_time_range[1]))
+                        if start_month_str and end_month_str:
+                            df_to_process['Month_dt'] = pd.to_datetime(df_to_process['Date'], errors='coerce').dt.to_period('M').dt.to_timestamp()
+                            start_date, end_date = pd.to_datetime(start_month_str), pd.to_datetime(end_month_str)
+                            df_to_process = df_to_process[(df_to_process['Month_dt'] >= start_date) & (df_to_process['Month_dt'] <= end_date)]
+                    if selected_sas_objects:
+                        df_to_process = df_to_process[df_to_process['Object of search'].isin(selected_sas_objects)]
+
+                elif layer_id == 'buildings':
                     metric_config = BUILDING_COLOR_CONFIG.get(building_color_metric)
                     if metric_config and building_color_metric != 'none':
                         column_name = metric_config['column']
@@ -131,7 +133,6 @@ def register_callbacks(app, all_layers, dataframes):
                 elif layer_id == 'land_use' and selected_land_use:
                     df_to_process = df_to_process[df_to_process['landuse_text'].isin(selected_land_use)]
                 
-                # --- MODIFIED: Only filter if the selection list is not empty ---
                 elif layer_id == 'neighbourhoods' and selected_neighbourhoods:
                     df_to_process = df_to_process[df_to_process['NAME'].isin(selected_neighbourhoods)]
                 

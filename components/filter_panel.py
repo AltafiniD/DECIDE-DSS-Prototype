@@ -4,20 +4,31 @@ from dash import dcc, html
 import pandas as pd
 from config import NETWORK_METRICS_EXCLUDE, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG
 
-def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land_use_df, neighbourhoods_df):
+def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land_use_df, neighbourhoods_df, stop_and_search_df):
     """
     Creates the slide-down filter panel with controls grouped into styled boxes.
     """
-    # --- Component creation logic ---
+    # --- Crime Data Components ---
     crime_df['Month_dt'] = pd.to_datetime(crime_df['Month'], format='%Y-%m', errors='coerce')
-    unique_months = sorted(crime_df['Month_dt'].dropna().unique())
-    month_map = {i: month.strftime('%Y-%m') for i, month in enumerate(unique_months)}
-    time_marks = {0: unique_months[0].strftime('%b %Y'), len(unique_months) - 1: unique_months[-1].strftime('%b %Y')} if unique_months else {}
-    time_slider = dcc.RangeSlider(id='time-filter-slider', min=0, max=len(unique_months) - 1 if unique_months else 0, value=[0, len(unique_months) - 1 if unique_months else 0], marks=time_marks, step=1, tooltip={"placement": "bottom", "always_visible": False}, disabled=not bool(unique_months))
+    unique_crime_months = sorted(crime_df['Month_dt'].dropna().unique())
+    crime_month_map = {i: month.strftime('%Y-%m') for i, month in enumerate(unique_crime_months)}
+    crime_time_marks = {0: unique_crime_months[0].strftime('%b %Y'), len(unique_crime_months) - 1: unique_crime_months[-1].strftime('%b %Y')} if unique_crime_months else {}
+    crime_time_slider = dcc.RangeSlider(id='time-filter-slider', min=0, max=len(unique_crime_months) - 1 if unique_crime_months else 0, value=[0, len(unique_crime_months) - 1 if unique_crime_months else 0], marks=crime_time_marks, step=1, tooltip={"placement": "bottom", "always_visible": False}, disabled=not bool(unique_crime_months))
     
     all_crime_types = sorted(crime_df['Crime type'].dropna().unique())
     crime_type_dropdown = dcc.Dropdown(id='crime-type-filter-dropdown', options=[{'label': crime, 'value': crime} for crime in all_crime_types], value=[], multi=True, placeholder="Filter by Crime Type")
     
+    # --- Stop & Search Data Components ---
+    stop_and_search_df['Month_dt'] = pd.to_datetime(stop_and_search_df['Date'], errors='coerce').dt.to_period('M').dt.to_timestamp()
+    unique_sas_months = sorted(stop_and_search_df['Month_dt'].dropna().unique())
+    sas_month_map = {i: month.strftime('%Y-%m') for i, month in enumerate(unique_sas_months)}
+    sas_time_marks = {0: unique_sas_months[0].strftime('%b %Y'), len(unique_sas_months) - 1: unique_sas_months[-1].strftime('%b %Y')} if unique_sas_months else {}
+    sas_time_slider = dcc.RangeSlider(id='sas-time-filter-slider', min=0, max=len(unique_sas_months) - 1 if unique_sas_months else 0, value=[0, len(unique_sas_months) - 1 if unique_sas_months else 0], marks=sas_time_marks, step=1, tooltip={"placement": "bottom", "always_visible": False}, disabled=not bool(unique_sas_months))
+    
+    all_sas_objects = sorted(stop_and_search_df['Object of search'].dropna().unique())
+    sas_object_dropdown = dcc.Dropdown(id='sas-object-filter-dropdown', options=[{'label': obj, 'value': obj} for obj in all_sas_objects], value=[], multi=True, placeholder="Filter by Object of Search")
+
+    # --- Other Components ---
     numeric_cols = network_df.select_dtypes(include='number').columns.tolist()
     network_metrics = sorted([col for col in numeric_cols if col not in NETWORK_METRICS_EXCLUDE])
     network_metric_dropdown = dcc.Dropdown(id='network-metric-dropdown', options=[{'label': metric, 'value': metric} for metric in network_metrics], value='NAIN', clearable=False)
@@ -30,12 +41,7 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
         {'label': '3 Dimensions', 'value': 'Household is deprived in three dimensions'},
         {'label': '4+ Dimensions', 'value': '4+'},
     ]
-    deprivation_dropdown = dcc.Dropdown(
-        id='deprivation-category-dropdown',
-        options=deprivation_options,
-        value='Household is deprived in one dimension',
-        clearable=False
-    )
+    deprivation_dropdown = dcc.Dropdown(id='deprivation-category-dropdown', options=deprivation_options, value='Household is deprived in one dimension', clearable=False)
     
     all_land_use_types = sorted(land_use_df['landuse_text'].dropna().unique())
     land_use_type_dropdown = dcc.Dropdown(id='land-use-type-dropdown', options=[{'label': lu_type, 'value': lu_type} for lu_type in all_land_use_types], value=[], multi=True, placeholder="Filter by Land Use Type")
@@ -46,16 +52,8 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     building_color_options = [{'label': config['label'], 'value': key} for key, config in BUILDING_COLOR_CONFIG.items()]
     building_color_selector = dcc.Dropdown(id='building-color-selector', options=building_color_options, value='none', clearable=False)
     
-    # --- NEW: Neighbourhood Filter ---
     all_neighbourhoods = sorted(neighbourhoods_df['NAME'].dropna().unique()) if neighbourhoods_df is not None and not neighbourhoods_df.empty else []
-    neighbourhood_dropdown = dcc.Dropdown(
-        id='neighbourhood-filter-dropdown',
-        options=[{'label': name, 'value': name} for name in all_neighbourhoods],
-        # --- MODIFIED: Default value is now an empty list ---
-        value=[], 
-        multi=True, 
-        placeholder="Filter by Neighbourhood (all shown by default)"
-    )
+    neighbourhood_dropdown = dcc.Dropdown(id='neighbourhood-filter-dropdown', options=[{'label': name, 'value': name} for name in all_neighbourhoods], value=[], multi=True, placeholder="Filter by Neighbourhood (all shown by default)")
 
     panel = html.Div(
         id="filter-slide-panel",
@@ -64,47 +62,42 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
             html.Div(
                 className="filter-inputs-wrapper",
                 children=[
-                    # --- Column 1 ---
                     html.Div(
                         className="filter-column",
                         children=[
-                            # --- MODIFIED: Removed the select all/none buttons for simplicity ---
                             html.Div(className="control-widget", children=[
                                 html.H3("Neighbourhood Filters", style={'marginTop': 0}),
-                                # html.Label("Select Neighbourhoods"),
                                 neighbourhood_dropdown
                             ]),
                             html.Div(className="control-widget", children=[
                                 html.H3("Crime Filters", style={'marginTop': 0}),
-                                # html.Label("Crime Types"), 
                                 crime_type_dropdown,
-                                html.Label("Time Range", style={'marginTop': '15px'}), time_slider
+                                html.Label("Time Range", style={'marginTop': '15px'}), crime_time_slider
                             ]),
                             html.Div(className="control-widget", children=[
-                                html.H3("Building Filters", style={'marginTop': 0}),
-                                html.Label("Building Coloring"), building_color_selector
+                                html.H3("Policing Filters (Stop & Search)", style={'marginTop': 0}),
+                                sas_object_dropdown,
+                                html.Label("Time Range", style={'marginTop': '15px'}), sas_time_slider
                             ]),
                         ]
                     ),
-                    # --- Column 2 ---
                     html.Div(
                         className="filter-column",
                         children=[
                             html.Div(className="control-widget", children=[
+                                html.H3("Building & Environmental", style={'marginTop': 0}),
+                                html.Label("Building Coloring"), building_color_selector,
+                                html.Label("Flood Risk Layer", style={'marginTop': '15px'}), flood_risk_selector,
+                                html.Label("Land Use Type", style={'marginTop': '15px'}), land_use_type_dropdown
+                            ]),
+                            html.Div(className="control-widget", children=[
                                 html.H3("Network Analysis", style={'marginTop': 0}),
-                                # html.Label("Network Metric"),
                                 network_metric_dropdown,
                                 network_range_slider
                             ]),
                             html.Div(className="control-widget", children=[
                                 html.H3("Deprivation Category", style={'marginTop': 0}),
-                                # html.Label("Deprivation Category"), 
                                 deprivation_dropdown
-                            ]),
-                            html.Div(className="control-widget", children=[
-                                html.H3("Environmental & Land Use", style={'marginTop': 0}),
-                                html.Label("Flood Risk Layer"), flood_risk_selector,
-                                html.Label("Land Use Type", style={'marginTop': '15px'}), land_use_type_dropdown
                             ]),
                         ]
                     ),
@@ -114,5 +107,4 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
         ]
     )
     
-    return panel, month_map
-
+    return panel, crime_month_map, sas_month_map

@@ -154,7 +154,11 @@ def create_layout():
     ]
 
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
-    filter_panel_content, month_map = create_filter_panel(dataframes.get('crime_points'), dataframes.get('network'), dataframes.get('deprivation'), dataframes.get('buildings'), dataframes.get('land_use'), dataframes.get('neighbourhoods'))
+    filter_panel_content, crime_month_map, sas_month_map = create_filter_panel(
+        dataframes.get('crime_points'), dataframes.get('network'), dataframes.get('deprivation'),
+        dataframes.get('buildings'), dataframes.get('land_use'), dataframes.get('neighbourhoods'),
+        dataframes.get('stop_and_search')
+    )
     initial_map_style = MAP_STYLES['Light']['url']
 
     layout = html.Div(
@@ -162,7 +166,8 @@ def create_layout():
         children=[
             dcc.Location(id='url', refresh=True),
             dcc.Store(id='selected-neighbourhood-store', data=None),
-            dcc.Store(id='month-map-store', data=month_map),
+            dcc.Store(id='month-map-store', data=crime_month_map),
+            dcc.Store(id='sas-month-map-store', data=sas_month_map),
             dcc.Store(id='map-update-trigger-store'),
             html.Div(
                 dash_deck.DeckGL(

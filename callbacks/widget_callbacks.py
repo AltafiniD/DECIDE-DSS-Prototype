@@ -18,9 +18,12 @@ from components.jenks_histogram_widget import create_jenks_histogram_figure
 from components.buildings_at_risk_widget import create_buildings_at_risk_widget
 from components.deprivation_widget import create_deprivation_bar_chart
 from components.population_widget import create_population_density_histogram
+# --- NEW: Import the stop and search widget function ---
+from components.stop_and_search_widget import create_stop_and_search_histogram_figure
 from shapely.geometry import Point, Polygon
 
-def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df, land_use_df, deprivation_df, population_df):
+# --- MODIFIED: Added stop_and_search_df to the function signature ---
+def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df, land_use_df, deprivation_df, population_df, stop_and_search_df):
     """
     Registers all widget-related callbacks.
     """
@@ -29,9 +32,10 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
     @app.callback(
         Output("widget-grid-container", "children"),
         Input("map-update-trigger-store", "data"),
+        State("sas-month-map-store", "data"),
         prevent_initial_call=True
     )
-    def update_widget_panel(trigger_data):
+    def update_widget_panel(trigger_data, sas_month_map):
         if not trigger_data:
             return no_update
 
@@ -39,8 +43,45 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         # --- FIXED: Generate the layer ID list dynamically to match the input order ---
         all_toggle_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')]
         toggles_dict = dict(zip(all_toggle_ids, trigger_data.get("toggles", [])))
+        
+        states = trigger_data.get("states", [])
+        selected_sas_objects = states[9] if len(states) > 9 else []
+        sas_time_range = states[10] if len(states) > 10 else []
+
 
         widgets_data = []
+        
+        # --- NEW: Logic to add the Stop & Search widget ---
+        if toggles_dict.get('stop_and_search'):
+            
+            filtered_sas_df = stop_and_search_df.copy()
+            
+            # Filter by time
+            if sas_time_range and sas_month_map:
+                start_month_str = sas_month_map.get(str(sas_time_range[0]))
+                end_month_str = sas_month_map.get(str(sas_time_range[1]))
+                if start_month_str and end_month_str:
+                    filtered_sas_df['Month_dt'] = pd.to_datetime(filtered_sas_df['Date'], errors='coerce').dt.to_period('M').dt.to_timestamp()
+                    start_date = pd.to_datetime(start_month_str)
+                    end_date = pd.to_datetime(end_month_str)
+                    filtered_sas_df = filtered_sas_df[
+                        (filtered_sas_df['Month_dt'] >= start_date) & 
+                        (filtered_sas_df['Month_dt'] <= end_date)
+                    ]
+
+            # Filter by object of search
+            if selected_sas_objects:
+                filtered_sas_df = filtered_sas_df[filtered_sas_df['Object of search'].isin(selected_sas_objects)]
+
+            sas_fig = create_stop_and_search_histogram_figure(filtered_sas_df)
+            
+            widgets_data.append({
+                "size": (2, 3),
+                "content": [
+                    dcc.Markdown("#### Stop & Search Events"),
+                    dcc.Graph(id="stop-and-search-chart", figure=sas_fig, style={'height': '85%'})
+                ]
+            })
 
         if crime_viz_selection:
             initial_crime_fig = create_crime_histogram_figure(crime_df, plotly_colour_map)

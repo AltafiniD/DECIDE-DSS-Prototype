@@ -28,12 +28,14 @@ def register_callbacks(app):
             State("land-use-type-dropdown", "value"),
             State("flood-risk-selector", "value"),
             State("building-color-selector", "value"),
-            State("neighbourhood-filter-dropdown", "value")
+            State("neighbourhood-filter-dropdown", "value"),
+            State("sas-object-filter-dropdown", "value"),
+            State("sas-time-filter-slider", "value")
         ],
         prevent_initial_call=True
     )
     def aggregate_map_inputs(n_clicks, map_style, crime_viz, *args):
-        num_states = 9
+        num_states = 11
         toggle_values = args[:-num_states]
         state_values = args[-num_states:]
         return {
@@ -234,4 +236,3 @@ def register_callbacks(app):
         Input("toggle-debug-btn", "n_clicks"),
         State("debug-panel", "className")
     )
-

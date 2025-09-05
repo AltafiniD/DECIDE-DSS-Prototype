@@ -64,7 +64,7 @@ app.layout, all_pydeck_layers, dataframes = create_layout()
 # Callbacks are registered AFTER the layout is fully defined.
 register_map_callbacks(app, all_pydeck_layers, dataframes)
 register_ui_callbacks(app)
-# --- MODIFIED: Pass the population dataframe to the widget callbacks ---
+# --- MODIFIED: Pass the population and stop_and_search dataframes to the widget callbacks ---
 widget_callbacks.register_callbacks(
     app,
     dataframes['crime_points'],
@@ -73,7 +73,8 @@ widget_callbacks.register_callbacks(
     dataframes['buildings'],
     dataframes['land_use'],
     dataframes['deprivation'],
-    dataframes['population'] # New dataframe added
+    dataframes['population'],
+    dataframes['stop_and_search'] # New dataframe added
 )
 register_filter_callbacks(app, dataframes['network'])
 register_chat_callbacks(app)
@@ -82,4 +83,3 @@ register_settings_callbacks(app)
 # --- Run the Server ---
 if __name__ == "__main__":
     app.run(debug=True)
-
