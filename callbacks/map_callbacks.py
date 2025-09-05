@@ -131,7 +131,8 @@ def register_callbacks(app, all_layers, dataframes):
                 elif layer_id == 'land_use' and selected_land_use:
                     df_to_process = df_to_process[df_to_process['landuse_text'].isin(selected_land_use)]
                 
-                elif layer_id == 'neighbourhoods' and selected_neighbourhoods is not None:
+                # --- MODIFIED: Only filter if the selection list is not empty ---
+                elif layer_id == 'neighbourhoods' and selected_neighbourhoods:
                     df_to_process = df_to_process[df_to_process['NAME'].isin(selected_neighbourhoods)]
                 
                 new_layer_args['data'] = sanitize_data_for_json(df_to_process)
@@ -155,4 +156,3 @@ def register_callbacks(app, all_layers, dataframes):
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
         return deck.to_json(), None
-

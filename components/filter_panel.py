@@ -51,9 +51,10 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     neighbourhood_dropdown = dcc.Dropdown(
         id='neighbourhood-filter-dropdown',
         options=[{'label': name, 'value': name} for name in all_neighbourhoods],
-        value=all_neighbourhoods, 
+        # --- MODIFIED: Default value is now an empty list ---
+        value=[], 
         multi=True, 
-        placeholder="Filter by Neighbourhood"
+        placeholder="Filter by Neighbourhood (all shown by default)"
     )
 
     panel = html.Div(
@@ -67,7 +68,7 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                     html.Div(
                         className="filter-column",
                         children=[
-                            # --- NEW: Neighbourhood Filter Widget ---
+                            # --- MODIFIED: Removed the select all/none buttons for simplicity ---
                             html.Div(className="control-widget", children=[
                                 html.H3("Neighbourhood Filters", style={'marginTop': 0}),
                                 html.Label("Select Neighbourhoods"),

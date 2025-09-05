@@ -37,3 +37,4 @@ def register_callbacks(app, network_df):
         }
 
         return min_val, max_val, [min_val, max_val], marks
+
