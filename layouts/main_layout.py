@@ -15,6 +15,7 @@ from config import (
 )
 from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
+# --- MODIFIED: Import the updated slideover panel function ---
 from components.slideover_panel import create_slideover_panel
 from components.filter_panel import create_filter_panel
 from components.combined_controls import create_combined_panel
@@ -191,10 +192,10 @@ def create_layout():
                 className="debug-panel-container debug-hidden",
                 children=[dcc.Markdown(id="selection-info-display")]
             ),
-            create_slideover_panel(dataframes, plotly_crime_colours),
+            # --- MODIFIED: Call the function without arguments ---
+            create_slideover_panel(),
             html.Button("❮", id="toggle-slideover-btn"),
             create_settings_modal()
         ]
     )
     return layout, all_layers, dataframes
-

@@ -2,25 +2,114 @@
 
 import dash
 from dash.dependencies import Input, Output, State
-from dash import no_update, ctx
+from dash import no_update, ctx, html, dcc # --- MODIFIED: html and dcc imported
 import pandas as pd
 import json
 
 from utils.geometry import is_point_in_polygon
 from utils.colours import get_crime_colour_map
+# --- MODIFIED: Import all widget creation functions ---
 from components.crime_widget import create_crime_histogram_figure
 from components.network_widget import create_network_histogram_figure
 from components.flood_risk_widget import create_flood_risk_pie_chart
 from components.land_use_widget import create_land_use_donut_chart
 from components.jenks_histogram_widget import create_jenks_histogram_figure
+from components.buildings_at_risk_widget import create_buildings_at_risk_widget
 from components.deprivation_widget import create_deprivation_bar_chart
 from shapely.geometry import Point, Polygon
+from config import LAYER_CONFIG
+
 
 def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_df, land_use_df, deprivation_df):
     """
     Registers all widget-related callbacks.
     """
     plotly_colour_map, _ = get_crime_colour_map()
+
+    # --- NEW: Callback to dynamically generate widgets based on visible layers ---
+    @app.callback(
+        Output("widget-grid-container", "children"),
+        Input("map-update-trigger-store", "data"),
+        prevent_initial_call=True
+    )
+    def update_widget_panel(trigger_data):
+        if not trigger_data:
+            return no_update
+
+        # Determine which layers are active
+        crime_viz_selection = trigger_data.get("crime_viz")
+        
+        all_toggle_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')]
+        toggles_dict = dict(zip(all_toggle_ids, trigger_data.get("toggles", [])))
+
+        widgets_data = []
+
+        # 1. Add Crime Widget if a crime layer is visible
+        if crime_viz_selection:
+            initial_crime_fig = create_crime_histogram_figure(crime_df, plotly_colour_map)
+            widgets_data.append({
+                "size": (2, 3), "content": [
+                    html.Div(style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[
+                        dcc.Markdown(id="crime-widget-title", children="#### Crime Statistics for Cardiff"),
+                        html.Button("Clear Selection", id="clear-crime-filter-btn", n_clicks=0, style={'fontSize': '12px'})]),
+                    dcc.Graph(id="crime-bar-chart", figure=initial_crime_fig, style={'height': '85%'})]})
+
+        # 2. Add Network Widgets if network layer is visible
+        if toggles_dict.get('network'):
+            initial_metric = 'NAIN' if 'NAIN' in network_df.columns else None
+            series = network_df[initial_metric] if initial_metric and not network_df.empty else pd.Series()
+            initial_network_fig = create_network_histogram_figure(series, initial_metric)
+            initial_jenks_fig = create_jenks_histogram_figure(series, initial_metric)
+            widgets_data.append({"size": (2, 2), "content": [dcc.Markdown("#### Network Metric Distribution (Deciles)"), dcc.Graph(id="network-histogram-chart", figure=initial_network_fig, style={'height': '85%'})]})
+            widgets_data.append({"size": (2, 2), "content": [dcc.Markdown("#### Network Metric Distribution (Jenks Breaks)"), dcc.Graph(id="jenks-histogram-chart", figure=initial_jenks_fig, style={'height': '85%'})]})
+
+        # 3. Add Building Widgets if buildings layer is visible
+        if toggles_dict.get('buildings'):
+            initial_flood_fig = create_flood_risk_pie_chart(buildings_df, 'Sea_risk', title="")
+            buildings_at_risk_content = create_buildings_at_risk_widget(buildings_df)
+            widgets_data.append({"size": (1, 1), "content": buildings_at_risk_content})
+            widgets_data.append({"size": (1, 2), "content": [dcc.Markdown("#### Building Flood Risk"), dcc.RadioItems(id='flood-risk-type-selector', options=[{'label': 'Sea', 'value': 'Sea_risk'}, {'label': 'Rivers', 'value': 'Rivers_risk'}, {'label': 'Watercourses', 'value': 'Watercourses_Risk'}], value='Sea_risk', labelStyle={'display': 'inline-block', 'margin-right': '10px'}), dcc.Graph(id="flood-risk-pie-chart", figure=initial_flood_fig, style={'height': '80%'})]})
+
+        # 4. Add Land Use Widget if land use layer is visible
+        if toggles_dict.get('land_use'):
+            initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
+            widgets_data.append({"size": (2, 2), "content": [html.Div(style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[dcc.Markdown(id="land-use-widget-title", children="#### Land Use"), html.Button("Clear Filter", id="clear-land-use-filter-btn", n_clicks=0, style={'fontSize': '12px'})]), dcc.Graph(id="land-use-donut-chart", figure=initial_land_use_fig, style={'height': '80%'})]})
+        
+        # 5. Add Deprivation Widget if deprivation layer is visible
+        if toggles_dict.get('deprivation'):
+            initial_deprivation_fig = create_deprivation_bar_chart(deprivation_df)
+            widgets_data.append({"size": (2, 2), "content": [dcc.Markdown(id="deprivation-widget-title", children="#### Household Deprivation by Percentile"), dcc.Graph(id="deprivation-bar-chart", figure=initial_deprivation_fig, style={'height': 'calc(100% - 30px)'})]})
+
+
+        # --- Use the same grid-packing logic from the original slideover panel ---
+        if not widgets_data:
+            return [] # Return empty if no relevant layers are on
+
+        widgets_data.sort(key=lambda w: w['size'][0] * w['size'][1], reverse=True)
+        grid_width, occupied_cells, placed_widgets, row = 2, set(), [], 0
+        
+        while widgets_data:
+            col = 0
+            while col < grid_width:
+                if (row, col) not in occupied_cells:
+                    widget_to_place = None
+                    for i, widget in enumerate(widgets_data):
+                        w_width, w_height = int(widget['size'][0]), int(widget['size'][1])
+                        if col + w_width <= grid_width and all((row + r, col + c) not in occupied_cells for r in range(w_height) for c in range(w_width)):
+                            widget_to_place = widgets_data.pop(i)
+                            break
+                    if widget_to_place:
+                        w_width, w_height = widget_to_place['size']
+                        placed_widgets.append(html.Div(className="widget", style={'--grid-col-start': col + 1, '--grid-row-start': row + 1, '--grid-col-span': w_width, '--grid-row-span': w_height}, children=widget_to_place['content']))
+                        for r_offset in range(int(w_height)):
+                            for c_offset in range(int(w_width)):
+                                occupied_cells.add((row + r_offset, col + c_offset))
+                col += 1
+            row += 1
+        
+        return placed_widgets
+
+    # --- The rest of the original callbacks in this file remain unchanged ---
 
     @app.callback(
         Output("selection-info-display", "children"),
@@ -216,7 +305,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         fig = create_land_use_donut_chart(df_to_filter, title=chart_title)
         return fig, widget_title
 
-    # --- MODIFIED: Callback now listens to the main filter dropdown and apply button ---
     @app.callback(
         [Output("deprivation-bar-chart", "figure"), Output("deprivation-widget-title", "children")],
         [Input("selected-neighbourhood-store", "data"), Input("apply-filters-btn", "n_clicks")],
@@ -227,7 +315,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         chart_title = "Households by Deprivation Percentile"
         filtered_df = deprivation_df.copy()
 
-        # 1. Filter by selected neighbourhood (if any)
         if selected_neighbourhood:
             name = selected_neighbourhood.get('NAME')
             if name:
@@ -243,7 +330,6 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
                     mask = filtered_df.apply(is_in_neighbourhood, axis=1)
                     filtered_df = filtered_df[mask]
 
-        # 2. Filter by the selected deprivation category from the main dropdown
         category_col = "Household deprivation (6 categories)"
         if deprivation_category:
             if deprivation_category == '4+':
@@ -255,4 +341,3 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
 
         fig = create_deprivation_bar_chart(filtered_df, title=chart_title)
         return fig, widget_title
-

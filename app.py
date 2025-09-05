@@ -52,7 +52,8 @@ from callbacks import widget_callbacks
 os.makedirs('temp', exist_ok=True)
 
 # --- Dash App Initialization ---
-app = dash.Dash(__name__, assets_folder='assets')
+# --- MODIFIED: Added suppress_callback_exceptions=True to handle dynamic layouts ---
+app = dash.Dash(__name__, assets_folder='assets', suppress_callback_exceptions=True)
 server = app.server
 
 # --- Create Layout and Register Callbacks ---
@@ -77,4 +78,3 @@ register_settings_callbacks(app)
 # --- Run the Server ---
 if __name__ == "__main__":
     app.run(debug=True)
-
