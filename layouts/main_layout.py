@@ -8,6 +8,7 @@ import numpy as np
 import math
 import os
 import copy
+import jenkspy
 
 from config import (
     MAPBOX_API_KEY, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG,
@@ -106,13 +107,25 @@ def create_layout():
                 layer_args.update({'data': df.copy(), 'get_fill_color': 'color', 'stroked': False})
             elif layer_id == 'population':
                 df['density'] = pd.to_numeric(df['density'], errors='coerce')
-                df_non_zero, df_zero = df[df['density'] > 0].copy(), df[df['density'] <= 0].copy()
-                magenta_scale = [[255, 230, 255], [255, 204, 255], [255, 179, 255], [255, 153, 255], [255, 128, 255], [255, 102, 255], [255, 77, 255], [255, 51, 255], [255, 26, 255], [255, 0, 255]]
-                if not df_non_zero.empty:
-                    df_non_zero['color_index'] = pd.qcut(df_non_zero['density'], q=10, labels=False, duplicates='drop')
-                    df_non_zero['color'] = df_non_zero['color_index'].apply(lambda x: magenta_scale[x] + [150])
-                df_zero['color'] = [([255, 255, 255, 150])] * len(df_zero)
-                df = pd.concat([df_non_zero, df_zero])
+                df_valid_density = df[df['density'].notna() & (df['density'] > 0)].copy()
+                df_no_density = df[~df.index.isin(df_valid_density.index)].copy()
+
+                # --- MODIFIED: Increased alpha for more vibrant colors ---
+                jenks_colors = [
+                    [253, 224, 221, 220], [250, 159, 181, 220], [247, 104, 161, 220],
+                    [197, 27, 138, 220], [122, 1, 119, 220]
+                ]
+                
+                if not df_valid_density.empty and df_valid_density['density'].nunique() >= 5:
+                    breaks = jenkspy.jenks_breaks(df_valid_density['density'], n_classes=5)
+                    df_valid_density['bin'] = pd.cut(df_valid_density['density'], bins=breaks, labels=False, include_lowest=True)
+                    df_valid_density['color'] = df_valid_density['bin'].apply(lambda x: jenks_colors[x])
+                else:
+                    df_valid_density['color'] = [jenks_colors[0]] * len(df_valid_density)
+
+                df_no_density['color'] = [[200, 200, 200, 120]] * len(df_no_density)
+                df = pd.concat([df_valid_density, df_no_density])
+
                 layer_args.update({'data': df.copy(), 'get_fill_color': 'color', 'get_line_color': [80, 80, 80, 150], 'stroked': True})
             elif layer_id == 'deprivation':
                 df['Percentile'] = pd.to_numeric(df['Percentile'], errors='coerce')
@@ -204,3 +217,4 @@ def create_layout():
         ]
     )
     return layout, all_layers, dataframes
+
