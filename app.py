@@ -7,6 +7,15 @@ import numpy as np
 import pandas as pd
 from pydeck.bindings import json_tools
 
+from layouts.main_layout import create_layout
+from callbacks.map_callbacks import register_callbacks as register_map_callbacks
+from callbacks.ui_callbacks import register_callbacks as register_ui_callbacks
+from callbacks.widget_callbacks import register_callbacks as register_widget_callbacks
+from callbacks.filter_callbacks import register_callbacks as register_filter_callbacks
+from callbacks.chat_callbacks import register_callbacks as register_chat_callbacks
+from callbacks.settings_callbacks import register_callbacks as register_settings_callbacks
+from callbacks import widget_callbacks
+
 _original_default = json_tools.default_serialize
 
 
@@ -39,21 +48,14 @@ json_tools.default_serialize = _custom_serializer
 
 sys.path.append('.')
 
-from layouts.main_layout import create_layout
-from callbacks.map_callbacks import register_callbacks as register_map_callbacks
-from callbacks.ui_callbacks import register_callbacks as register_ui_callbacks
-from callbacks.widget_callbacks import register_callbacks as register_widget_callbacks
-from callbacks.filter_callbacks import register_callbacks as register_filter_callbacks
-from callbacks.chat_callbacks import register_callbacks as register_chat_callbacks
-from callbacks.settings_callbacks import register_callbacks as register_settings_callbacks
-from callbacks import widget_callbacks
+
 
 # --- Create a temporary directory for uploads ---
 os.makedirs('temp', exist_ok=True)
 
 # --- Dash App Initialization ---
 # --- MODIFIED: Added suppress_callback_exceptions=True to handle dynamic layouts ---
-app = dash.Dash(__name__, assets_folder='assets', suppress_callback_exceptions=True)
+app = dash.Dash(__name__, assets_folder='assets', suppress_callback_exceptions=True, title='DECIDE DSS Prototype v1')
 server = app.server
 
 # --- Create Layout and Register Callbacks ---
