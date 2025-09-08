@@ -71,9 +71,11 @@ def create_settings_modal():
                                 className="settings-column",
                                 children=[
                                     html.H4("Upload Custom Data"),
-                                    html.P("Replace default layers with your own GeoJSON files for this session.",
+                                    html.P("Replace default layers with your own GeoJSON files.",
                                            style={'fontSize': '14px', 'color': '#666'}),
-                                    *upload_items # Unpack the dynamically generated list
+                                    *upload_items,  # Unpack the dynamically generated list
+                                    html.P("To remove custom uploads, navigate to <dss_folder>/temp and remove the uploaded file.",
+                                           style={'fontSize': '14px', 'color': '#666', 'marginTop': '10px'})
                                 ]
                             )
                         ]

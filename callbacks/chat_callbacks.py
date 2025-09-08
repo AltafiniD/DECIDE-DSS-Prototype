@@ -19,7 +19,7 @@ LAYER_INFO = {
     },
     "network": {
         "text": "This layer displays the integrated road network. You can filter and color the roads by various network analysis metrics, like 'NAIN', which measures street-level integration.",
-        "questions": ["What is NAIN?", "How do I filter the network?"]
+        "questions": ["What is NAIN?", "What is Connectivity?", "What is Choice?", "What is Integration?", "What is NACH?", "How do I filter the network?"]
     },
     "crime_master_toggle": {
         "text": "This toggles the crime data layers. You can view crimes as individual points or as a heatmap showing density. Use the sub-options to switch between views.",
@@ -45,7 +45,7 @@ LAYER_INFO = {
 
 PREDEFINED_ANSWERS = {
     # Neighbourhoods
-    "What is a community?": "In Wales, a 'community' is the lowest tier of local government, similar to a civil parish in England. Cardiff is divided into 29 of them.",
+    "What is a community?": "In Wales, a 'community' is the lowest tier of local government, similar to a civil parish in England. Cardiff is divided into 36 of them.",
     "How is this data useful?": "Understanding community boundaries helps in analyzing demographic and social data at a very local level, which is useful for local governance and service planning.",
     # Buildings
     "How do I color the buildings?": "Open the filter panel at the bottom of the screen. Under 'Building & Environmental', use the 'Building Coloring' dropdown to select a flood risk type.",
@@ -54,8 +54,12 @@ PREDEFINED_ANSWERS = {
     "What do the colors mean?": "The different shades represent different sources of potential flooding, like from the sea or from rivers. You can turn them on and off in the filter panel to see the specific zones.",
     "Is my area at risk?": "By turning on the flood layers and the building layer, you can visually inspect which buildings fall within the flood risk zones. The 'Buildings at Risk' widget on the right panel also gives a total count.",
     # Network
-    "What is NAIN?": "NAIN (Normalised Angular Integration) is a metric from space syntax analysis. Higher values (typically shown in warmer colors) indicate streets that are more integrated and accessible within the network, often corresponding to main routes.",
+    "What is NAIN?": "NAIN (Normalised Angular Integration) is a metric from space syntax analysis. Higher values (shown in red and orange) indicate streets that are more integrated and accessible within the network, often corresponding to main routes.",
     "How do I filter the network?": "In the filter panel, under 'Network Analysis', you can select a metric from the dropdown and then use the slider to filter the road segments based on their metric values.",
+    "What is Connectivity?": "Connectivity is the simplest metric. It's a direct count of how many other street segments are immediately connected to a specific segment. It tells you how many turning options you have at that point.",
+    "What is Choice?": "'Choice' measures 'through-movement' potential. It counts how many of the simplest paths between all pairs of streets in the network pass through a specific street. Streets with high Choice are the main arteries and thoroughfares of the city.",
+    "What is Integration?": "'Integration' measures how close a street is to all others, based on the fewest turns. High integration streets are easily reachable from everywhere and often form the core of a community or a city's activity centers.",
+    "What is NACH?": "NACH (Normalised Angular Choice) also measures 'through-traffic' potential, like Choice. High NACH values highlight streets that are crucial for connecting different parts of the network with the simplest routes (fewest turns).",
     # Crime
     "What's the difference between points and heatmap?": "'Crime Points' shows the location of each individual crime event, which can be useful for seeing exact locations. The 'Crime Hexmap' aggregates these points into hexagonal bins to show the density and hotspots of crime more clearly.",
     "Can I filter by crime type?": "Yes. Open the filter panel and use the 'Crime Filters' dropdown to select one or more crime types you are interested in.",
@@ -63,7 +67,7 @@ PREDEFINED_ANSWERS = {
     "What is WIMD?": "The Welsh Index of Multiple Deprivation (WIMD) is the official measure of relative deprivation for small areas in Wales. It combines various indicators like income, employment, health, and education.",
     "What do the colors represent?": "The map colors areas based on their deprivation percentile. Darker blue areas are more deprived compared to lighter areas, which are less deprived.",
     # Land Use
-    "How can I filter by land use?": "In the filter panel, under 'Building & Environmental', you can use the 'Land Use Type' dropdown to select and view specific categories of land use.",
+    "How can I filter by land use?": "Either select one of the segments from the graph in ther widgets panel o.In the filter panel, under 'Building & Environmental', you can use the 'Land Use Type' dropdown to select and view specific categories of land use.",
     "Why is this important?": "Analyzing land use helps planners and policymakers understand how the city is structured, identify areas for development, and ensure a balanced mix of residential, commercial, and recreational spaces.",
     # Population
     "What is an Output Area?": "Output Areas (OAs) are small geographical units created for census data. They are designed to have similar population sizes and be as socially homogenous as possible.",
@@ -112,7 +116,7 @@ def register_callbacks(app):
             ])
 
             return html.Div(className="chat-message bot-message", children=[
-                html.Img(src="https://placehold.co/40x40/333333/EFEFEF?text=Bot", className="chat-avatar"),
+                html.Img(src="assets/avatar.png", className="chat-avatar"),
                 message_content
             ])
 
@@ -153,3 +157,4 @@ def register_callbacks(app):
             return chat_history, ""
 
         return no_update, no_update
+

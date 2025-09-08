@@ -22,7 +22,7 @@ def create_chat_window():
                     html.Div(
                         className="chat-message bot-message",
                         children=[
-                            html.Img(src="https://placehold.co/40x40/333333/EFEFEF?text=Bot", className="chat-avatar"),
+                            html.Img(src="assets/avatar.png", className="chat-avatar"),
                             html.Div(html.P(initial_message_text), className="chat-bot-content")
                         ]
                     )
