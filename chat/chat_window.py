@@ -6,40 +6,37 @@ def create_chat_window():
     """
     Creates the layout for the chat window component.
     """
-    # --- MODIFIED: Only the first message is now created initially ---
     initial_message_text = (
-        "Here is the narrative window. This is an AI assistant that will eventually display "
-        "dynamic information based on what's currently selected, helping you to make informed decisions."
+        "Welcome to the DECIDE Decision Support System. Click on any layer button in the "
+        "bottom-left panel to learn more about it."
     )
 
     chat_window = html.Div(
         id="chat-window-container",
         className="chat-window-container",
         children=[
-            # Div to hold the chat history
             html.Div(
                 id="chat-history",
                 className="chat-history",
                 children=[
-                    # The initial message
                     html.Div(
                         className="chat-message bot-message",
                         children=[
                             html.Img(src="https://placehold.co/40x40/333333/EFEFEF?text=Bot", className="chat-avatar"),
-                            html.P(initial_message_text)
+                            html.Div(html.P(initial_message_text), className="chat-bot-content")
                         ]
                     )
-                ]
+                ],
+                # --- NEW: Add a data attribute for the autoscroll callback to target ---
+                **{'data-scroll-version': '0'}
             ),
-            # Div for the user input area
             html.Div(
                 className="chat-input-area",
                 children=[
                     dcc.Input(
                         id="chat-input",
                         type="text",
-                        # --- MODIFIED: Placeholder text is updated for interactivity ---
-                        placeholder="Type anything to continue...",
+                        placeholder="Ask a question...",
                         autoComplete="off",
                         n_submit=0,
                     ),
@@ -49,3 +46,4 @@ def create_chat_window():
         ]
     )
     return chat_window
+

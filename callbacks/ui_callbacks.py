@@ -1,7 +1,8 @@
 # callbacks/ui_callbacks.py
 
 from dash.dependencies import Input, Output, State, ALL
-from dash import no_update, ctx
+# --- MODIFIED: Import ClientsideFunction ---
+from dash import no_update, ctx, ClientsideFunction
 from config import MAP_STYLES, LAYER_CONFIG
 
 def register_callbacks(app):
@@ -124,32 +125,9 @@ def register_callbacks(app):
             return 'settings-modal-overlay-visible', 'blurred'
         return 'settings-modal-overlay-hidden', ''
 
+    # --- MODIFIED: All clientside JS moved to assets/scripts.js ---
     app.clientside_callback(
-        """
-        function(_) {
-            if (window.chatHoverInitialized) {
-                return window.dash_clientside.no_update;
-            }
-            window.chatHoverInitialized = true;
-            const chatWindow = document.getElementById('chat-window-container');
-            if (!chatWindow) return '';
-            let timeoutId = null;
-            const activateChat = () => {
-                clearTimeout(timeoutId);
-                chatWindow.classList.add('chat-active');
-            };
-            const deactivateChat = () => {
-                timeoutId = setTimeout(() => {
-                    chatWindow.classList.remove('chat-active');
-                }, 5000);
-            };
-            chatWindow.addEventListener('mouseenter', activateChat);
-            chatWindow.addEventListener('mouseleave', deactivateChat);
-            activateChat();
-            deactivateChat();
-            return '';
-        }
-        """,
+        ClientsideFunction(namespace='ui_callbacks', function_name='initChatHover'),
         Output('chat-window-container', 'data-hover-setup'),
         Input('chat-window-container', 'id')
     )
@@ -236,3 +214,11 @@ def register_callbacks(app):
         Input("toggle-debug-btn", "n_clicks"),
         State("debug-panel", "className")
     )
+
+    app.clientside_callback(
+        ClientsideFunction(namespace='ui_callbacks', function_name='scrollChat'),
+        Output('chat-history', 'data-scroll-version'),
+        Input('chat-history', 'children'),
+        prevent_initial_call=True
+    )
+

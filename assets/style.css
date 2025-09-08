@@ -101,12 +101,28 @@ body {
 
 .chat-message {
     display: flex;
-    align-items: flex-end;
+    align-items: flex-start; /* MODIFIED: Align items to the top */
     gap: 10px;
     max-width: 90%;
 }
 
-.chat-message p {
+/* NEW: Container for the bot's text and buttons */
+.chat-bot-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-bot-content p {
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-bottom-left-radius: 4px;
+}
+
+.user-message p {
     margin: 0;
     padding: 8px 12px;
     border-radius: 18px;
@@ -114,13 +130,9 @@ body {
     line-height: 1.4;
 }
 
+
 .bot-message {
     align-self: flex-start;
-}
-
-.bot-message p {
-    background-color: rgba(255, 255, 255, 0.7);
-    border-bottom-left-radius: 4px;
 }
 
 .user-message {
@@ -132,6 +144,34 @@ body {
     color: white;
     border-bottom-right-radius: 4px;
 }
+
+/* NEW: Styles for suggested question buttons */
+.chat-question-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    max-width: 100%;
+}
+
+.chat-question-btn {
+    padding: 6px 12px;
+    border: 1px solid #0d6efd;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #0d6efd;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.chat-question-btn:hover {
+    background-color: #0d6efd;
+    color: white;
+    transform: translateY(-1px);
+}
+
 
 .chat-input-area {
     display: flex;
@@ -717,4 +757,3 @@ body {
     max-height: 5em;
     overflow-y: auto;
 }
-
