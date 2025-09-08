@@ -2,8 +2,9 @@
 
 from dash.dependencies import Input, Output, State, ALL
 from dash import html, no_update, ctx
+from config import LAYER_CONFIG
 
-# --- NEW: Data for interactive chat responses ---
+# --- Data for interactive chat responses ---
 LAYER_INFO = {
     "neighbourhoods": {
         "text": "This layer shows the 29 administrative community boundaries in Cardiff, which are the lowest tier of local government.",
@@ -45,7 +46,7 @@ LAYER_INFO = {
 
 PREDEFINED_ANSWERS = {
     # Neighbourhoods
-    "What is a community?": "In Wales, a 'community' is the lowest tier of local government, similar to a civil parish in England. Cardiff is divided into 36 of them.",
+    "What is a community?": "In Wales, a 'community' is the lowest tier of local government, similar to a civil parish in England. Cardiff is divided into 29 of them.",
     "How is this data useful?": "Understanding community boundaries helps in analyzing demographic and social data at a very local level, which is useful for local governance and service planning.",
     # Buildings
     "How do I color the buildings?": "Open the filter panel at the bottom of the screen. Under 'Building & Environmental', use the 'Building Coloring' dropdown to select a flood risk type.",
@@ -54,11 +55,11 @@ PREDEFINED_ANSWERS = {
     "What do the colors mean?": "The different shades represent different sources of potential flooding, like from the sea or from rivers. You can turn them on and off in the filter panel to see the specific zones.",
     "Is my area at risk?": "By turning on the flood layers and the building layer, you can visually inspect which buildings fall within the flood risk zones. The 'Buildings at Risk' widget on the right panel also gives a total count.",
     # Network
-    "What is NAIN?": "NAIN (Normalised Angular Integration) is a metric from space syntax analysis. Higher values (shown in red and orange) indicate streets that are more integrated and accessible within the network, often corresponding to main routes.",
+    "What is NAIN?": "NAIN (Normalised Angular Integration) is a metric from space syntax analysis. Higher values (typically shown in warmer colors) indicate streets that are more integrated and accessible within the network, often corresponding to main routes.",
     "How do I filter the network?": "In the filter panel, under 'Network Analysis', you can select a metric from the dropdown and then use the slider to filter the road segments based on their metric values.",
     "What is Connectivity?": "Connectivity is the simplest metric. It's a direct count of how many other street segments are immediately connected to a specific segment. It tells you how many turning options you have at that point.",
-    "What is Choice?": "'Choice' measures 'through-movement' potential. It counts how many of the simplest paths between all pairs of streets in the network pass through a specific street. Streets with high Choice are the main arteries and thoroughfares of the city.",
-    "What is Integration?": "'Integration' measures how close a street is to all others, based on the fewest turns. High integration streets are easily reachable from everywhere and often form the core of a community or a city's activity centers.",
+    "What is Choice?": "'Choice' (or T1024_Choice) measures 'through-movement' potential. It counts how many of the simplest paths between all pairs of streets in the network pass through a specific street. Streets with high Choice are the main arteries and thoroughfares of the city.",
+    "What is Integration?": "'Integration' (T1024_Integration) measures how close a street is to all others, based on the fewest turns. High integration streets are easily reachable from everywhere and often form the core of a community or a city's activity centers.",
     "What is NACH?": "NACH (Normalised Angular Choice) also measures 'through-traffic' potential, like Choice. High NACH values highlight streets that are crucial for connecting different parts of the network with the simplest routes (fewest turns).",
     # Crime
     "What's the difference between points and heatmap?": "'Crime Points' shows the location of each individual crime event, which can be useful for seeing exact locations. The 'Crime Hexmap' aggregates these points into hexagonal bins to show the density and hotspots of crime more clearly.",
@@ -67,7 +68,7 @@ PREDEFINED_ANSWERS = {
     "What is WIMD?": "The Welsh Index of Multiple Deprivation (WIMD) is the official measure of relative deprivation for small areas in Wales. It combines various indicators like income, employment, health, and education.",
     "What do the colors represent?": "The map colors areas based on their deprivation percentile. Darker blue areas are more deprived compared to lighter areas, which are less deprived.",
     # Land Use
-    "How can I filter by land use?": "Either select one of the segments from the graph in ther widgets panel o.In the filter panel, under 'Building & Environmental', you can use the 'Land Use Type' dropdown to select and view specific categories of land use.",
+    "How can I filter by land use?": "In the filter panel, under 'Building & Environmental', you can use the 'Land Use Type' dropdown to select and view specific categories of land use.",
     "Why is this important?": "Analyzing land use helps planners and policymakers understand how the city is structured, identify areas for development, and ensure a balanced mix of residential, commercial, and recreational spaces.",
     # Population
     "What is an Output Area?": "Output Areas (OAs) are small geographical units created for census data. They are designed to have similar population sizes and be as socially homogenous as possible.",
@@ -82,6 +83,10 @@ def register_callbacks(app):
     """
     Registers all chat-related callbacks.
     """
+    # Get the IDs for all non-crime layer toggles to build the State inputs
+    other_layer_ids = [k for k, v in LAYER_CONFIG.items() if not k.startswith('crime_')]
+    layer_toggle_states = [State(f"{layer_id}-toggle", "value") for layer_id in other_layer_ids]
+
     @app.callback(
         Output('chat-history', 'children'),
         Output('chat-input', 'value'),
@@ -91,10 +96,12 @@ def register_callbacks(app):
          Input({'type': 'chat-question-btn', 'index': ALL}, 'n_clicks'),
          Input('crime-master-toggle-btn', 'n_clicks')],
         [State('chat-input', 'value'),
-         State('chat-history', 'children')],
+         State('chat-history', 'children'),
+         State('crime-master-toggle', 'value'),  # State for the crime toggle
+         *layer_toggle_states],  # Unpack all other layer states
         prevent_initial_call=True
     )
-    def update_chat_history(send_clicks, enter_presses, layer_clicks, question_clicks, crime_toggle_click, user_input, chat_history):
+    def update_chat_history(send_clicks, enter_presses, layer_clicks, question_clicks, crime_toggle_click, user_input, chat_history, crime_toggle_state, *other_layer_states):
         triggered_id = ctx.triggered_id
         if not triggered_id:
             return no_update, no_update
@@ -123,26 +130,42 @@ def register_callbacks(app):
         # --- Logic for Layer Button Clicks ---
         if isinstance(triggered_id, dict) and triggered_id.get('type') == 'layer-button':
             layer_id = triggered_id['index']
-            if layer_id in LAYER_INFO:
-                info = LAYER_INFO[layer_id]
-                bot_response = create_bot_message(info['text'], info.get('questions'))
-                chat_history.append(bot_response)
-            return chat_history, ""
+            
+            try:
+                # Find the state of the layer *before* the click
+                layer_index = other_layer_ids.index(layer_id)
+                current_state = other_layer_states[layer_index]
+            except ValueError:
+                return no_update, no_update
+                
+            # If state is empty, it means the layer was OFF and is now being turned ON
+            if not current_state:
+                if layer_id in LAYER_INFO:
+                    info = LAYER_INFO[layer_id]
+                    bot_response = create_bot_message(info['text'], info.get('questions'))
+                    chat_history.append(bot_response)
+                return chat_history, ""
+            else:
+                # Layer was ON and is being turned OFF, so do nothing
+                return no_update, no_update
 
         # --- Logic for Crime Master Toggle ---
         if triggered_id == 'crime-master-toggle-btn':
-            info = LAYER_INFO['crime_master_toggle']
-            bot_response = create_bot_message(info['text'], info.get('questions'))
-            chat_history.append(bot_response)
-            return chat_history, ""
+            # Check the state of the crime toggle *before* the click
+            if not crime_toggle_state:
+                info = LAYER_INFO['crime_master_toggle']
+                bot_response = create_bot_message(info['text'], info.get('questions'))
+                chat_history.append(bot_response)
+                return chat_history, ""
+            else:
+                # Crime toggle was ON and is being turned OFF, do nothing
+                return no_update, no_update
 
         # --- Logic for Predefined Question Clicks ---
         if isinstance(triggered_id, dict) and triggered_id.get('type') == 'chat-question-btn':
             question_text = triggered_id['index']
-            # Add user's "message" (the button they clicked)
             user_message = html.Div(className="chat-message user-message", children=html.P(question_text))
             chat_history.append(user_message)
-            # Add the predefined answer
             answer_text = PREDEFINED_ANSWERS.get(question_text, "I don't have an answer for that yet.")
             bot_response = create_bot_message(answer_text)
             chat_history.append(bot_response)
