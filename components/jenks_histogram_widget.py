@@ -57,7 +57,7 @@ def create_jenks_histogram_figure(data_series, metric_name, num_breaks=3):
 
     fig.update_layout(
         xaxis_title=f"Value of {metric_name}",
-        yaxis_title="Number of Segments",
+        yaxis_title="Number of Road Segments",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=40, r=20, t=40, b=20),

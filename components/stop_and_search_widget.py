@@ -2,7 +2,7 @@
 import plotly.express as px
 import pandas as pd
 
-def create_stop_and_search_histogram_figure(df, title="Stop & Search by Month"):
+def create_stop_and_search_histogram_figure(df, title=""):
     """
     Creates a stacked bar chart of stop and search events per month,
     broken down by the object of the search, with all bars in a single color.

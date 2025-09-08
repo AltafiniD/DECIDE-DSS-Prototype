@@ -23,6 +23,7 @@ numpy==2.3.1
 packaging==25.0
 pandas==2.3.1
 plotly==6.2.0
+pyarrow==21.0.0
 pydeck==0.9.1
 python-dateutil==2.9.0.post0
 pytz==2025.2

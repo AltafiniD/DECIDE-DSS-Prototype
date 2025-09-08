@@ -55,7 +55,7 @@ os.makedirs('temp', exist_ok=True)
 
 # --- Dash App Initialization ---
 # --- FIXED: Corrected syntax and re-added suppress_callback_exceptions ---
-app = dash.Dash(__name__, assets_folder='assets', title='Cardiff Data Explorer', suppress_callback_exceptions=True)
+app = dash.Dash(__name__, assets_folder='assets', title='DECIDE Decision Support System v1', suppress_callback_exceptions=True)
 server = app.server
 
 # --- Create Layout and Register Callbacks ---

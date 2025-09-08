@@ -23,15 +23,9 @@ def register_callbacks(app, all_layers, dataframes):
             return no_update, no_update
 
         # --- DEFINITIVE FIX: Robust Data Sanitization ---
-        # This function converts a DataFrame into a format that is guaranteed to be
-        # JSON-serializable by pydeck. It replaces all numpy/pandas nulls with
-        # Python's None and then converts the DataFrame to a list of dictionaries,
-        # which forces all special numeric types (e.g., int64) into standard Python types.
         def sanitize_data_for_json(df):
             df_copy = df.copy()
-            # Replace all recognized null-like values with None
             df_copy.replace({pd.NA: None, np.nan: None, pd.NaT: None}, inplace=True)
-            # Convert to a list of records to force all types to native Python
             return df_copy.to_dict('records')
 
         map_style = trigger_data["map_style"]
@@ -42,9 +36,10 @@ def register_callbacks(app, all_layers, dataframes):
         
         flooding_toggle = toggles_dict.get('flooding_toggle', False)
         
+        # --- FIX: Swapped sas_time_range and sas_object_search to match input order ---
         time_range, selected_crime_types, network_metric, network_range, \
         deprivation_category, selected_land_use, flood_selection, \
-        building_color_metric, selected_neighbourhoods, sas_time_range, sas_object_search = trigger_data["states"]
+        building_color_metric, selected_neighbourhoods, sas_object_search, sas_time_range = trigger_data["states"]
 
         visible_layers = []
         
@@ -56,7 +51,7 @@ def register_callbacks(app, all_layers, dataframes):
             original_crime_df = dataframes[crime_viz_selection]
             filtered_crime_df = original_crime_df.copy()
             
-            if time_range and crime_month_map:
+            if time_range and isinstance(time_range, list) and len(time_range) == 2 and crime_month_map:
                 start_month_str, end_month_str = crime_month_map.get(str(time_range[0])), crime_month_map.get(str(time_range[1]))
                 if start_month_str and end_month_str:
                     filtered_crime_df['Month_dt'] = pd.to_datetime(filtered_crime_df['Month'], errors='coerce')
@@ -102,11 +97,16 @@ def register_callbacks(app, all_layers, dataframes):
                         new_layer_args['get_fill_color'] = BUILDING_COLOR_CONFIG['none']['color']
 
                 elif layer_id == 'stop_and_search':
-                    if sas_time_range and sas_month_map:
+                    if sas_time_range and isinstance(sas_time_range, list) and len(sas_time_range) == 2 and sas_month_map:
                         start_month_str, end_month_str = sas_month_map.get(str(sas_time_range[0])), sas_month_map.get(str(sas_time_range[1]))
                         if start_month_str and end_month_str:
                             df_to_process['Month_dt'] = pd.to_datetime(df_to_process['Date'], errors='coerce')
                             start_date, end_date = pd.to_datetime(start_month_str), pd.to_datetime(end_month_str)
+                            
+                            # --- FIX: Make timezone information consistent before comparison ---
+                            # Remove timezone info from the dataframe's column to match the naive start/end dates
+                            df_to_process['Month_dt'] = df_to_process['Month_dt'].dt.tz_localize(None)
+
                             df_to_process = df_to_process[(df_to_process['Month_dt'] >= start_date) & (df_to_process['Month_dt'] <= end_date)]
                     if sas_object_search:
                         df_to_process = df_to_process[df_to_process['Object of search'].isin(sas_object_search)]
@@ -121,16 +121,14 @@ def register_callbacks(app, all_layers, dataframes):
                             decile_labels = pd.qcut(metric_series, 10, labels=False, duplicates='drop')
                             df_to_process['decile'] = decile_labels
                             
-                            # --- NEW: Conditional Color Scale ---
                             if 'risk' in network_metric.lower():
-                                # Blue scale for risk metrics
                                 blue_hex = ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6',
                                             '#2171b5', '#08519c', '#08306b', '#08306b', '#08306b']
                                 decile_colors = []
                                 for hex_color in blue_hex:
                                     hex_color = hex_color.lstrip('#')
                                     rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-                                    decile_colors.append(list(rgb) + [220]) # Increased alpha
+                                    decile_colors.append(list(rgb) + [220])
                                 
                                 def get_color_from_scale(decile):
                                     if pd.isna(decile): return [128, 128, 128, 150]
@@ -138,7 +136,6 @@ def register_callbacks(app, all_layers, dataframes):
                                 
                                 df_to_process['color'] = df_to_process['decile'].apply(get_color_from_scale)
                             else:
-                                # Rainbow scale for other metrics
                                 def get_rainbow_color(decile):
                                     if pd.isna(decile): return [128, 128, 128, 150]
                                     norm = decile / 9.0; r = int(255 * (norm * 2)) if norm > 0.5 else 0; g = int(255 * (1 - abs(norm - 0.5) * 2)); b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
@@ -185,4 +182,3 @@ def register_callbacks(app, all_layers, dataframes):
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
         return deck.to_json(), None
-
