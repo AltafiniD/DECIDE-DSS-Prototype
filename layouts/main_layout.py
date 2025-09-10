@@ -16,7 +16,6 @@ from config import (
 )
 from utils.geojson_loader import process_geojson_features
 from utils.colours import get_crime_colour_map
-# --- MODIFIED: Import the updated slideover panel function ---
 from components.slideover_panel import create_slideover_panel
 from components.filter_panel import create_filter_panel
 from components.combined_controls import create_combined_panel
@@ -60,8 +59,6 @@ def create_layout():
     unique_file_paths = {v['file_path'] for v in effective_configs.values() if 'file_path' in v}
     loaded_files = {path: load_data_efficiently(path) for path in unique_file_paths}
 
-    # Sanitize data types in loaded dataframes to prevent JSON errors ---
-    # This ensures that values used are standard Python floats.
     buildings_path = LAYER_CONFIG['buildings']['file_path']
     if buildings_path in loaded_files and 'height' in loaded_files[buildings_path].columns:
         df = loaded_files[buildings_path]
@@ -96,7 +93,7 @@ def create_layout():
             if 'flood' in layer_id:
                  layer_args.update({'stroked': False, 'get_fill_color': config.get('color', [128, 128, 128, 100])})
             elif layer_id == 'buildings':
-                layer_args.update({'extruded': True, 'wireframe': True, 'get_elevation': 'height', 'get_fill_color': BUILDING_COLOR_CONFIG['none']['color']})
+                layer_args.update({'extruded': True, 'wireframe': False, 'get_elevation': 'height', 'get_fill_color': BUILDING_COLOR_CONFIG['none']['color'], 'polygon_offset': -1})
             elif layer_id == 'neighbourhoods':
                 layer_args.update({'extruded': False, 'get_fill_color': '[200, 200, 200, 100]', 'get_line_color': '[84, 84, 84, 200]'})
             elif layer_id == 'land_use':
@@ -109,8 +106,7 @@ def create_layout():
                 df['density'] = pd.to_numeric(df['density'], errors='coerce')
                 df_valid_density = df[df['density'].notna() & (df['density'] > 0)].copy()
                 df_no_density = df[~df.index.isin(df_valid_density.index)].copy()
-
-                # --- MODIFIED: Increased alpha for more vibrant colors ---
+                
                 jenks_colors = [
                     [253, 224, 221, 220], [250, 159, 181, 220], [247, 104, 161, 220],
                     [197, 27, 138, 220], [122, 1, 119, 220]
@@ -210,11 +206,11 @@ def create_layout():
                 className="debug-panel-container debug-hidden",
                 children=[dcc.Markdown(id="selection-info-display")]
             ),
-            # --- MODIFIED: Call the function without arguments ---
             create_slideover_panel(),
             html.Button("❮", id="toggle-slideover-btn"),
             create_settings_modal()
         ]
     )
     return layout, all_layers, dataframes
+
 

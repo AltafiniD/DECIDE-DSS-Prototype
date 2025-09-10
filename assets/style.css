@@ -62,8 +62,8 @@ body {
 .chat-window-container {
     top: 20px;
     left: 20px;
-    width: 650px;
-    height: 200px;
+    width: 550px;
+    height: 300px;
     display: flex;
     flex-direction: column;
     padding: 10px 15px;

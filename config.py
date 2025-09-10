@@ -55,7 +55,7 @@ FLOOD_LAYER_CONFIG = {
 
 # Configuration for dynamic building coloring
 BUILDING_COLOR_CONFIG = {
-    "none": { "label": "Default", "color": [220, 220, 220, 180] },
+    "none": { "label": "Default", "color": [220, 220, 220, 255] },
     "risk_rivers": { "label": "Risk from Rivers", "column": "Rivers_risk", "colors": { "low": [132, 124, 179, 180], "medium": [72, 61, 139, 180], "high": [42, 31, 99, 180] }},
     "risk_sea": { "label": "Risk from Sea", "column": "Sea_risk", "colors": { "low": [155, 198, 200, 180], "medium": [95, 158, 160, 180], "high": [55, 118, 120, 180] }},
     "risk_watercourses": { "label": "Risk from Watercourses", "column": "Watercourses_Risk", "colors": { "low": [173, 164, 248, 180], "medium": [123, 104, 238, 180], "high": [73, 54, 188, 180] }}
