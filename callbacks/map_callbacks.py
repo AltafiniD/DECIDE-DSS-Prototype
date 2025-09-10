@@ -79,7 +79,7 @@ def register_callbacks(app, all_layers, dataframes):
                         if metric_config and building_color_metric != 'none':
                             column_name = metric_config['column']
                             colors = metric_config['colors']
-                            white_color = [255, 255, 255, 180]
+                            white_color = [255, 255, 255, 255]
                             def get_building_color(risk_level):
                                 risk_level_str = str(risk_level).lower()
                                 return colors.get(risk_level_str, white_color)

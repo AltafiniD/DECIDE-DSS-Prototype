@@ -118,10 +118,24 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
             widgets_data.append({"size": (2, 2), "content": [dcc.Markdown("#### Network Metric Distribution (Jenks Breaks)"), dcc.Graph(id="jenks-histogram-chart", figure=initial_jenks_fig, style={'height': '85%'})]})
 
         if toggles_dict.get('buildings'):
-            initial_flood_fig = create_flood_risk_pie_chart(buildings_df, 'Sea_risk', title="")
+            initial_flood_fig = create_flood_risk_pie_chart(buildings_df, 'sea_hazard', title="")
             buildings_at_risk_content = create_buildings_at_risk_widget(buildings_df)
             widgets_data.append({"size": (1, 1), "content": buildings_at_risk_content})
-            widgets_data.append({"size": (1, 2), "content": [dcc.Markdown("#### Building Flood Risk"), dcc.RadioItems(id='flood-risk-type-selector', options=[{'label': 'Sea', 'value': 'Sea_risk'}, {'label': 'Rivers', 'value': 'Rivers_risk'}, {'label': 'Watercourses', 'value': 'Watercourses_Risk'}], value='Sea_risk', labelStyle={'display': 'inline-block', 'margin-right': '10px'}), dcc.Graph(id="flood-risk-pie-chart", figure=initial_flood_fig, style={'height': '80%'})]})
+            widgets_data.append({"size": (1, 2), "content": [
+                dcc.Markdown("#### Building Flood Hazard"), 
+                # --- MODIFIED: Update RadioItems to use new 'hazard' column names ---
+                dcc.RadioItems(
+                    id='flood-risk-type-selector', 
+                    options=[
+                        {'label': 'Sea', 'value': 'sea_hazard'}, 
+                        {'label': 'Rivers', 'value': 'river_hazard'}, 
+                        {'label': 'Watercourses', 'value': 'surface_hazard'}
+                    ], 
+                    value='sea_hazard', 
+                    labelStyle={'display': 'inline-block', 'margin-right': '10px'}
+                ), 
+                dcc.Graph(id="flood-risk-pie-chart", figure=initial_flood_fig, style={'height': '80%'})
+            ]})
 
         if toggles_dict.get('land_use'):
             initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
@@ -426,4 +440,3 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
 
         fig = create_deprivation_bar_chart(filtered_df, title=chart_title)
         return fig, widget_title
-

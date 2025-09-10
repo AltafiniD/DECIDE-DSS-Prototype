@@ -55,10 +55,22 @@ FLOOD_LAYER_CONFIG = {
 
 # Configuration for dynamic building coloring
 BUILDING_COLOR_CONFIG = {
-    "none": { "label": "Default", "color": [220, 220, 220, 180] },
-    "risk_rivers": { "label": "Risk from Rivers", "column": "Rivers_risk", "colors": { "low": [132, 124, 179, 180], "medium": [72, 61, 139, 180], "high": [42, 31, 99, 180] }},
-    "risk_sea": { "label": "Risk from Sea", "column": "Sea_risk", "colors": { "low": [155, 198, 200, 180], "medium": [95, 158, 160, 180], "high": [55, 118, 120, 180] }},
-    "risk_watercourses": { "label": "Risk from Watercourses", "column": "Watercourses_Risk", "colors": { "low": [173, 164, 248, 180], "medium": [123, 104, 238, 180], "high": [73, 54, 188, 180] }}
+    "none": { "label": "Default", "color": [220, 220, 220, 255] },
+    "risk_rivers": { "label": "Risk from Rivers", "column": "river_hazard", "colors": { 
+        "low": [192, 223, 213, 255], 
+        "medium": [129, 191, 170, 255], 
+        "high": [71, 94, 87, 255] 
+    }},
+    "risk_sea": { "label": "Risk from Sea", "column": "sea_hazard", "colors": { 
+        "low": [149, 170, 248, 255], 
+        "medium": [42, 84, 241, 255], 
+        "high": [17, 34, 96, 255] 
+    }},
+    "risk_watercourses": { "label": "Risk from Watercourses", "column": "surface_hazard", "colors": { 
+        "low": [214, 179, 255, 255], 
+        "medium": [117, 0, 255, 255], 
+        "high": [35, 0, 76, 255] 
+    }}
 }
 
 # Columns to exclude from the dynamic network filter
@@ -99,7 +111,7 @@ LAYER_CONFIG = {
         "tooltip": {"html": "<b>{high_level_landuse}</b><br/>{landuse_text}"}
     },
     "buildings": {
-        "id": "buildings", "label": "Buildings", "file_path": "data/IB01_Integrated_Buildings_Dataset.geojson",
+        "id": "buildings", "label": "Buildings", "file_path": "data/BH01_Cardiff_Buildings_Hazard.geojson",
         "type": "polygon", "visible": False, "image": "assets/images/buildings.png",
         "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },

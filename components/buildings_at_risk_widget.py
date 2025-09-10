@@ -6,12 +6,13 @@ def create_buildings_at_risk_widget(buildings_df):
     """
     Calculates the number of buildings at risk from flooding and creates a KPI widget.
     """
-    risk_cols = ["Watercourses_Risk", "Rivers_risk", "Sea_risk"]
+    # --- MODIFIED: Use the new 'hazard' column names ---
+    hazard_cols = ["surface_hazard", "river_hazard", "sea_hazard"]
     
     # Check if the dataframe and required columns exist
-    if not buildings_df.empty and all(col in buildings_df.columns for col in risk_cols):
-        # Drop rows where all risk columns are null, then count the rest
-        at_risk_buildings = buildings_df.dropna(subset=risk_cols, how='all')
+    if not buildings_df.empty and all(col in buildings_df.columns for col in hazard_cols):
+        # Drop rows where all hazard columns are null, then count the rest
+        at_risk_buildings = buildings_df.dropna(subset=hazard_cols, how='all')
         num_at_risk = len(at_risk_buildings)
     else:
         num_at_risk = 0
@@ -20,7 +21,7 @@ def create_buildings_at_risk_widget(buildings_df):
     content = html.Div(
         style={'textAlign': 'center', 'paddingTop': '20px'},
         children=[
-            dcc.Markdown("#### Total Number of Buildings at Flood Risk"),
+            dcc.Markdown("#### Total Number of Buildings at Flood Hazard"),
             html.H2(f"{num_at_risk:,}", style={'fontSize': '48px', 'margin': '0'})
         ]
     )

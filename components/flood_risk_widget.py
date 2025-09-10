@@ -3,20 +3,20 @@ import plotly.graph_objects as go
 import pandas as pd
 from config import BUILDING_COLOR_CONFIG
 
-def create_flood_risk_pie_chart(df, risk_column, title="Flood Risk Distribution"):
+def create_flood_risk_pie_chart(df, hazard_column, title="Flood Hazard Distribution"):
     """
-    Creates a pie chart for flood risk distribution of buildings.
+    Creates a pie chart for flood hazard distribution of buildings.
 
     Args:
         df (pd.DataFrame): The dataframe containing building data.
-        risk_column (str): The column name for the specific flood risk
-                           (e.g., 'Sea_risk').
+        hazard_column (str): The column name for the specific flood hazard
+                           (e.g., 'sea_hazard').
         title (str): The title for the chart.
 
     Returns:
         go.Figure: A Plotly graph object figure.
     """
-    if df.empty or risk_column not in df.columns:
+    if df.empty or hazard_column not in df.columns:
         fig = go.Figure()
         fig.update_layout(
             title="No building data for this selection",
@@ -25,16 +25,17 @@ def create_flood_risk_pie_chart(df, risk_column, title="Flood Risk Distribution"
         )
         return fig
 
-    # --- MODIFIED: Handle null values as 'Not at risk' ---
-    risk_data = df[risk_column].fillna('Not at risk')
-    risk_counts = risk_data.value_counts()
+    # Handle null values as 'Not at hazard'
+    hazard_data = df[hazard_column].fillna('Not at hazard')
+    hazard_counts = hazard_data.value_counts()
     
-    risk_key_map = {
-        'Watercourses_Risk': 'risk_watercourses',
-        'Rivers_risk': 'risk_rivers',
-        'Sea_risk': 'risk_sea'
+    # --- MODIFIED: Map new hazard column names to the existing config keys ---
+    hazard_key_map = {
+        'surface_hazard': 'risk_watercourses',
+        'river_hazard': 'risk_rivers',
+        'sea_hazard': 'risk_sea'
     }
-    config_key = risk_key_map.get(risk_column)
+    config_key = hazard_key_map.get(hazard_column)
     color_map = {}
     if config_key and config_key in BUILDING_COLOR_CONFIG:
         color_map = {
@@ -42,24 +43,24 @@ def create_flood_risk_pie_chart(df, risk_column, title="Flood Risk Distribution"
             for level, rgba in BUILDING_COLOR_CONFIG[config_key]['colors'].items()
         }
     
-    # --- NEW: Add a specific color for the 'Not at risk' category ---
-    color_map['Not at risk'] = 'rgb(200, 200, 200)'
+    # Add a specific color for the 'Not at hazard' category
+    color_map['Not at hazard'] = 'rgb(200, 200, 200)'
 
-    if risk_counts.empty:
+    if hazard_counts.empty:
         fig = go.Figure()
         fig.update_layout(
-            title=f"No '{risk_column.replace('_', ' ')}' data",
+            title=f"No '{hazard_column.replace('_', ' ')}' data",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
         )
         return fig
 
-    # --- MODIFIED: Capitalize labels for consistent matching ---
+    # Capitalize labels for consistent matching with the color map
     fig = go.Figure(data=[go.Pie(
-        labels=risk_counts.index.str.capitalize(),
-        values=risk_counts.values,
+        labels=hazard_counts.index.str.capitalize(),
+        values=hazard_counts.values,
         hole=.3,
-        marker_colors=[color_map.get(label.capitalize(), 'lightgrey') for label in risk_counts.index],
+        marker_colors=[color_map.get(label.capitalize(), 'lightgrey') for label in hazard_counts.index],
         textinfo='percent+label'
     )])
 

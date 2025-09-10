@@ -85,7 +85,7 @@ def create_layout():
             continue
             
         layer_type_str = None
-        layer_args = {'data': df, 'id': layer_id, 'opacity': 0.8, 'pickable': True}
+        layer_args = {'data': df, 'id': layer_id, 'opacity': 1, 'pickable': True}
         
         if config.get('type') == 'polygon':
             layer_type_str = "PolygonLayer"
