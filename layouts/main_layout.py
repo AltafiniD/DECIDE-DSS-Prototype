@@ -72,7 +72,6 @@ def create_layout():
             if col not in NETWORK_METRICS_EXCLUDE:
                 df[col] = pd.to_numeric(df[col], errors='coerce').astype(float)
 
-
     for layer_key, config in effective_configs.items():
         if config.get('type') == 'toggle_only': 
             continue
@@ -81,7 +80,8 @@ def create_layout():
         
         df = loaded_files.get(config.get('file_path'))
         if df is None or df.empty:
-            dataframes[layer_id] = pd.DataFrame()
+            # --- FIX: Use layer_key for consistency ---
+            dataframes[layer_key] = pd.DataFrame()
             continue
             
         layer_type_str = None
@@ -106,22 +106,15 @@ def create_layout():
                 df['density'] = pd.to_numeric(df['density'], errors='coerce')
                 df_valid_density = df[df['density'].notna() & (df['density'] > 0)].copy()
                 df_no_density = df[~df.index.isin(df_valid_density.index)].copy()
-                
-                jenks_colors = [
-                    [253, 224, 221, 220], [250, 159, 181, 220], [247, 104, 161, 220],
-                    [197, 27, 138, 220], [122, 1, 119, 220]
-                ]
-                
+                jenks_colors = [[253, 224, 221, 220], [250, 159, 181, 220], [247, 104, 161, 220], [197, 27, 138, 220], [122, 1, 119, 220]]
                 if not df_valid_density.empty and df_valid_density['density'].nunique() >= 5:
                     breaks = jenkspy.jenks_breaks(df_valid_density['density'], n_classes=5)
                     df_valid_density['bin'] = pd.cut(df_valid_density['density'], bins=breaks, labels=False, include_lowest=True)
                     df_valid_density['color'] = df_valid_density['bin'].apply(lambda x: jenks_colors[x])
                 else:
                     df_valid_density['color'] = [jenks_colors[0]] * len(df_valid_density)
-
                 df_no_density['color'] = [[200, 200, 200, 120]] * len(df_no_density)
                 df = pd.concat([df_valid_density, df_no_density])
-
                 layer_args.update({'data': df.copy(), 'get_fill_color': 'color', 'get_line_color': [80, 80, 80, 150], 'stroked': True})
             elif layer_id == 'deprivation':
                 df['Percentile'] = pd.to_numeric(df['Percentile'], errors='coerce')
@@ -148,13 +141,14 @@ def create_layout():
 
         elif config.get('type') == 'linestring':
             layer_type_str = "LineLayer"
+            if 'NAIN' not in df.columns: df['color'] = [[0, 0, 0, 255]] * len(df)
             layer_args.update({'get_source_position': 'source_position', 'get_target_position': 'target_position', 'get_color': 'color', 'get_width': 5})
 
-        else:
-            continue
+        else: continue
             
-        dataframes[layer_id] = df
-        all_layers[layer_id] = (layer_type_str, layer_args)
+        # --- FIX: Use the consistent layer_key for storing data and layer objects ---
+        dataframes[layer_key] = df
+        all_layers[layer_key] = (layer_type_str, layer_args)
 
     initial_visible_layers = [
         pdk.Layer(layer_type, **args)
@@ -212,5 +206,4 @@ def create_layout():
         ]
     )
     return layout, all_layers, dataframes
-
 

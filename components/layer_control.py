@@ -5,7 +5,7 @@ from config import LAYER_CONFIG
 
 LAYER_EMOJIS = {
     "neighbourhoods": "🏘️", "buildings": "🏢", "flooding_toggle": "🌊",
-    "network": "🌐", "crime_points": "📍", "crime_heatmap": "🔥",
+    "network": "🌐", "network_outline": "📏", "crime_points": "📍", "crime_heatmap": "🔥",
     "deprivation": "📉", "land_use": "🏞️", "population": "👨‍👩‍👧‍👦",
     "stop_and_search": "👮"
 }
@@ -79,4 +79,3 @@ def create_layer_control_content():
         ))
 
     return children
-

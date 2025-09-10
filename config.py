@@ -55,7 +55,7 @@ FLOOD_LAYER_CONFIG = {
 
 # Configuration for dynamic building coloring
 BUILDING_COLOR_CONFIG = {
-    "none": { "label": "Default", "color": [220, 220, 220, 255] },
+    "none": { "label": "Default", "color": [220, 220, 220, 180] },
     "risk_rivers": { "label": "Risk from Rivers", "column": "Rivers_risk", "colors": { "low": [132, 124, 179, 180], "medium": [72, 61, 139, 180], "high": [42, 31, 99, 180] }},
     "risk_sea": { "label": "Risk from Sea", "column": "Sea_risk", "colors": { "low": [155, 198, 200, 180], "medium": [95, 158, 160, 180], "high": [55, 118, 120, 180] }},
     "risk_watercourses": { "label": "Risk from Watercourses", "column": "Watercourses_Risk", "colors": { "low": [173, 164, 248, 180], "medium": [123, 104, 238, 180], "high": [73, 54, 188, 180] }}
@@ -69,6 +69,16 @@ INITIAL_VIEW_STATE_CONFIG = { "latitude": 51.4816, "longitude": -3.1791, "zoom":
 
 # --- MODIFIED: Added an 'image' key for each layer for the new buttons ---
 LAYER_CONFIG = {
+    "network": {
+        "id": "network", "label": "Network Analysis", "file_path": "data/IR00_Integrated_Roads_Dataset.geojson",
+        "type": "linestring", "visible": False, "image": "assets/images/roads.png",
+        "tooltip": {"html": "<b>{metric}:</b> {value}"}
+    },
+    "network_outline": {
+        "id": "network_outline", "label": "Network Outline", "file_path": "data/BR01_Base_Roads.geojson",
+        "type": "linestring", "visible": False, "image": "assets/images/roads.png",
+        "tooltip": {"text": "Road Segment"}
+    },
     "stop_and_search": {
         "id": "stop_and_search", "label": "Stop & Search", "file_path": "data/SC02_Stop_and_Search.geojson",
         "type": "scatterplot", "visible": False, "image": "assets/images/stopandsearch.png",
@@ -112,10 +122,5 @@ LAYER_CONFIG = {
         "id": "crime_points", "label": "Crime Points", "file_path": "data/SC01_Street_Crimes.geojson",
         "type": "scatterplot", "visible": False,
         "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
-    },
-    "network": {
-        "id": "network", "label": "Network Analysis", "file_path": "data/IR00_Integrated_Roads_Dataset.geojson",
-        "type": "linestring", "visible": False, "image": "assets/images/roads.png",
-        "tooltip": {"html": "<b>{metric}:</b> {value}"}
     }
 }

@@ -79,10 +79,31 @@ def register_callbacks(app):
         triggered_id = ctx.triggered_id
         if not triggered_id:
             return [no_update] * (2 * num_layers)
+
         clicked_layer_id = triggered_id['index']
         clicked_idx = other_layer_ids.index(clicked_layer_id)
         new_values = list(states)
-        new_values[clicked_idx] = [clicked_layer_id] if not states[clicked_idx] else []
+
+        is_network_click = clicked_layer_id == 'network'
+        is_outline_click = clicked_layer_id == 'network_outline'
+
+        if is_network_click or is_outline_click:
+            network_idx = other_layer_ids.index('network') if 'network' in other_layer_ids else -1
+            outline_idx = other_layer_ids.index('network_outline') if 'network_outline' in other_layer_ids else -1
+            
+            is_turning_on = not states[clicked_idx]
+
+            if is_turning_on:
+                new_values[clicked_idx] = [clicked_layer_id]
+                if is_network_click and outline_idx != -1:
+                    new_values[outline_idx] = []
+                elif is_outline_click and network_idx != -1:
+                    new_values[network_idx] = []
+            else:
+                new_values[clicked_idx] = []
+        else:
+            new_values[clicked_idx] = [clicked_layer_id] if not states[clicked_idx] else []
+            
         new_classnames = [f"layer-button{' selected' if val else ''}" for val in new_values]
         return new_classnames + new_values
 
@@ -221,4 +242,5 @@ def register_callbacks(app):
         Input('chat-history', 'children'),
         prevent_initial_call=True
     )
+
 
