@@ -62,7 +62,7 @@ body {
 .chat-window-container {
     top: 20px;
     left: 20px;
-    width: 550px;
+    width: 580px;
     height: 370px;
     display: flex;
     flex-direction: column;
