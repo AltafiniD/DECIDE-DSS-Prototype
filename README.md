@@ -10,6 +10,9 @@ When loading the app for the first time, give it a moment as the datasets have t
 
 ## Overview
 
+https://github.com/user-attachments/assets/56a00da4-8537-4fc5-8999-a680934e6774
+
+
 Communication is a key aspect of decision support in urban studies, as we often interface with stakeholders with diverse backgrounds, agendas, and expertise. Models that support urban decisional processes must display actionable information, meaning being focused on accessibility, clarity, and sufficiency, rather than complexity, aiming to answer specific questions and inform outcomes.  
 
 DECIDE-DSS is a prototype web-based application that follows the principles of universal design and outcome-driven decision-support strategies. It enables the visualisation of different layers of geospatial data and provides straightforward interpretation through essential KPIs and narrative functions. Its objective is to provide clear communication of the models' outcomes to diverse stakeholders. The demonstration of the prototype provides analysis of Cardiff, in the United Kingdom; however, it is flexible enough to be used in any urban context.  
@@ -156,6 +159,7 @@ DECIDE DSS prototype is free software: you can redistribute it and/or modify it 
 DECIDE DSS is distributed in the hope that it will be useful as a demonstrator and research tool, but WITHOUT ANY WARRANTY; without even the implied warranty of FITNESS FOR A PARTICULAR PURPOSE. See the CC BY-NC-SA 4.0 and GNU General Public License for more details.
 
 You should have received a copy of both CC BY-NC-SA 4.0 and the GNU General Public License along with DECIDE DSS Prototype. If not, see https://creativecommons.org/licenses/by-nc-sa/4.0/ and http://www.gnu.org/licenses/.
+
 
 
 
