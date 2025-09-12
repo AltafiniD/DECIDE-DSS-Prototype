@@ -12,18 +12,18 @@ LAYER_INFO = {
     },
     "buildings": {
         "text": "This shows an integrated dataset of building footprints. You can color them by different flood risk types using the filter panel at the bottom.",
-        "questions": ["How do I color the buildings?", "Where does this data come from?"]
+        "questions": ["Where does this data come from?" "What are the buildings at risk?"]
     },
     "flooding_toggle": {
-        "text": "This toggles the visibility of flood risk zones from various sources, including the sea, rivers, and watercourses. You can select which flood maps to display in the filter panel.",
-        "questions": ["What do the colors mean?", "Is my area at risk?"]
+        "text": "This toggles the flood hazard zones. Potential hazards from the sea, rivers, surface water and other watercourses can be visualised here. You can select which flood maps to combine and display in the filter panel.",
+        "questions": ["Using the filters.", "What are the buildings at risk?", "What are the roads at risk?", "What do the different colors mean?" "Where does this data come from?"]
     },
     "network": {
         "text": "This layer displays the configurational analyses for the road-network. You can use the filters and the histograms to explore different analysis. Click in the buttons below to learn more about the analyses and significance of each measure.",
         "questions": ["What does configurational analysis mean?", "How do I use the histograms, what do they mean?", "How do I use the filters", "What is Integration (NAIN)", "What is Route Choice (NACH)?", "What is Kementrality (KBC)", "What is Degree Centrality (NADC)", "What are the Metric Measures (Rx)?", "What are Connectivity and Angular Connectivity" ]
     },
     "crime_master_toggle": {
-        "text": "This toggles the crime data layers. You can view crimes as individual points or as a heatmap showing density. Use the sub-options to switch between views.",
+        "text": "This toggles the crime data layers, related to antisocial behaviour in the city. You can view crimes as individual points or as a heatmap showing density. Use the sub-options to switch between views.",
         "questions": ["What's the difference between points and heatmap?", "Can I filter by crime type?"]
     },
     "deprivation": {
@@ -39,21 +39,24 @@ LAYER_INFO = {
         "questions": ["What is an Output Area?", "How is density calculated?"]
     },
     "stop_and_search": {
-        "text": "This layer shows locations of police Stop & Search events. You can filter by the object of the search and by date range in the filter panel.",
+        "text": "This layer shows locations of police Stop & Search events, related to control towards antisocial behaviour in the city. You can filter by the object of the search and by date range in the filter panel.",
         "questions": ["What does 'Object of search' mean?", "Where is this data from?"]
     }
 }
 
 PREDEFINED_ANSWERS = {
     # Neighbourhoods
-    "What is a community?": "In Wales, a 'community' is the lowest tier of local government, similar to a civil parish in England. Cardiff is divided into 29 of them.",
-    "How is this data useful?": "Understanding community boundaries helps in analyzing demographic and social data at a very local level, which is useful for local governance and service planning.",
+    "What is a community?": "In Wales, a 'community' is the lowest tier of local government, similar to a civil parish in England, they are colloquially called neighbourhoods. Cardiff is divided into 29 of them.",
+    "How is this data useful?": "Understanding community boundaries helps in analyzing demographic, social and envirionmental data at a very local level, which is useful for local governance and service planning.",
     # Buildings
-    "How do I color the buildings?": "Open the filter panel at the bottom of the screen. Under 'Building & Environmental', use the 'Building Coloring' dropdown to select a flood risk type.",
-    "Where does this data come from?": "This is an integrated dataset combining information from Ordnance Survey and other sources to provide a comprehensive view of building footprints.",
+    "Where does this data come from?": "This is an integrated dataset combining information from Ordnance Survey and other sources to provide a comprehensive view of building footprints, heights and morphology.",
+    "What are the buildings at risk?": "By choosing a building risk type in the filter panel (Buildings at Risk), you can visualize which buildings are at risk from specific flood hazards.",
     # Flooding
-    "What do the colors mean?": "The different shades represent different sources of potential flooding, like from the sea or from rivers. You can turn them on and off in the filter panel to see the specific zones.",
-    "Is my area at risk?": "By turning on the flood layers and the building layer, you can visually inspect which buildings fall within the flood risk zones. The 'Buildings at Risk' widget on the right panel also gives a total count.",
+    "Using the filters.": "Open the filter panel at the bottom of the screen. In Building & Environmental, you can select the flooding hazard layers and combine different hazard sources. You can also see the buildings at risk by selecting the drop down menu. In the newtork analysis tab, you can select the risk indexes that combine specific hazards with road-network performance metrics."
+    "What are the buildings at risk?": "By choosing a building risk type in the filter panel (Buildings at Risk), you can visualize which buildings are at risk from specific flood hazards.",
+    "What are the roads at risk?": "By choosing a risk index in the filter panel (Network Analysis), you can visualize which roads are at risk from specific flood hazards and what performance metric is affected.",
+    "What do the different colors mean?": "Different colors represent different flood hazard types and their intensity and recurrence. Ligher colours indicate a higher recurrence interval, but a lower intensity, while darker colours indicate a lower recurrence interval, but a higher intensity.",
+    "Where does this data come from?": "The flood hazard data is sourced from Natural Resources Wales (NRW), which provides detailed flood risk maps for various types of flooding in Wales.",
     # Network
     "What does configurational analysis mean?": "Configurational analysis is a way of studying a road network's layout to see how streets connect and how people and cars move around. This 'Space Syntax' helps us understand how easy it is to get to and through different areas, as well as how many different paths are available in the network. Essentially, it helps to make informed decisions about urban design by revealing both the strengths and weaknesses of the system.",
     "How do I use the histograms, what do they mean?": "The histograms show the distribution of values for the selected network measure, and let you examine the streets based on how important they are for accessibility, used as preferential routes or redundant for the system. Histograms are divided in 10 quartiles, with an equal count of streets to each, that show the data distribution. Clicking on a quartile will filter the streets that fall within that range, and showcase their hierarchical importance within this selection. This can be used to identify points of intervention or analyse the network structure.",
