@@ -169,7 +169,8 @@ You should have received a copy of both CC BY-NC-SA 4.0 and the GNU General Publ
 
 ## Funding
 
-This research has received funding from the United Kingdom Research and Innova-tion Post Doctoral Fellowship Guarantee Scheme, set over the European Union’s Horizon Europe – Marie Skłodowska Curie Actions Post Doctoral Fellowships. UKRI Grant no. 101107846-DECIDE/EP/Y028716/1. Views and opinions expressed are those of the authors only, and do not necessarily reflect those of the United King-dom or European Union. Neither the United Kingdom or European Union nor the granting authority can be held responsible for them.
+This research has received funding from the United Kingdom Research and Innova-tion Post Doctoral Fellowship Guarantee Scheme, set over the European Union’s Horizon Europe – Marie Skłodowska Curie Actions Post Doctoral Fellowships. UKRI Grant no. 101107846-DECIDE/[EP/Y028716/1](https://gtr.ukri.org/projects?ref=EP%2FY028716%2F1). Views and opinions expressed are those of the authors only, and do not necessarily reflect those of the United King-dom or European Union. Neither the United Kingdom or European Union nor the granting authority can be held responsible for them.
+
 
 
 
