@@ -16,7 +16,7 @@ LAYER_INFO = {
     },
     "flooding_toggle": {
         "text": "This toggles the flood hazard zones. Potential hazards from the sea, rivers, surface water and other watercourses can be visualised here. You can select which flood maps to combine and display in the filter panel.",
-        "questions": ["Using the filters.", "What are the buildings at risk?", "What are the roads at risk?", "What do the different colors mean?" "Where does this data come from?"]
+        "questions": ["Using the filters.", "What are the buildings at risk?", "What are the roads at risk?", "What do the different colors mean?", "Where does this data come from?"]
     },
     "network": {
         "text": "This layer displays the configurational analyses for the road-network. You can use the filters and the histograms to explore different analysis. Click in the buttons below to learn more about the analyses and significance of each measure.",
@@ -52,7 +52,7 @@ PREDEFINED_ANSWERS = {
     "Where does this data come from?": "This is an integrated dataset combining information from Ordnance Survey and other sources to provide a comprehensive view of building footprints, heights and morphology.",
     "What are the buildings at risk?": "By choosing a building risk type in the filter panel (Buildings at Risk), you can visualize which buildings are at risk from specific flood hazards.",
     # Flooding
-    "Using the filters.": "Open the filter panel at the bottom of the screen. In Building & Environmental, you can select the flooding hazard layers and combine different hazard sources. You can also see the buildings at risk by selecting the drop down menu. In the newtork analysis tab, you can select the risk indexes that combine specific hazards with road-network performance metrics."
+    "Using the filters.": "Open the filter panel at the bottom of the screen. In Building & Environmental, you can select the flooding hazard layers and combine different hazard sources. You can also see the buildings at risk by selecting the drop down menu. In the newtork analysis tab, you can select the risk indexes that combine specific hazards with road-network performance metrics.",
     "What are the buildings at risk?": "By choosing a building risk type in the filter panel (Buildings at Risk), you can visualize which buildings are at risk from specific flood hazards.",
     "What are the roads at risk?": "By choosing a risk index in the filter panel (Network Analysis), you can visualize which roads are at risk from specific flood hazards and what performance metric is affected.",
     "What do the different colors mean?": "Different colors represent different flood hazard types and their intensity and recurrence. Ligher colours indicate a higher recurrence interval, but a lower intensity, while darker colours indicate a lower recurrence interval, but a higher intensity.",
