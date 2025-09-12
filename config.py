@@ -34,19 +34,19 @@ FLOOD_LAYER_CONFIG = {
         "type": "polygon"
     },
     "rivers": {
-        "id": "flood_rivers", "label": "Risk from Rivers",
+        "id": "flood_rivers", "label": "Rivers Hazard",
         "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
         "color": [72, 61, 139, 100],
         "type": "polygon"
     },
     "sea": {
-        "id": "flood_sea", "label": "Risk from Sea",
+        "id": "flood_sea", "label": "Sea Hazard",
         "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
         "color": [95, 158, 160, 100],
         "type": "polygon"
     },
     "watercourses": {
-        "id": "flood_watercourses", "label": "Risk from Watercourses",
+        "id": "flood_watercourses", "label": "Watercourses Hazard",
         "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
         "color": [123, 104, 238, 100],
         "type": "polygon"
