@@ -5,8 +5,7 @@ GNU GPL
 
 ## Disclaimer ⚠️
 
-This application is a prototype for demonstration and research purposes. Its code is not optimised for production, and some features may be incomplete or contain bugs.  
-When loading the app for the first time, give it a moment as the datasets have to be loaded into memory. Additionally, when changing selections with larger datasets loaded (e.g., Buildings Analysis and Network Analysis), they may render the map unresponsive for a while as the data is reloaded. The application may occasionally crash; just reload your tab and the app should be responsive again.  
+This application is a prototype for demonstration and research purposes. Its code is not optimised for production, and some features may be incomplete or contain bugs. When loading the app for the first time, give it a moment as the datasets have to be loaded into memory. Additionally, when changing selections with larger datasets loaded (e.g., Buildings Analysis and Network Analysis), they may render the map unresponsive for a while as the data is reloaded. The application may occasionally crash; just reload your tab and the app should be responsive again.  
 
 ## Overview
 
@@ -159,6 +158,7 @@ DECIDE DSS prototype is free software: you can redistribute it and/or modify it 
 DECIDE DSS is distributed in the hope that it will be useful as a demonstrator and research tool, but WITHOUT ANY WARRANTY; without even the implied warranty of FITNESS FOR A PARTICULAR PURPOSE. See the CC BY-NC-SA 4.0 and GNU General Public License for more details.
 
 You should have received a copy of both CC BY-NC-SA 4.0 and the GNU General Public License along with DECIDE DSS Prototype. If not, see https://creativecommons.org/licenses/by-nc-sa/4.0/ and http://www.gnu.org/licenses/.
+
 
 
 
