@@ -77,7 +77,7 @@ BUILDING_COLOR_CONFIG = {
 NETWORK_METRICS_EXCLUDE = ['fid', 'X1', 'Y1', 'X2', 'Y2', 'Depthmap_Ref']
 
 # Initial map view settings
-INITIAL_VIEW_STATE_CONFIG = { "latitude": 51.4816, "longitude": -3.1791, "zoom": 12, "pitch": 45, "bearing": 0 }
+INITIAL_VIEW_STATE_CONFIG = { "latitude": 51.4816, "longitude": -3.25, "zoom": 11.5, "pitch": 45, "bearing": 0 }
 
 # --- MODIFIED: Added an 'image' key for each layer for the new buttons ---
 LAYER_CONFIG = {
@@ -88,7 +88,7 @@ LAYER_CONFIG = {
     },
     "network_outline": {
         "id": "network_outline", "label": "Network Outline", "file_path": "data/BR01_Base_Roads.geojson",
-        "type": "linestring", "visible": False, "image": "assets/images/roads.png",
+        "type": "linestring", "visible": True, "image": "assets/images/roads.png",
         "tooltip": {"text": "Road Segment"}
     },
     "stop_and_search": {
@@ -112,7 +112,7 @@ LAYER_CONFIG = {
     },
     "buildings": {
         "id": "buildings", "label": "Buildings", "file_path": "data/BH01_Cardiff_Buildings_Hazard.geojson",
-        "type": "polygon", "visible": False, "image": "assets/images/buildings.png",
+        "type": "polygon", "visible": True, "image": "assets/images/buildings.png",
         "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
     "deprivation": {

@@ -59,6 +59,16 @@ def create_layout():
     unique_file_paths = {v['file_path'] for v in effective_configs.values() if 'file_path' in v}
     loaded_files = {path: load_data_efficiently(path) for path in unique_file_paths}
 
+    # --- FIX: Sanitize building heights to prevent JSON errors on initial load ---
+    buildings_path = effective_configs['buildings']['file_path']
+    if buildings_path in loaded_files:
+        buildings_df = loaded_files[buildings_path]
+        if 'height' in buildings_df.columns:
+            # Convert height to a numeric type, forcing errors into NaN
+            buildings_df['height'] = pd.to_numeric(buildings_df['height'], errors='coerce')
+            # Replace any NaN values with 0 to ensure valid JSON
+            buildings_df['height'].fillna(0, inplace=True)
+
     buildings_path = LAYER_CONFIG['buildings']['file_path']
     if buildings_path in loaded_files and 'height' in loaded_files[buildings_path].columns:
         df = loaded_files[buildings_path]
@@ -142,7 +152,7 @@ def create_layout():
         elif config.get('type') == 'linestring':
             layer_type_str = "LineLayer"
             if 'NAIN' not in df.columns: df['color'] = [[0, 0, 0, 255]] * len(df)
-            layer_args.update({'get_source_position': 'source_position', 'get_target_position': 'target_position', 'get_color': 'color', 'get_width': 5})
+            layer_args.update({'get_source_position': 'source_position', 'get_target_position': 'target_position', 'get_color': 'color', 'get_width': 2})
 
         else: continue
             
