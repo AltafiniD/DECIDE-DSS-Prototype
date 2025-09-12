@@ -16,7 +16,7 @@ LAYER_INFO = {
     },
     "flooding_toggle": {
         "text": "This toggles the flood hazard zones. Potential hazards from the sea, rivers, surface water and other watercourses can be visualised here. You can select which flood maps to combine and display in the filter panel.",
-        "questions": ["Using the filters.", "What are the buildings at risk?", "What are the roads at risk?", "What do the different colors mean?" "Where does this data come from?"]
+        "questions": ["Using the filters.", "What are the buildings at risk?", "What are the roads at risk?", "What do the different colors mean?", "Where does this data come from?"]
     },
     "network": {
         "text": "This layer displays the configurational analyses for the road-network. You can use the filters and the histograms to explore different analysis. Click in the buttons below to learn more about the analyses and significance of each measure.",
