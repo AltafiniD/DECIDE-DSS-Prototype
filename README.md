@@ -9,8 +9,7 @@ This application is a prototype for demonstration and research purposes. Its cod
 
 ## Overview
 
-https://github.com/user-attachments/assets/56a00da4-8537-4fc5-8999-a680934e6774
-
+https://github.com/user-attachments/assets/e28efc72-1557-4344-ad53-588b00ce2da5
 
 Communication is a key aspect of decision support in urban studies, as we often interface with stakeholders with diverse backgrounds, agendas, and expertise. Models that support urban decisional processes must display actionable information, meaning being focused on accessibility, clarity, and sufficiency, rather than complexity, aiming to answer specific questions and inform outcomes.  
 
@@ -158,6 +157,7 @@ DECIDE DSS prototype is free software: you can redistribute it and/or modify it 
 DECIDE DSS is distributed in the hope that it will be useful as a demonstrator and research tool, but WITHOUT ANY WARRANTY; without even the implied warranty of FITNESS FOR A PARTICULAR PURPOSE. See the CC BY-NC-SA 4.0 and GNU General Public License for more details.
 
 You should have received a copy of both CC BY-NC-SA 4.0 and the GNU General Public License along with DECIDE DSS Prototype. If not, see https://creativecommons.org/licenses/by-nc-sa/4.0/ and http://www.gnu.org/licenses/.
+
 
 
 
