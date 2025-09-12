@@ -146,7 +146,16 @@ Once the app is loaded, click or navigate to the IP address displayed in your te
 
 ## Future Developments
 
--  
+- Code Refactoring & Formatting: Review and refactor the entire codebase to improve organisation and ensure adherence to the best programming practices for long-term maintainability.
+- Interactive Drawing & Area Selection Tools: Implement a feature allowing users to draw a custom shape or use a lasso tool on the map, instantly filtering all visible data to just that selected region.
+- Enhanced Map-to-Widget Interactivity: Expand the map's click functionality so that selecting any data point, such as a specific crime or road segment, updates the side widgets with its detailed information.
+- UI/UX Layout Refinement: Investigate alternative placements for the main filter panel, such as integrating it as a tab within the right-hand widget panel to declutter the main map view.
+- URL-Based Sharing: Implement the share feature to generate a unique, sharable link that saves and reloads the user's complete session, including all filters and layer visibility.
+- Production Server Deployment: Host the application on a production-grade server to ensure it is stable, secure, and capable of handling multiple simultaneous users as a real-world tool.
+- AI-Enhanced Chatbot Functionality: Integrate true AI capabilities into the chatbot, allowing it to understand user queries, perform analysis, and proactively offer insights based on the data being viewed.
+- Advanced Network Filter UI: Reorganise the single network analysis dropdown into multiple, logically grouped dropdowns (e.g., by 'Connectivity', 'Integration') to make the complex metrics easier to navigate.
+- Live Data Integration: Transition key datasets from static files to live API or database connections, allowing the DSS to function as a real-time operational dashboard. 
+- User Accounts & Personalisation: Implement a user login system where individuals can save their custom analysis zones, filter combinations, and preferred dashboard layouts between sessions.
 
 ## License
 
