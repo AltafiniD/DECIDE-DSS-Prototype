@@ -173,7 +173,9 @@ This research has received funding from the United Kingdom Research and Innova-t
 
 # Contact
 
+Diego Altafini
 altafinid@cardiff.ac.uk | altafini.diego@gmail.com
+
 
 
 
