@@ -34,15 +34,34 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     network_metric_dropdown = dcc.Dropdown(id='network-metric-dropdown', options=[{'label': metric, 'value': metric} for metric in network_metrics], value='NAIN', clearable=False)
     network_range_slider = dcc.RangeSlider(id='network-range-slider', min=0, max=1, value=[0, 1], step=0.01, tooltip={"placement": "bottom", "always_visible": True})
 
-    deprivation_options = [
-        {'label': 'Not Deprived', 'value': 'Household is not deprived in any dimension'},
-        {'label': '1 Dimension', 'value': 'Household is deprived in one dimension'},
-        {'label': '2 Dimensions', 'value': 'Household is deprived in two dimensions'},
-        {'label': '3 Dimensions', 'value': 'Household is deprived in three dimensions'},
-        {'label': '4+ Dimensions', 'value': '4+'},
+    # --- Deprivation category (dropdown + compact slider) ---
+    # define the canonical values (used by both dropdown and slider)
+    deprivation_values = [
+        'Household is not deprived in any dimension',
+        'Household is deprived in one dimension',
+        'Household is deprived in two dimensions',
+        'Household is deprived in three dimensions',
+        '4+'
     ]
-    deprivation_dropdown = dcc.Dropdown(id='deprivation-category-dropdown', options=deprivation_options, value='Household is deprived in one dimension', clearable=False)
-    
+    deprivation_options = [
+        {'label': 'Not Deprived in any Dimension', 'value': deprivation_values[0]},
+        {'label': 'Deprived in One Dimension', 'value': deprivation_values[1]},
+        {'label': 'Deprived in Two Dimensions', 'value': deprivation_values[2]},
+        {'label': 'Deprived in Three Dimensions', 'value': deprivation_values[3]},
+        {'label': 'Deprived in all Dimensions', 'value': deprivation_values[4]},
+    ]
+    # compact dropdown (keeps existing value semantics)
+    # NOTE: use supported props maxHeight and optionHeight to limit opened menu height and enable scroll
+    deprivation_dropdown = dcc.Dropdown(
+        id='deprivation-category-dropdown',
+        options=deprivation_options,
+        value=deprivation_values[0],
+        clearable=False,
+        style={'width': '300px', 'minWidth': '160px'},
+        maxHeight=64,       # limit opened menu height (~2 rows)
+        optionHeight=32     # height per option (px) used to calculate visible rows
+    )
+
     all_land_use_types = sorted(land_use_df['landuse_text'].dropna().unique())
     land_use_type_dropdown = dcc.Dropdown(id='land-use-type-dropdown', options=[{'label': lu_type, 'value': lu_type} for lu_type in all_land_use_types], value=[], multi=True, placeholder="Filter by Land Use Type")
 

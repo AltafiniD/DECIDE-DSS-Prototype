@@ -51,3 +51,28 @@ window.dash_clientside.ui_callbacks = {
         return window.dash_clientside.no_update;
     }
 };
+
+// Inject lightweight CSS to limit the opened dropdown menu height for dropdowns using
+// dropdownClassName='compact-dropdown-menu' so only ~2 rows are visible and a scrollbar appears.
+(function injectCompactDropdownCss() {
+    if (document.getElementById('compact-dropdown-css')) return;
+    var css = `
+    /* Target Dash/React dropdown menu container when dropdownClassName is set */
+    .compact-dropdown-menu {
+        max-height: 64px !important; /* ~2 options visible (adjust as needed) */
+        overflow-y: auto !important;
+    }
+    /* Some Dash/react-select versions place the class on a parent; also target menu elements */
+    .compact-dropdown-menu .Select-menu-outer,
+    .compact-dropdown-menu .Select-menu,
+    .compact-dropdown-menu .VirtualizedSelectMenu {
+        max-height: 64px !important;
+        overflow-y: auto !important;
+    }
+    `;
+    var style = document.createElement('style');
+    style.id = 'compact-dropdown-css';
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+})();

@@ -46,7 +46,7 @@ FLOOD_LAYER_CONFIG = {
         "type": "polygon"
     },
     "watercourses": {
-        "id": "flood_watercourses", "label": "Watercourses Hazard",
+        "id": "flood_watercourses", "label": "Surface Water Hazard",
         "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
         "color": [123, 104, 238, 100],
         "type": "polygon"
@@ -66,7 +66,7 @@ BUILDING_COLOR_CONFIG = {
         "medium": [42, 84, 241, 255], 
         "high": [17, 34, 96, 255] 
     }},
-    "risk_watercourses": { "label": "Risk from Watercourses", "column": "surface_hazard", "colors": { 
+    "risk_watercourses": { "label": "Risk from Surface Water", "column": "surface_hazard", "colors": { 
         "low": [214, 179, 255, 255], 
         "medium": [117, 0, 255, 255], 
         "high": [35, 0, 76, 255] 
@@ -81,24 +81,20 @@ INITIAL_VIEW_STATE_CONFIG = { "latitude": 51.4816, "longitude": -3.25, "zoom": 1
 
 # --- MODIFIED: Added an 'image' key for each layer for the new buttons ---
 LAYER_CONFIG = {
-    "network": {
-        "id": "network", "label": "Network Analysis", "file_path": "data/IR00_Integrated_Roads_Dataset.geojson",
-        "type": "linestring", "visible": False, "image": "assets/images/roads.png",
-        "tooltip": {"html": "<b>{metric}:</b> {value}"}
+    "neighbourhoods": {
+        "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B04_Cardiff_Communities.geojson",
+        "type": "polygon", "visible": True, "image": "assets/images/neighbourhoods.png",
+        "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "network_outline": {
-        "id": "network_outline", "label": "Network Outline", "file_path": "data/BR01_Base_Roads.geojson",
+        "id": "network_outline", "label": "Road Network", "file_path": "data/BR01_Base_Roads.geojson",
         "type": "linestring", "visible": True, "image": "assets/images/roads.png",
-        "tooltip": {"text": "Road Segment"}
+        "tooltip": {"text": "Road Segment"},
     },
-    "stop_and_search": {
-        "id": "stop_and_search", "label": "Stop & Search", "file_path": "data/SC02_Stop_and_Search.geojson",
-        "type": "scatterplot", "visible": False, "image": "assets/images/stopandsearch.png",
-        "tooltip": {"html": "<b>{Type}</b><br/>Object: {Object of search}<br/>Outcome: {Outcome}"}
-    },
-    "flooding_toggle": {
-        "id": "flooding_toggle", "label": "Flooding", "type": "toggle_only", "visible": False,
-        "image": "assets/images/flooding.png"
+    "buildings": {
+        "id": "buildings", "label": "Buildings", "file_path": "data/BH01_Cardiff_Buildings_Hazard.geojson",
+        "type": "polygon", "visible": True, "image": "assets/images/buildings.png",
+        "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
     },
     "population": {
         "id": "population", "label": "Population", "file_path": "data/POP01_Cardiff.geojson",
@@ -110,19 +106,18 @@ LAYER_CONFIG = {
         "type": "polygon", "visible": False, "image": "assets/images/land_use.png",
         "tooltip": {"html": "<b>{high_level_landuse}</b><br/>{landuse_text}"}
     },
-    "buildings": {
-        "id": "buildings", "label": "Buildings", "file_path": "data/BH01_Cardiff_Buildings_Hazard.geojson",
-        "type": "polygon", "visible": True, "image": "assets/images/buildings.png",
-        "tooltip": {"text": "Name: {NAME}\nHeight: {height}"}
+    "network": {
+        "id": "network", "label": "Network Analysis", "file_path": "data/IR00_Integrated_Roads_Dataset.geojson",
+        "type": "linestring", "visible": False, "image": "assets/images/roads.png",
+        "tooltip": {"html": "<b>{metric}:</b> {value}"}
+    },
+    "flooding_toggle": {
+        "id": "flooding_toggle", "label": "Flooding", "type": "toggle_only", "visible": False,
+        "image": "assets/images/flooding.png"
     },
     "deprivation": {
-        "id": "deprivation", "label": "Deprivation", "file_path": "data/HD00_OA_Household_Deprivation.geojson",
+        "id": "deprivation", "label": "Deprivation Index", "file_path": "data/HD00_OA_Household_Deprivation.geojson",
         "type": "polygon", "visible": False, "image": "assets/images/deprivation.png",
-        "tooltip": {"text": "Neighbourhood: {NAME}"}
-    },
-    "neighbourhoods": {
-        "id": "neighbourhoods", "label": "Neighbourhoods", "file_path": "data/B04_Cardiff_Communities.geojson",
-        "type": "polygon", "visible": True, "image": "assets/images/neighbourhoods.png",
         "tooltip": {"text": "Neighbourhood: {NAME}"}
     },
     "crime_heatmap": {
@@ -134,5 +129,11 @@ LAYER_CONFIG = {
         "id": "crime_points", "label": "Crime Points", "file_path": "data/SC01_Street_Crimes.geojson",
         "type": "scatterplot", "visible": False,
         "tooltip": {"text": "Crime Type: {Crime type}\nLocation: {Location}"}
+    },
+     "stop_and_search": {
+        "id": "stop_and_search", "label": "Stop & Search", "file_path": "data/SC02_Stop_and_Search.geojson",
+        "type": "scatterplot", "visible": False, "image": "assets/images/stopandsearch.png",
+        "tooltip": {"html": "<b>{Type}</b><br/>Object: {Object of search}<br/>Outcome: {Outcome}"}
     }
 }
+
