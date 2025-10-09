@@ -127,7 +127,3 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     )
     
     return panel, crime_month_map, sas_month_map
-
-    )
-    
-    return panel, crime_month_map, sas_month_map
