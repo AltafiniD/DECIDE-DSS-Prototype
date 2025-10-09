@@ -36,41 +36,54 @@ FLOOD_LAYER_CONFIG = {
     "rivers": {
         "id": "flood_rivers", "label": "Rivers Hazard",
         "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
-        "color": [72, 61, 139, 100],
+        "color": [95, 158, 160, 100], 
         "type": "polygon"
     },
     "sea": {
         "id": "flood_sea", "label": "Sea Hazard",
         "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
-        "color": [95, 158, 160, 100],
+        "color": [65, 105, 225, 100],
         "type": "polygon"
     },
     "watercourses": {
         "id": "flood_watercourses", "label": "Surface Water Hazard",
         "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
-        "color": [123, 104, 238, 100],
+        "color": [28, 92, 120, 100],
         "type": "polygon"
     }
 }
 
 # Configuration for dynamic building coloring
+# UPDATED: Colors now derived from FLOOD_LAYER_CONFIG base colors
 BUILDING_COLOR_CONFIG = {
     "none": { "label": "Default", "color": [220, 220, 220, 255] },
-    "risk_rivers": { "label": "Risk from Rivers", "column": "river_hazard", "colors": { 
-        "low": [192, 223, 213, 255], 
-        "medium": [129, 191, 170, 255], 
-        "high": [71, 94, 87, 255] 
-    }},
-    "risk_sea": { "label": "Risk from Sea", "column": "sea_hazard", "colors": { 
-        "low": [149, 170, 248, 255], 
-        "medium": [42, 84, 241, 255], 
-        "high": [17, 34, 96, 255] 
-    }},
-    "risk_watercourses": { "label": "Risk from Surface Water", "column": "surface_hazard", "colors": { 
-        "low": [214, 179, 255, 255], 
-        "medium": [117, 0, 255, 255], 
-        "high": [35, 0, 76, 255] 
-    }}
+    "risk_rivers": { 
+        "label": "Risk from Rivers", 
+        "column": "river_hazard", 
+        "colors": { 
+            "low": [160, 200, 202, 255], 
+            "medium": [125, 180, 182, 255],
+            "high": [95, 158, 160, 255]
+        }
+    },
+    "risk_sea": { 
+        "label": "Risk from Sea", 
+        "column": "sea_hazard", 
+        "colors": { 
+            "low": [140, 180, 255, 255],       
+            "medium": [100, 140, 240, 255],        
+            "high": [65, 105, 225, 255]  
+        }
+    },
+    "risk_watercourses": { 
+        "label": "Risk from Surface Water", 
+        "column": "surface_hazard", 
+        "colors": { 
+            "low": [120, 180, 205, 255],      
+            "medium": [75, 135, 165, 255],    
+            "high": [28, 92, 120, 255]        
+        }
+    }
 }
 
 # Columns to exclude from the dynamic network filter
@@ -136,4 +149,3 @@ LAYER_CONFIG = {
         "tooltip": {"html": "<b>{Type}</b><br/>Object: {Object of search}<br/>Outcome: {Outcome}"}
     }
 }
-
