@@ -3,7 +3,7 @@ from dash import dcc, html
 import pandas as pd
 from .crime_widget import create_crime_histogram_figure
 from .network_widget import create_network_histogram_figure
-from .flood_risk_widget import create_flood_risk_pie_chart
+from .flood_risk_widget import create_flood_risk_chart
 from .land_use_widget import create_land_use_donut_chart
 from .jenks_histogram_widget import create_jenks_histogram_figure
 from .buildings_at_risk_widget import create_buildings_at_risk_widget
@@ -26,7 +26,7 @@ def get_widgets(dataframes, color_map):
     initial_network_fig = create_network_histogram_figure(initial_metric_series, initial_metric)
     initial_jenks_fig = create_jenks_histogram_figure(initial_metric_series, initial_metric)
 
-    initial_flood_risk_fig = create_flood_risk_pie_chart(buildings_df, 'Sea_risk', title="")
+    initial_flood_risk_fig = create_flood_risk_chart(buildings_df, 'Sea_risk', title="")
     
     initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
 
