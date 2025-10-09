@@ -66,7 +66,7 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     land_use_type_dropdown = dcc.Dropdown(id='land-use-type-dropdown', options=[{'label': lu_type, 'value': lu_type} for lu_type in all_land_use_types], value=[], multi=True, placeholder="Filter by Land Use Type")
 
     flood_options = [{'label': config['label'], 'value': config['id']} for config in FLOOD_LAYER_CONFIG.values()]
-    flood_risk_selector = dcc.Dropdown(id='flood-risk-selector', options=flood_options, value=['flood_sea'], multi=True, placeholder="Select Flood Risk Layers")
+    flood_risk_selector = dcc.Dropdown(id='flood-risk-selector', options=flood_options, value=['flood_rivers'], multi=True, placeholder="Select Flood Risk Layers")
     
     building_color_options = [{'label': config['label'], 'value': key} for key, config in BUILDING_COLOR_CONFIG.items()]
     building_color_selector = dcc.Dropdown(id='building-color-selector', options=building_color_options, value='none', clearable=False)
@@ -124,6 +124,10 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
             ),
             html.Button("Apply Filters", id="apply-filters-btn", n_clicks=0, className="apply-filters-button")
         ]
+    )
+    
+    return panel, crime_month_map, sas_month_map
+
     )
     
     return panel, crime_month_map, sas_month_map
