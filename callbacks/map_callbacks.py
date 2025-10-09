@@ -5,6 +5,7 @@ from dash import no_update
 import pydeck as pdk
 import pandas as pd
 import numpy as np
+import jenkspy
 
 from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG
 
@@ -66,7 +67,6 @@ def register_callbacks(app, all_layers, dataframes):
                         df_to_process = df_to_process[df_to_process['Crime type'].isin(selected_crime_types)]
             
             elif layer_id in FLOOD_LAYER_CONFIG:
-                # --- FIX: Check against the layer's configured 'id', not its key ---
                 layer_config_id = FLOOD_LAYER_CONFIG[layer_id].get('id')
                 if flooding_toggle and flood_selection and layer_config_id in flood_selection:
                     should_render = True
@@ -74,7 +74,50 @@ def register_callbacks(app, all_layers, dataframes):
             elif layer_id in LAYER_CONFIG:
                 if toggles_dict.get(layer_id):
                     should_render = True
-                    if layer_id == 'buildings':
+                    
+                    # FIXED: Added population layer coloring with 10 Jenks breaks
+                    if layer_id == 'population':
+                        if 'density' in df_to_process.columns:
+                            density_series = pd.to_numeric(df_to_process['density'], errors='coerce').dropna()
+                            if not density_series.empty and len(density_series.unique()) >= 2:
+                                try:
+                                    # Calculate 10 Jenks breaks
+                                    breaks = jenkspy.jenks_breaks(density_series, n_classes=10)
+                                    unique_breaks = sorted(list(set(breaks)))
+                                    
+                                    # Assign each area to a break class (0-9)
+                                    df_to_process['jenks_class'] = pd.cut(
+                                        df_to_process['density'], 
+                                        bins=unique_breaks, 
+                                        labels=False, 
+                                        include_lowest=True
+                                    )
+                                    
+                                    # 10-color gradient matching the widget
+                                    color_palette = [
+                                        [13, 34, 88],     # Darkest (Dark Blue/Purple)
+                                        [14, 107, 140],
+                                        [33, 151, 176],
+                                        [64, 190, 175],
+                                        [101, 212, 150],
+                                        [139, 230, 125],
+                                        [174, 242, 88],
+                                        [203, 247, 56],
+                                        [225, 247, 37],
+                                        [240, 249, 33]    # Lightest (Yellow)
+                                    ]
+                                    
+                                    # Map class to color with alpha
+                                    df_to_process['color'] = df_to_process['jenks_class'].apply(
+                                        lambda c: color_palette[int(c)] + [180] if pd.notna(c) else [200, 200, 200, 100]
+                                    )
+                                    new_layer_args['get_fill_color'] = 'color'
+                                except Exception as e:
+                                    print(f"Error calculating Jenks breaks for population: {e}")
+                                    # Fallback to default coloring
+                                    pass
+                    
+                    elif layer_id == 'buildings':
                         metric_config = BUILDING_COLOR_CONFIG.get(building_color_metric)
                         if metric_config and building_color_metric != 'none':
                             column_name = metric_config['column']
