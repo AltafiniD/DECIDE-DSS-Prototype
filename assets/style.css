@@ -342,6 +342,8 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    flex-grow: 1; /* Allows it to take up remaining space */
+    min-height: 0; /* Important in flex layouts */
 }
 
 .widget h4,
