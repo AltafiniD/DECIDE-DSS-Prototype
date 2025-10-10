@@ -12,7 +12,7 @@ from utils.colours import get_crime_colour_map
 from components.crime_widget import create_crime_histogram_figure
 from components.network_widget import create_network_histogram_figure
 from components.flood_risk_widget import create_flood_risk_chart
-from components.land_use_widget import create_land_use_donut_chart
+from components.land_use_widget import create_land_use_chart, create_high_level_land_use_chart
 from components.jenks_histogram_widget import create_jenks_histogram_figure
 from components.buildings_at_risk_widget import create_buildings_at_risk_widget
 from components.deprivation_widget import create_deprivation_bar_chart
@@ -92,7 +92,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
             initial_crime_fig = create_crime_histogram_figure(crime_df, plotly_colour_map)
             all_widgets.append(html.Div(className="widget", children=[
                 html.Div(style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[
-                    dcc.Markdown(id="crime-widget-title", children="#### Crime Statistics for Cardiff"),
+                    dcc.Markdown(id="crime-widget-title", children="#### Crime Statistics"),
                     html.Button("Clear Selection", id="clear-crime-filter-btn", n_clicks=0, style={'fontSize': '12px'})]),
                 dcc.Graph(id="crime-bar-chart", figure=initial_crime_fig, style={'height': '250px'})
             ]))
@@ -140,14 +140,23 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
 
         # --- Land Use Widget ---
         if toggles_dict.get('land_use'):
-            initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
-            all_widgets.append(html.Div(className="widget", children=[
+            initial_land_use_fig = create_land_use_chart(land_use_df, title="Cardiff Land Use")
+            initial_high_level_fig = create_high_level_land_use_chart(land_use_df, title="High-Level Land Use")
+            
+            detailed_widget = html.Div(className="widget", children=[
                 html.Div(style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[
-                    dcc.Markdown(id="land-use-widget-title", children="#### Land Use"), 
+                    dcc.Markdown(id="land-use-widget-title", children="#### Land Use (Detailed)"), 
                     html.Button("Clear Filter", id="clear-land-use-filter-btn", n_clicks=0, style={'fontSize': '12px'})
                 ]), 
-                dcc.Graph(id="land-use-donut-chart", figure=initial_land_use_fig, style={'height': '220px'})
-            ]))
+                dcc.Graph(id="land-use-chart", figure=initial_land_use_fig, config={'displayModeBar': False})
+            ])
+            
+            high_level_widget = html.Div(className="widget", children=[
+                dcc.Markdown(id="high-level-land-use-widget-title", children="#### Land Use (High-Level)"), 
+                dcc.Graph(id="high-level-land-use-chart", figure=initial_high_level_fig, config={'displayModeBar': False})
+            ])
+            
+            all_widgets.append(html.Div([detailed_widget, high_level_widget], style={'display': 'flex', 'gap': '10px', 'flexDirection': 'column'}))
 
         # --- Deprivation Widget ---
         if toggles_dict.get('deprivation'):
@@ -260,7 +269,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         [State("time-filter-slider", "value"), State("crime-type-filter-dropdown", "value"), State("month-map-store", "data")]
     )
     def update_crime_widget(selected_neighbourhood, n_clicks, time_range, selected_crime_types, month_map):
-        widget_title = "#### Crime Statistics for Cardiff"
+        widget_title = "#### Crime Statistics"
         chart_title = "Crimes per Month by Type"
 
         df_to_filter = crime_df.copy()
@@ -322,7 +331,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
     @app.callback(
         Output('land-use-type-dropdown', 'value'),
         Output('apply-filters-btn', 'n_clicks', allow_duplicate=True),
-        Input('land-use-donut-chart', 'clickData'),
+        Input('land-use-chart', 'clickData'),
         State('apply-filters-btn', 'n_clicks'),
         prevent_initial_call=True
     )
@@ -350,12 +359,18 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         return [], (n_clicks or 0) + 1
 
     @app.callback(
-        [Output("land-use-donut-chart", "figure"), Output("land-use-widget-title", "children")],
+        [
+            Output("land-use-chart", "figure"), 
+            Output("land-use-widget-title", "children"),
+            Output("high-level-land-use-chart", "figure"),
+            Output("high-level-land-use-widget-title", "children")
+        ],
         [Input("selected-neighbourhood-store", "data"), Input("apply-filters-btn", "n_clicks")],
         [State("land-use-type-dropdown", "value")]
     )
     def update_land_use_widget(selected_neighbourhood, n_clicks, selected_land_use):
-        widget_title = "#### Land Use for Cardiff"
+        widget_title = "#### Land Use (Detailed)"
+        high_level_title = "#### Land Use (High-Level)"
         chart_title = "Land Use Distribution"
 
         df_to_filter = land_use_df.copy()
@@ -363,7 +378,8 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         if selected_neighbourhood:
             name = selected_neighbourhood.get('NAME')
             if name:
-                widget_title = f"#### Land Use for {name}"
+                widget_title = f"#### Land Use (Detailed) for {name}"
+                high_level_title = f"#### Land Use (High-Level) for {name}"
                 chart_title = f"Land Use in {name}"
                 poly_row = neighbourhoods_df[neighbourhoods_df['NAME'] == name]
                 if not poly_row.empty:
@@ -379,8 +395,10 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         if selected_land_use:
             df_to_filter = df_to_filter[df_to_filter['landuse_text'].isin(selected_land_use)]
 
-        fig = create_land_use_donut_chart(df_to_filter, title=chart_title)
-        return fig, widget_title
+        detailed_fig = create_land_use_chart(df_to_filter, title=chart_title)
+        high_level_fig = create_high_level_land_use_chart(df_to_filter, title=chart_title)
+        
+        return detailed_fig, widget_title, high_level_fig, high_level_title
 
     @app.callback(
         [Output("deprivation-bar-chart", "figure"), Output("deprivation-widget-title", "children")],
@@ -388,7 +406,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         [State("deprivation-category-dropdown", "value")]
     )
     def update_deprivation_widget(selected_neighbourhood, n_clicks, deprivation_category):
-        widget_title = "#### Deprivation for Cardiff"
+        widget_title = "#### Households Deprivation"
         chart_title = "Households by Deprivation Percentile"
         filtered_df = deprivation_df.copy()
 
