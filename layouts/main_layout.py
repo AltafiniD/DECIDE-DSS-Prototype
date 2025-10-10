@@ -167,11 +167,18 @@ def create_layout():
     ]
 
     initial_view_state = pdk.ViewState(**INITIAL_VIEW_STATE_CONFIG)
+    
+    # Pass None instead of empty DataFrames to create_filter_panel
     filter_panel_content, crime_month_map, sas_month_map = create_filter_panel(
-        dataframes.get('crime_points'), dataframes.get('network'), dataframes.get('deprivation'),
-        dataframes.get('buildings'), dataframes.get('land_use'), dataframes.get('neighbourhoods'),
-        dataframes.get('stop_and_search')
+        dataframes.get('crime_points') if not dataframes.get('crime_points', pd.DataFrame()).empty else None,
+        dataframes.get('network') if not dataframes.get('network', pd.DataFrame()).empty else None,
+        dataframes.get('deprivation') if not dataframes.get('deprivation', pd.DataFrame()).empty else None,
+        dataframes.get('buildings') if not dataframes.get('buildings', pd.DataFrame()).empty else None,
+        dataframes.get('land_use') if not dataframes.get('land_use', pd.DataFrame()).empty else None,
+        dataframes.get('neighbourhoods') if not dataframes.get('neighbourhoods', pd.DataFrame()).empty else None,
+        dataframes.get('stop_and_search') if not dataframes.get('stop_and_search', pd.DataFrame()).empty else None
     )
+
     initial_map_style = MAP_STYLES['Light']['url']
 
     layout = html.Div(
@@ -216,4 +223,3 @@ def create_layout():
         ]
     )
     return layout, all_layers, dataframes
-
