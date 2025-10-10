@@ -7,7 +7,7 @@ def create_chat_window():
     Creates the layout for the chat window component.
     """
     initial_message_text = (
-        "Welcome to the DECIDE Decision Support System. Click on any layer in the bottom-left panel to learn more. "
+        "Welcome! | Croeso! I am Myrddin, and this is the DECIDE Decision Support System. I will be your AI Guide, click on any layer in the bottom-left panel to learn more or ask me a question!. "
     )
 
     chat_window = html.Div(
