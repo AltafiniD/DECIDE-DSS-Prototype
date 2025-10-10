@@ -4,7 +4,7 @@ import pandas as pd
 from .crime_widget import create_crime_histogram_figure
 from .network_widget import create_network_histogram_figure
 from .flood_risk_widget import create_flood_risk_chart
-from .land_use_widget import create_land_use_donut_chart
+from .land_use_widget import create_land_use_chart
 from .jenks_histogram_widget import create_jenks_histogram_figure
 from .buildings_at_risk_widget import create_buildings_at_risk_widget
 from .deprivation_widget import create_deprivation_bar_chart 
@@ -28,7 +28,7 @@ def get_widgets(dataframes, color_map):
 
     initial_flood_risk_fig = create_flood_risk_chart(buildings_df, 'Sea_risk', title="")
     
-    initial_land_use_fig = create_land_use_donut_chart(land_use_df, title="Cardiff Land Use")
+    initial_land_use_fig = create_land_use_chart(land_use_df, title="Cardiff Land Use")
 
     buildings_at_risk_content = create_buildings_at_risk_widget(buildings_df)
 
@@ -98,7 +98,7 @@ def get_widgets(dataframes, color_map):
                     html.Button("Clear Filter", id="clear-land-use-filter-btn", n_clicks=0, style={'fontSize': '12px'})
                 ]
             ),
-            dcc.Graph(id="land-use-donut-chart", figure=initial_land_use_fig, style={'height': '80%'})
+            dcc.Graph(id="land-use-chart", figure=initial_land_use_fig, style={'height': '100%'})
         ]
     }
 
