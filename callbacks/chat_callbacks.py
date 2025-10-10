@@ -50,7 +50,7 @@ PREDEFINED_ANSWERS = {
     "How is this data useful?": "Understanding community boundaries helps in analyzing demographic, social and envirionmental data at a very local level, which is useful for local governance and service planning.",
     # Buildings
     "Where does this data come from?": "This is an integrated dataset combining information from Ordnance Survey and other sources to provide a comprehensive view of building footprints, heights and morphology.",
-    "What are the buildings at risk?": "By choosing a building risk type in the filter panel (Buildings at Risk), you can visualize which buildings are at risk from specific flood hazards.",
+    "What are the buildings at risk? How can I visualise them?": "By choosing a building risk type in the filter panel (Buildings at Risk), you can visualize which buildings are at risk from specific flood hazards. They will appear alongside the flood areas.",
     # Flooding
     "Using the filters.": "Open the filter panel at the bottom of the screen. In Building & Environmental, you can select the flooding hazard layers and combine different hazard sources. You can also see the buildings at risk by selecting the drop down menu. In the newtork analysis tab, you can select the risk indexes that combine specific hazards with road-network performance metrics.",
     "What are the buildings at risk?": "By choosing a building risk type in the filter panel (Buildings at Risk), you can visualize which buildings are at risk from specific flood hazards.",
@@ -74,7 +74,7 @@ PREDEFINED_ANSWERS = {
     "What is WIMD?": "The Welsh Index of Multiple Deprivation (WIMD) is the official measure of relative deprivation for small areas in Wales. It combines various indicators like income, employment, health, and education.",
     "What do the colors represent?": "The map colors areas based on their deprivation percentile. Darker blue areas are more deprived compared to lighter areas, which are less deprived.",
     # Land Use
-    "How can I filter by land use?": "In the filter panel, under 'Building & Environmental', you can use the 'Land Use Type' dropdown to select and view specific categories of land use.",
+    "How can I filter by land use?": "In the filter panel, under 'Building & Environmental', you can use the 'Land Use Type' dropdown to select and view specific categories of land use, both organised in high level used and in detailed use, otherwise you can just click on one of the segments of the bar chart, to display that specific land use.",
     "Why is this important?": "Analyzing land use helps planners and policymakers understand how the city is structured, identify areas for development, and ensure a balanced mix of residential, commercial, and recreational spaces.",
     # Population
     "What is an Output Area?": "Output Areas (OAs) are small geographical units created for census data. They are designed to have similar population sizes and be as socially homogenous as possible.",
@@ -181,7 +181,7 @@ def register_callbacks(app):
         if (triggered_id == 'chat-send-btn' or triggered_id == 'chat-input') and user_input:
             user_message = html.Div(className="chat-message user-message", children=html.P(user_input))
             chat_history.append(user_message)
-            bot_response = create_bot_message("I'm sorry, my AI features are not fully implemented yet. Please use the suggested questions.")
+            bot_response = create_bot_message("I'm sorry, I don't have an awnser for your question right now. My AI features are not fully implemented yet. Please use the suggested questions for the meantime!")
             chat_history.append(bot_response)
             return chat_history, ""
 
