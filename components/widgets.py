@@ -21,7 +21,8 @@ def get_widgets(dataframes, color_map):
     
     initial_crime_fig = create_crime_histogram_figure(crime_df, color_map)
     
-    initial_metric = 'NAIN' if 'NAIN' in network_df.columns else None
+    # MODIFIED: Changed default metric to 'NACH_rivers_risk' with a fallback to 'NAIN'
+    initial_metric = 'NACH_rivers_risk' if 'NACH_rivers_risk' in network_df.columns else ('NAIN' if 'NAIN' in network_df.columns else None)
     initial_metric_series = network_df[initial_metric] if initial_metric and not network_df.empty else pd.Series()
     initial_network_fig = create_network_histogram_figure(initial_metric_series, initial_metric)
     initial_jenks_fig = create_jenks_histogram_figure(initial_metric_series, initial_metric)
@@ -120,4 +121,5 @@ def get_widgets(dataframes, color_map):
         land_use_widget,
     ]
     return widgets
+
 
