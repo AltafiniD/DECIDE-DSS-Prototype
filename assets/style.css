@@ -63,7 +63,8 @@ body {
     top: 20px;
     left: 20px;
     width: 650px;
-    height: 370px;
+    min-height: 150px;
+    max-height: 42vh;
     display: flex;
     flex-direction: column;
     padding: 10px 15px;
@@ -72,7 +73,7 @@ body {
     -webkit-backdrop-filter: none;
     border: none;
     box-shadow: none;
-    transition: background-color 0.5s ease-in-out, backdrop-filter 0.5s ease-in-out, border 0.5s ease-in-out;
+    transition: background-color 0.5s ease-in-out, backdrop-filter 0.5s ease-in-out, border 0.5s ease-in-out, height 0.3s ease-in-out;
 }
 
 .chat-window-container.chat-active {
@@ -262,12 +263,13 @@ body {
     top: 20px;
     right: 20px;
     width: 530px;
+    max-height: calc(100vh - 40px); /* Adapts to viewport height with 20px margin top/bottom */
     height: calc(100vh - 40px);
-    padding: 10px; /* MODIFIED: Reduced padding slightly for widgets */
-    overflow-y: auto; /* This enables the vertical scrollbar when content overflows */
-    overflow-x: hidden; /* NEW: Prevents horizontal scrollbar */
+    padding: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
     transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
-    box-sizing: border-box; /* NEW: Ensure padding is included in width/height */
+    box-sizing: border-box;
 }
 
 .slideover-hidden {
@@ -304,7 +306,7 @@ body {
     bottom: 70px;
     right: 20px;
     width: 450px;
-    max-height: 300px;
+    max-height: 30vh; /* 30% of viewport height - adapts to screen size */
     padding: 15px;
     overflow-y: auto;
     transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
@@ -760,4 +762,61 @@ body {
 #neighbourhood-filter-dropdown .Select-value {
     max-height: 5em;
     overflow-y: auto;
+}
+
+/* --- Callback Loading Indicators --- */
+._dash-loading-callback {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+}
+
+/* Hide loading for UI toggle callbacks (slideover, filter panel, chat, etc.) */
+#slideover-panel._dash-loading,
+#filter-panel-wrapper._dash-loading,
+#toggle-slideover-btn._dash-loading,
+#toggle-filters-handle._dash-loading,
+#layers-collapse-content._dash-loading,
+#style-collapse-content._dash-loading,
+#debug-panel._dash-loading,
+#chat-window-container._dash-loading,
+#chat-history._dash-loading,
+#chat-input._dash-loading {
+    display: none !important;
+}
+
+._dash-loading-callback::before {
+    content: "";
+    display: block;
+    width: 60px;
+    height: 60px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #0d6efd;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+._dash-loading-callback::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: -1;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Optional: Hide default Dash loading overlay */
+._dash-loading {
+    visibility: hidden;
 }
