@@ -181,7 +181,7 @@ def register_callbacks(app):
         if (triggered_id == 'chat-send-btn' or triggered_id == 'chat-input') and user_input:
             user_message = html.Div(className="chat-message user-message", children=html.P(user_input))
             chat_history.append(user_message)
-            bot_response = create_bot_message("I'm sorry, I don't have an answer to your question right now. My AI features are not fully implemented yet. In the future, my brothers, sisters, and I will be able to interact with you. In the meantime, please click on a layer and use the suggested questions!")
+            bot_response = create_bot_message(I'm sorry, I can't chat with you or answer specific questions right now. My AI features are not fully implemented yet. In the future, my brothers, sisters, and I will be able to interact with you. In the meantime, please click on a layer and use the suggested questions to explore data!)
             chat_history.append(bot_response)
             return chat_history, ""
 
