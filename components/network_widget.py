@@ -3,6 +3,36 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
+from config import FLOOD_BASE_COLORS 
+
+# --- NEW UTILITY FUNCTION: Generates a color gradient ---
+def get_color_gradient(base_rgb, steps, output_hex=True, light_mix=0.1):
+    """
+    Generates a color gradient from a lighter mix (white) to the base_rgb (darker).
+    
+    - light_mix: The starting point of the gradient (e.g., 0.1 for 10% mix of base color).
+    - output_hex: True for Plotly (histograms), False for Pydeck (map).
+    """
+    start_rgb = np.array([255, 255, 255])
+    end_rgb = np.array(base_rgb)
+    
+    # Interpolation steps: Start with 'light_mix' of the base color up to 100%
+    t_adjusted = np.linspace(light_mix, 1, steps, endpoint=True) 
+    
+    # Linear interpolation (Mix = (1-t)*White + t*BaseColor)
+    gradient_rgb = [(1 - i) * start_rgb + i * end_rgb for i in t_adjusted]
+    
+    # Clamp values and convert to int
+    gradient_rgb = [np.clip(rgb.astype(int), 0, 255) for rgb in gradient_rgb]
+
+    if output_hex:
+        def rgb_to_hex(rgb):
+            return f'#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}'
+        return [rgb_to_hex(rgb) for rgb in gradient_rgb]
+    else:
+        return [tuple(rgb) for rgb in gradient_rgb]
+# --------------------------------------------------------
+
 
 def create_network_histogram_figure(metric_series, metric_name):
     """
@@ -22,68 +52,74 @@ def create_network_histogram_figure(metric_series, metric_name):
                 'showarrow': False, 'font': {'size': 14}
             }]
         )
+        return fig
     else:
         try:
             # 1. Calculate the 10 decile breaks for coloring and filtering
             _, decile_edges = pd.qcut(metric_series, 10, labels=False, retbins=True, duplicates='drop')
+            num_deciles = len(decile_edges) - 1
 
             # 2. Create 100 bins for the visual representation
             num_fine_bins = 100
             counts, bin_edges_fine = np.histogram(metric_series, bins=num_fine_bins)
-
             bar_centers = (bin_edges_fine[:-1] + bin_edges_fine[1:]) / 2
             bar_widths = np.diff(bin_edges_fine)
-
-            # 3. Assign a color and customdata to each of the 100 bins based on its decile
-            bar_colors = []
-            custom_data_list = []
             
-            # --- NEW: Conditional Color Scale ---
-            decile_colors = []
-            if 'risk' in metric_name.lower():
-                # Blue scale for risk-related metrics
-                blue_hex = ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6',
-                            '#2171b5', '#08519c', '#08306b', '#08306b', '#08306b']
-                for hex_color in blue_hex:
-                    hex_color = hex_color.lstrip('#')
-                    rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-                    decile_colors.append(f'rgb({rgb[0]},{rgb[1]},{rgb[2]})')
+            # --- NEW COLOR LOGIC START ---
+            base_color = None
+            if '_rivers_risk' in metric_name:
+                base_color = FLOOD_BASE_COLORS.get('rivers_risk')
+            elif '_sea_risk' in metric_name:
+                base_color = FLOOD_BASE_COLORS.get('sea_risk')
+            elif '_surface_risk' in metric_name:
+                base_color = FLOOD_BASE_COLORS.get('surface_risk')
+            
+            if base_color and num_deciles > 1:
+                # Flood Metrics: Generate the N-step HEX gradient (Lightest to Darkest)
+                color_gradient = get_color_gradient(base_color, steps=num_deciles, output_hex=True)
             else:
-                # Rainbow scale for all other metrics
-                for i in range(10):
-                    norm = i / 9.0
-                    r = int(255 * (norm * 2)) if norm > 0.5 else 0
-                    g = int(255 * (1 - abs(norm - 0.5) * 2))
-                    b = int(255 * (1 - norm * 2)) if norm < 0.5 else 0
-                    decile_colors.append(f'rgb({r},{g},{b})')
+                # Other Network Metrics (NACH, NAIN, NADC): Custom Rainbow scale (Blue=Low, Red=High)
+                default_scale = [
+                    "#0000d3",  # 0: Dark Blue (Low)
+                    "#003cff",  # 1: Blue
+                    "#008cff",  # 2: Light Blue
+                    '#00ccff',  # 3: Cyan
+                    "#00ebbc",  # 4: Light Cyan/Green
+                    "#00c40a",  # 5: Green
+                    "#ffd900",  # 6: Yellow
+                    '#ffaa00',  # 7: Orange
+                    '#ff5500',  # 8: Red-Orange
+                    '#cc0000'   # 9: Dark Red (High)
+                ] 
+                color_gradient = default_scale[:num_deciles]
+                if num_deciles > len(default_scale):
+                     color_gradient.extend([default_scale[-1]] * (num_deciles - len(default_scale)))
+            
+            # --- NEW COLOR LOGIC END ---
 
-
-            for center in bar_centers:
-                # Find which decile the center of the bar falls into
-                decile_index = -1
-                for i in range(len(decile_edges) - 1):
-                    # Handle the last bin edge inclusively
-                    is_last_edge = (i == len(decile_edges) - 2)
-                    if (decile_edges[i] <= center <= decile_edges[i+1]) or \
-                       (is_last_edge and center == decile_edges[i+1]):
-                        decile_index = i
-                        break
+            # Use the decile edges to assign the correct color from the gradient
+            bar_colors = []
+            
+            for bin_center in bar_centers:
+                # np.digitize returns the index of the class/decile (0 to num_deciles-1)
+                decile_index = np.digitize(bin_center, decile_edges[1:-1]) 
+                decile_index = np.clip(decile_index, 0, num_deciles - 1) 
+                bar_colors.append(color_gradient[decile_index]) 
                 
-                if decile_index != -1:
-                    bar_colors.append(decile_colors[decile_index])
-                    # The customdata stores the range of the DECİLE, not the fine bin
-                    custom_data_list.append([decile_edges[decile_index], decile_edges[decile_index+1]])
-                else:
-                    # Fallback for any points that might fall outside
-                    bar_colors.append('rgb(200,200,200)')
-                    custom_data_list.append([metric_series.min(), metric_series.max()])
+            # Prepare custom data for hover template
+            custom_data_list = []
+            for center in bar_centers:
+                decile_index = np.digitize(center, decile_edges[1:-1])
+                decile_index = np.clip(decile_index, 0, num_deciles - 1)
+                lower = decile_edges[decile_index]
+                upper = decile_edges[decile_index + 1]
+                custom_data_list.append([lower, upper])
 
-            # 4. Create the figure with go.Bar
             fig = go.Figure(go.Bar(
                 x=bar_centers,
                 y=counts,
                 width=bar_widths,
-                marker_color=bar_colors,
+                marker_color=bar_colors, 
                 hovertemplate=(
                     '<b>Decile Range:</b> %{customdata[0]:.2f} - %{customdata[1]:.2f}<br>'
                     '<b>Bin Count:</b> %{y}<extra></extra>'
@@ -115,9 +151,8 @@ def create_network_histogram_figure(metric_series, metric_name):
     # Apply consistent styling
     fig.update_layout(
         margin=dict(l=40, r=20, t=40, b=20),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="black")
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#cccccc', family='Arial')
     )
     return fig
-
