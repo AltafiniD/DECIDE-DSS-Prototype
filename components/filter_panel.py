@@ -74,7 +74,6 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
         placeholder="Filter by Object of Search"
     )
 
-    # --- Network Components ---
     if network_df is not None and not network_df.empty:
         numeric_cols = network_df.select_dtypes(include='number').columns.tolist()
         network_metrics = sorted([col for col in numeric_cols if col not in NETWORK_METRICS_EXCLUDE])
@@ -84,7 +83,8 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     network_metric_dropdown = dcc.Dropdown(
         id='network-metric-dropdown', 
         options=[{'label': metric, 'value': metric} for metric in network_metrics], 
-        value='NAIN' if 'NAIN' in network_metrics else (network_metrics[0] if network_metrics else None), 
+        # MODIFIED: Changed default value to 'NAIN_rivers_risk' with fallbacks
+        value='NACH_rivers_risk' if 'NACH_rivers_risk' in network_metrics else ('NAIN' if 'NAIN' in network_metrics else (network_metrics[0] if network_metrics else None)), 
         clearable=False,
         disabled=not bool(network_metrics)
     )
