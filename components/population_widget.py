@@ -81,8 +81,8 @@ def create_population_density_histogram(population_df, num_breaks=5):
     ))
 
     fig.update_layout(
-        xaxis_title="Population Density",
-        yaxis_title="Number of Areas",
+        xaxis_title="Population Density (Area x Residents)",
+        yaxis_title="Number of Areas (OA)",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=40, r=20, t=40, b=80),
@@ -198,3 +198,4 @@ def create_combined_population_widget(population_df):
             ),
         ]
     )
+
