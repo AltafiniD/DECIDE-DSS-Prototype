@@ -99,14 +99,17 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
 
         # --- Network Widgets ---
         if toggles_dict.get('network'):
-            initial_metric = 'NAIN' if 'NAIN' in network_df.columns else None
+            initial_metric = 'NACH_rivers_risk' if 'NACH_rivers_risk' in network_df.columns else ('NAIN' if 'NAIN' in network_df.columns else None)
             series = network_df[initial_metric] if initial_metric and not network_df.empty else pd.Series()
             initial_network_fig = create_network_histogram_figure(series, initial_metric)
             initial_jenks_fig = create_jenks_histogram_figure(series, initial_metric)
             
-            network_hist = html.Div(className="widget", children=[dcc.Markdown("#### Network Metric (Deciles)"), dcc.Graph(id="network-histogram-chart", figure=initial_network_fig, style={'height': '85%'})])
-            jenks_hist = html.Div(className="widget", children=[dcc.Markdown("#### Network Metric (Jenks)"), dcc.Graph(id="jenks-histogram-chart", figure=initial_jenks_fig, style={'height': '85%'})])
-            all_widgets.append(html.Div([network_hist, jenks_hist], style={'display': 'flex', 'gap': '10px', 'height': '250px'}))
+            network_hist = html.Div(className="widget", children=[dcc.Markdown("#### Network Metric (Deciles)"), dcc.Graph(id="network-histogram-chart", figure=initial_network_fig, style={'height': '220px'})])
+            jenks_hist = html.Div(className="widget", children=[dcc.Markdown("#### Network Metric (Jenks)"), dcc.Graph(id="jenks-histogram-chart", figure=initial_jenks_fig, style={'height': '220px'})])
+            
+            # MODIFIED: Append histograms as separate widgets to stack them vertically
+            all_widgets.append(network_hist)
+            all_widgets.append(jenks_hist)
         
         # --- Buildings Widget ---
         if toggles_dict.get('flooding_toggle'):
