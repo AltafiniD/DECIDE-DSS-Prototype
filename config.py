@@ -23,7 +23,6 @@ MAP_STYLES = {
     }
 }
 
-
 # Central configuration for all flood risk layers
 # FIX: Added "type": "polygon" to each flood layer so they are correctly created.
 FLOOD_LAYER_CONFIG = {
@@ -51,6 +50,14 @@ FLOOD_LAYER_CONFIG = {
         "color": [28, 92, 120, 100],
         "type": "polygon"
     }
+}
+
+# New dictionary to store the base RGB (excluding alpha) for gradient generation
+FLOOD_BASE_COLORS = {
+    # Keys match the metric suffixes requested: "_rivers_risk", "_sea_risk", "_surface_risk"
+    "rivers_risk": [95, 158, 160],
+    "sea_risk": [65, 105, 225],
+    "surface_risk": [28, 92, 120]
 }
 
 # Configuration for dynamic building coloring
