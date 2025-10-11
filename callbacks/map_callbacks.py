@@ -109,8 +109,8 @@ def register_callbacks(app, all_layers, dataframes):
                     # --- NETWORK OUTLINE LINE WIDTH (CORRECTED PathLayer PARAMETERS) ---
                     if layer_id == 'network_outline':
                         # Base road network: width scales with zoom (unit='meters')
-                        new_layer_args['get_width'] = 2.0
-                        new_layer_args['width_unit'] = 'meters'
+                        new_layer_args['get_width'] = 2.0  # PathLayer uses 'get_width'
+                        new_layer_args['width_unit'] = 'meters' # PathLayer uses 'width_unit'
                         new_layer_args['width_scale'] = 1  
                         new_layer_args['width_min_pixels'] = 0.5 
                         if 'width_max_pixels' in new_layer_args:
@@ -136,16 +136,16 @@ def register_callbacks(app, all_layers, dataframes):
                                     
                                     # 10-color gradient matching the widget
                                     color_palette = [
-                                        [13, 34, 88],     
-                                        [14, 107, 140],
-                                        [33, 151, 176],
-                                        [64, 190, 175],
-                                        [101, 212, 150],
-                                        [139, 230, 125],
-                                        [174, 242, 88],
-                                        [203, 247, 56],
+                                        [240, 249, 33], # Starts yellow
                                         [225, 247, 37],
-                                        [240, 249, 33]    
+                                        [203, 247, 56],
+                                        [174, 242, 88],
+                                        [139, 230, 125],
+                                        [101, 212, 150],
+                                        [64, 190, 175],
+                                        [33, 151, 176],
+                                        [14, 107, 140],
+                                        [13, 34, 88] # Ends dark blue
                                     ]
                                     
                                     # Map class to color with alpha
@@ -183,13 +183,12 @@ def register_callbacks(app, all_layers, dataframes):
                         if sas_object_search:
                             df_to_process = df_to_process[df_to_process['Object of search'].isin(sas_object_search)]
                     
-                    # --- NETWORK ANALYSIS COLORING, Z-ORDER, & LINE WIDTH ---
+                    # --- NETWORK ANALYSIS COLORING & LINE WIDTH (CORRECTED PathLayer PARAMETERS) ---
                     elif layer_id == 'network' and network_metric and network_range:
                         if network_metric in df_to_process.columns:
                             df_to_process[network_metric] = pd.to_numeric(df_to_process[network_metric], errors='coerce')
                             mask = (df_to_process[network_metric] >= network_range[0]) & (df_to_process[network_metric] <= network_range[1])
-                            # Use .copy() after filter to prevent SettingWithCopyWarning
-                            df_to_process = df_to_process[mask].copy() 
+                            df_to_process = df_to_process[mask]
                             metric_series = df_to_process[network_metric].dropna()
                             
                             if not metric_series.empty:
@@ -198,18 +197,7 @@ def register_callbacks(app, all_layers, dataframes):
                                     decile_labels = pd.qcut(metric_series, 10, labels=False, duplicates='drop')
                                     df_to_process['decile'] = decile_labels
                                     
-                                    # --- Z-COORDINATE CALCULATION (for render order) ---
-                                    min_val = metric_series.min()
-                                    max_val = metric_series.max()
-                                    
-                                    # Normalize the metric value to a Z-range of 0 to 1000
-                                    # Lower values (blue) will be on the bottom (Z=0)
-                                    if max_val > min_val:
-                                        df_to_process['z_coordinate'] = (df_to_process[network_metric] - min_val) / (max_val - min_val) * 1000
-                                    else:
-                                        df_to_process['z_coordinate'] = 0
-                                    
-                                    # --- COLOR LOGIC (UPDATED HEX SCALE) ---
+                                    # --- FLOOD RISK COLORING LOGIC ---
                                     base_color = None
                                     if '_rivers_risk' in network_metric:
                                         base_color = FLOOD_BASE_COLORS.get('rivers_risk')
@@ -221,20 +209,20 @@ def register_callbacks(app, all_layers, dataframes):
                                     num_deciles = 10
                                     
                                     if base_color:
-                                        # Flood Metrics: Use custom gradient
+                                        # Flood Metrics: Use custom gradient (Lightest to Darkest)
                                         decile_colors = get_color_gradient(base_color, steps=num_deciles, output_hex=False)
                                     else:
                                         # Other Network Metrics (NACH, NAIN, NADC): Custom Rainbow scale (Blue=Low, Red=High)
                                         rainbow_hex = [
                                             "#0000d3",  # 0: Dark Blue (Low)
-                                            "#003cff",
-                                            "#008cff",
-                                            '#00ccff',
-                                            "#00ebbc",
-                                            "#00c40a",
-                                            "#ffd900",
-                                            '#ffaa00',
-                                            '#ff5500',
+                                            "#003cff",  # 1: Blue
+                                            "#008cff",  # 2: Light Blue
+                                            '#00ccff',  # 3: Cyan
+                                            "#00ebbc",  # 4: Light Cyan/Green
+                                            "#00eb0c",  # 5: Green
+                                            "#ffd900",  # 6: Yellow
+                                            '#ffaa00',  # 7: Orange
+                                            '#ff5500',  # 8: Red-Orange
                                             '#cc0000'   # 9: Dark Red (High)
                                         ]
                                         
@@ -245,25 +233,18 @@ def register_callbacks(app, all_layers, dataframes):
                                     df_to_process['color'] = df_to_process['decile'].apply(
                                         lambda d: decile_colors[int(d)] if pd.notna(d) else [128, 128, 128, 150]
                                     )
-                                    df_to_process['value'] = df_to_process[network_metric]; df_to_process['metric'] = network_metric
-                                    
-                                    # --- LAYER ARGUMENTS UPDATE (FIXED) ---
-                                    new_layer_args['get_color'] = 'color' 
-                                    new_layer_args['get_width'] = 5.0 
-                                    new_layer_args['width_unit'] = 'meters'
-                                    new_layer_args['width_scale'] = 1
-                                    new_layer_args['width_min_pixels'] = 1 
-                                    new_layer_args['get_z'] = 'z_coordinate' # Z-order for rendering overlap
-                                    
-                                    if 'width_max_pixels' in new_layer_args:
-                                        del new_layer_args['width_max_pixels']
-
-                                except (ValueError, IndexError) as e:
-                                    print(f"Error processing network layer: {e}")
+                                    df_to_process['value'] = metric_series; df_to_process['metric'] = network_metric
+                                except (ValueError, IndexError):
                                     df_to_process['color'] = [[128, 128, 128, 150]] * len(df_to_process)
-                                    new_layer_args['get_color'] = 'color' 
-                                    if 'get_z' in new_layer_args:
-                                        del new_layer_args['get_z']
+                                
+                                # Apply line width for analysis network (CORRECTED PathLayer PARAMETERS)
+                                new_layer_args['get_color'] = 'color' 
+                                new_layer_args['get_width'] = 5.0 # PathLayer uses 'get_width'
+                                new_layer_args['width_unit'] = 'meters'
+                                new_layer_args['width_scale'] = 1
+                                new_layer_args['width_min_pixels'] = 1 
+                                if 'width_max_pixels' in new_layer_args:
+                                    del new_layer_args['width_max_pixels']
 
                     elif layer_id == 'deprivation' and deprivation_category:
                         category_col = "Household deprivation (6 categories)"
