@@ -90,7 +90,7 @@ BUILDING_COLOR_CONFIG = {
 NETWORK_METRICS_EXCLUDE = ['fid', 'X1', 'Y1', 'X2', 'Y2', 'Depthmap_Ref']
 
 # Initial map view settings
-INITIAL_VIEW_STATE_CONFIG = { "latitude": 51.4816, "longitude": -3.25, "zoom": 11.5, "pitch": 45, "bearing": 0 }
+INITIAL_VIEW_STATE_CONFIG = { "latitude": 51.4950, "longitude": -3.20, "zoom": 11.5, "pitch": 45, "bearing": 0 }
 
 # --- MODIFIED: Added an 'image' key for each layer for the new buttons ---
 LAYER_CONFIG = {
