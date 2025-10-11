@@ -7,7 +7,38 @@ import pandas as pd
 import numpy as np
 import jenkspy
 
-from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG
+# Ensure FLOOD_BASE_COLORS is imported here
+from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG, FLOOD_BASE_COLORS 
+
+# --- NEW UTILITY FUNCTION: Generates a color gradient (Copied from network_widget.py) ---
+def get_color_gradient(base_rgb, steps, output_hex=True, light_mix=0.1):
+    """
+    Generates a color gradient from a lighter mix (white) to the base_rgb (darker).
+    
+    - light_mix: The starting point of the gradient (e.g., 0.1 for 10% mix of base color).
+    - output_hex: True for Plotly (histograms), False for Pydeck (map).
+    """
+    start_rgb = np.array([255, 255, 255])
+    end_rgb = np.array(base_rgb)
+    
+    # Interpolation steps: Start with 'light_mix' of the base color up to 100%
+    t_adjusted = np.linspace(light_mix, 1, steps, endpoint=True) 
+    
+    # Linear interpolation (Mix = (1-t)*White + t*BaseColor)
+    gradient_rgb = [(1 - i) * start_rgb + i * end_rgb for i in t_adjusted]
+    
+    # Clamp values and convert to int
+    gradient_rgb = [np.clip(rgb.astype(int), 0, 255) for rgb in gradient_rgb]
+
+    if output_hex:
+        def rgb_to_hex(rgb):
+            return f'#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}'
+        return [rgb_to_hex(rgb) for rgb in gradient_rgb]
+    else:
+        # Pydeck colors need an alpha channel, use 220
+        return [list(rgb) + [220] for rgb in gradient_rgb]
+# --------------------------------------------------------
+
 
 def register_callbacks(app, all_layers, dataframes):
     """
@@ -75,6 +106,16 @@ def register_callbacks(app, all_layers, dataframes):
                 if toggles_dict.get(layer_id):
                     should_render = True
                     
+                    # --- NETWORK OUTLINE LINE WIDTH (CORRECTED PathLayer PARAMETERS) ---
+                    if layer_id == 'network_outline':
+                        # Base road network: width scales with zoom (unit='meters')
+                        new_layer_args['get_width'] = 2.0
+                        new_layer_args['width_unit'] = 'meters'
+                        new_layer_args['width_scale'] = 1  
+                        new_layer_args['width_min_pixels'] = 0.5 
+                        if 'width_max_pixels' in new_layer_args:
+                            del new_layer_args['width_max_pixels']
+
                     # FIXED: Added population layer coloring with 10 Jenks breaks
                     if layer_id == 'population':
                         if 'density' in df_to_process.columns:
@@ -95,7 +136,7 @@ def register_callbacks(app, all_layers, dataframes):
                                     
                                     # 10-color gradient matching the widget
                                     color_palette = [
-                                        [13, 34, 88],     # Darkest (Dark Blue/Purple)
+                                        [13, 34, 88],     
                                         [14, 107, 140],
                                         [33, 151, 176],
                                         [64, 190, 175],
@@ -104,17 +145,17 @@ def register_callbacks(app, all_layers, dataframes):
                                         [174, 242, 88],
                                         [203, 247, 56],
                                         [225, 247, 37],
-                                        [240, 249, 33]    # Lightest (Yellow)
+                                        [240, 249, 33]    
                                     ]
                                     
                                     # Map class to color with alpha
+                                    color_palette.reverse()
                                     df_to_process['color'] = df_to_process['jenks_class'].apply(
                                         lambda c: color_palette[int(c)] + [180] if pd.notna(c) else [200, 200, 200, 100]
                                     )
                                     new_layer_args['get_fill_color'] = 'color'
                                 except Exception as e:
                                     print(f"Error calculating Jenks breaks for population: {e}")
-                                    # Fallback to default coloring
                                     pass
                     
                     elif layer_id == 'buildings':
@@ -134,33 +175,95 @@ def register_callbacks(app, all_layers, dataframes):
 
                     elif layer_id == 'stop_and_search':
                         if sas_time_range and isinstance(sas_time_range, list) and len(sas_time_range) == 2 and sas_month_map:
+                            df_to_process['Month_dt'] = pd.to_datetime(df_to_process['Date'], errors='coerce').dt.tz_localize(None)
                             start_month_str, end_month_str = sas_month_map.get(str(sas_time_range[0])), sas_month_map.get(str(sas_time_range[1]))
                             if start_month_str and end_month_str:
-                                df_to_process['Month_dt'] = pd.to_datetime(df_to_process['Date'], errors='coerce').dt.tz_localize(None)
                                 start_date, end_date = pd.to_datetime(start_month_str), pd.to_datetime(end_month_str)
                                 df_to_process = df_to_process[(df_to_process['Month_dt'] >= start_date) & (df_to_process['Month_dt'] <= end_date)]
                         if sas_object_search:
                             df_to_process = df_to_process[df_to_process['Object of search'].isin(sas_object_search)]
                     
+                    # --- NETWORK ANALYSIS COLORING, Z-ORDER, & LINE WIDTH ---
                     elif layer_id == 'network' and network_metric and network_range:
                         if network_metric in df_to_process.columns:
                             df_to_process[network_metric] = pd.to_numeric(df_to_process[network_metric], errors='coerce')
                             mask = (df_to_process[network_metric] >= network_range[0]) & (df_to_process[network_metric] <= network_range[1])
-                            df_to_process = df_to_process[mask]
+                            # Use .copy() after filter to prevent SettingWithCopyWarning
+                            df_to_process = df_to_process[mask].copy() 
                             metric_series = df_to_process[network_metric].dropna()
+                            
                             if not metric_series.empty:
                                 try:
+                                    # Calculate deciles
                                     decile_labels = pd.qcut(metric_series, 10, labels=False, duplicates='drop')
                                     df_to_process['decile'] = decile_labels
-                                    if 'risk' in network_metric.lower():
-                                        blue_hex = ['#eff3ff', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b', '#08306b', '#08306b']
-                                        decile_colors = [list(tuple(int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))) + [220] for h in blue_hex]
-                                        df_to_process['color'] = df_to_process['decile'].apply(lambda d: decile_colors[int(d)] if pd.notna(d) else [128, 128, 128, 150])
+                                    
+                                    # --- Z-COORDINATE CALCULATION (for render order) ---
+                                    min_val = metric_series.min()
+                                    max_val = metric_series.max()
+                                    
+                                    # Normalize the metric value to a Z-range of 0 to 1000
+                                    # Lower values (blue) will be on the bottom (Z=0)
+                                    if max_val > min_val:
+                                        df_to_process['z_coordinate'] = (df_to_process[network_metric] - min_val) / (max_val - min_val) * 1000
                                     else:
-                                        df_to_process['color'] = df_to_process['decile'].apply(lambda d: [int(255 * (d/9.0 * 2)) if d/9.0 > 0.5 else 0, int(255 * (1 - abs(d/9.0 - 0.5) * 2)), int(255 * (1 - d/9.0 * 2)) if d/9.0 < 0.5 else 0, 150] if pd.notna(d) else [128, 128, 128, 150])
-                                    df_to_process['value'] = metric_series; df_to_process['metric'] = network_metric
-                                except (ValueError, IndexError):
+                                        df_to_process['z_coordinate'] = 0
+                                    
+                                    # --- COLOR LOGIC (UPDATED HEX SCALE) ---
+                                    base_color = None
+                                    if '_rivers_risk' in network_metric:
+                                        base_color = FLOOD_BASE_COLORS.get('rivers_risk')
+                                    elif '_sea_risk' in network_metric:
+                                        base_color = FLOOD_BASE_COLORS.get('sea_risk')
+                                    elif '_surface_risk' in network_metric:
+                                        base_color = FLOOD_BASE_COLORS.get('surface_risk')
+
+                                    num_deciles = 10
+                                    
+                                    if base_color:
+                                        # Flood Metrics: Use custom gradient
+                                        decile_colors = get_color_gradient(base_color, steps=num_deciles, output_hex=False)
+                                    else:
+                                        # Other Network Metrics (NACH, NAIN, NADC): Custom Rainbow scale (Blue=Low, Red=High)
+                                        rainbow_hex = [
+                                            "#0000d3",  # 0: Dark Blue (Low)
+                                            "#003cff",
+                                            "#008cff",
+                                            '#00ccff',
+                                            "#00ebbc",
+                                            "#00c40a",
+                                            "#ffd900",
+                                            '#ffaa00',
+                                            '#ff5500',
+                                            '#cc0000'   # 9: Dark Red (High)
+                                        ]
+                                        
+                                        # Convert hex to RGB list with Alpha [220]
+                                        decile_colors = [list(tuple(int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))) + [220] for h in rainbow_hex]
+                                    
+                                    # Apply the colors
+                                    df_to_process['color'] = df_to_process['decile'].apply(
+                                        lambda d: decile_colors[int(d)] if pd.notna(d) else [128, 128, 128, 150]
+                                    )
+                                    df_to_process['value'] = df_to_process[network_metric]; df_to_process['metric'] = network_metric
+                                    
+                                    # --- LAYER ARGUMENTS UPDATE (FIXED) ---
+                                    new_layer_args['get_color'] = 'color' 
+                                    new_layer_args['get_width'] = 5.0 
+                                    new_layer_args['width_unit'] = 'meters'
+                                    new_layer_args['width_scale'] = 1
+                                    new_layer_args['width_min_pixels'] = 1 
+                                    new_layer_args['get_z'] = 'z_coordinate' # Z-order for rendering overlap
+                                    
+                                    if 'width_max_pixels' in new_layer_args:
+                                        del new_layer_args['width_max_pixels']
+
+                                except (ValueError, IndexError) as e:
+                                    print(f"Error processing network layer: {e}")
                                     df_to_process['color'] = [[128, 128, 128, 150]] * len(df_to_process)
+                                    new_layer_args['get_color'] = 'color' 
+                                    if 'get_z' in new_layer_args:
+                                        del new_layer_args['get_z']
 
                     elif layer_id == 'deprivation' and deprivation_category:
                         category_col = "Household deprivation (6 categories)"
@@ -199,4 +302,3 @@ def register_callbacks(app, all_layers, dataframes):
         deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
         
         return deck.to_json(), None
-
