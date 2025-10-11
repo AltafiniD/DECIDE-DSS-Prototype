@@ -153,6 +153,9 @@ def create_network_histogram_figure(metric_series, metric_name):
         margin=dict(l=40, r=20, t=40, b=20),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#cccccc', family='Arial')
+        font=dict(color="#000000", family='Arial'),
+        xaxis={'layer': 'above traces'},
+        yaxis={'layer': 'above traces'}
+        # ----------------------
     )
     return fig
