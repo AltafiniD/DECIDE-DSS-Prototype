@@ -9,7 +9,13 @@ This application is a prototype for demonstration and research purposes. Its cod
 
 ## Overview
 
-https://github.com/user-attachments/assets/e28efc72-1557-4344-ad53-588b00ce2da5
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=RYHcGnXGN5Q" target="_blank">
+    <img src="https://img.youtube.com/vi/RYHcGnXGN5Q/0.jpg"
+         alt="Watch the video"
+         width="560" height="415" />
+  </a>
+</p>
 
 Communication is a key aspect of decision support in urban studies, as we often interface with stakeholders with diverse backgrounds, agendas, and expertise. Models that support urban decisional processes must display actionable information, meaning being focused on accessibility, clarity, and sufficiency, rather than complexity, aiming to answer specific questions and inform outcomes.  
 
@@ -175,6 +181,7 @@ This research has received funding from the United Kingdom Research and Innova-t
 
 Diego Altafini
 altafinid@cardiff.ac.uk | altafini.diego@gmail.com
+
 
 
 
