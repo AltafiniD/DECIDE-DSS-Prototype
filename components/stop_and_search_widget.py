@@ -1,11 +1,14 @@
 # components/stop_and_search_widget.py
 import plotly.express as px
 import pandas as pd
+from config import STOP_AND_SEARCH_COLOR_MAP # Import the map from config
+
+# The local color map definition has been removed.
 
 def create_stop_and_search_histogram_figure(df, title=""):
     """
     Creates a stacked bar chart of stop and search events per month,
-    broken down by the object of the search, with all bars in a single color.
+    broken down by the object of the search, with distinct colors for each category.
     """
     if df.empty or 'Object of search' not in df.columns:
         fig = px.bar(title="No Stop & Search data for this selection")
@@ -14,42 +17,54 @@ def create_stop_and_search_histogram_figure(df, title=""):
             plot_bgcolor="rgba(0,0,0,0)",
         )
         return fig
+    
+    # Handle null values in 'Object of search' by setting them to 'None'
+    df['Object of search'] = df['Object of search'].fillna('None')
 
     # Ensure 'Month' column exists from the datetime
     df['Month_dt'] = pd.to_datetime(df['Date'], errors='coerce')
     df['Month'] = df['Month_dt'].dt.to_period('M').astype(str)
 
-    # --- MODIFIED: Group by both month and object of search to create stacks ---
+    # Group by both month and object of search to create stacks
     monthly_events = df.groupby(['Month', 'Object of search']).size().reset_index(name='count')
     monthly_events = monthly_events.sort_values('Month')
 
-    # --- NEW: Create a color map that forces all categories to be the same color ---
-    search_types = monthly_events['Object of search'].unique()
-    single_color = 'rgb(220, 20, 60)'
-    color_map = {stype: single_color for stype in search_types}
+    # Get unique search objects and create a complete color map
+    unique_objects = monthly_events['Object of search'].unique()
+    
+    # Build color map, using default colors for any categories not in our predefined map
+    color_map = {}
+    default_colors = px.colors.qualitative.Plotly  # Plotly's default color sequence
+    
+    for idx, obj in enumerate(unique_objects):
+        # Use the imported map
+        if obj in STOP_AND_SEARCH_COLOR_MAP:
+            color_map[obj] = STOP_AND_SEARCH_COLOR_MAP[obj]
+        else:
+            # Use default color sequence for unknown categories
+            color_map[obj] = default_colors[idx % len(default_colors)]
 
     fig = px.bar(
         monthly_events,
         x='Month',
         y='count',
-        # --- MODIFIED: Color by object of search to create the stacks ---
         color='Object of search',
         title=title,
         labels={'count': 'Number of Events'},
-        # --- NEW: Use the color map to make all stacks the same color ---
         color_discrete_map=color_map,
-        # --- NEW: Add custom_data to ensure 'Object of search' is available on click ---
         custom_data=['Object of search']
     )
 
     fig.update_layout(
-        margin=dict(l=20, r=20, t=40, b=20),
+        margin=dict(l=40, r=20, t=20, b=60),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(color="black"),
-        # --- Keep the legend hidden as requested ---
         showlegend=False,
-        # --- NEW: Make the bars clickable ---
-        clickmode='event+select'
+        clickmode='event+select',
+        xaxis_tickangle=-45,
+        height=None,
+        autosize=True
     )
+    
     return fig

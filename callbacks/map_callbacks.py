@@ -6,9 +6,29 @@ import pydeck as pdk
 import pandas as pd
 import numpy as np
 import jenkspy
+import re 
 
-# Ensure FLOOD_BASE_COLORS is imported here
-from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG, FLOOD_BASE_COLORS 
+# Ensure all necessary configs, including STOP_AND_SEARCH_COLOR_MAP and CRIME_COLOR_MAP, are imported
+from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG, FLOOD_BASE_COLORS, STOP_AND_SEARCH_COLOR_MAP, CRIME_COLOR_MAP 
+
+# --- NEW UTILITY FUNCTION: Converts HEX to RGB list with Alpha ---
+def hex_to_rgba(hex_color, alpha=220):
+    """
+    Converts a hex color string (e.g., '#FF5733') to a list of [R, G, B, A]
+    for use in Pydeck.
+    """
+    hex_color = hex_color.lstrip('#')
+    if len(hex_color) == 3:
+        # Expand shorthand form (e.g. '03F' to '0033FF')
+        hex_color = ''.join([c*2 for c in hex_color])
+    try:
+        rgb = [int(hex_color[i:i+2], 16) for i in (0, 2, 4)]
+        return rgb + [alpha]
+    except ValueError:
+        # Fallback to the 'None' color for safety if parsing fails
+        return hex_to_rgba(CRIME_COLOR_MAP.get('None', '#A9A9A9'))
+# -----------------------------------------------------------------
+
 
 # --- NEW UTILITY FUNCTION: Generates a color gradient (Copied from network_widget.py) ---
 def get_color_gradient(base_rgb, steps, output_hex=True, light_mix=0.1):
@@ -96,6 +116,27 @@ def register_callbacks(app, all_layers, dataframes):
                             df_to_process = df_to_process[(df_to_process['Month_dt'] >= start_date) & (df_to_process['Month_dt'] <= end_date)]
                     if selected_crime_types:
                         df_to_process = df_to_process[df_to_process['Crime type'].isin(selected_crime_types)]
+                        
+                    # --- CRIME POINTS COLORING & ZOOM SCALING ---
+                    if layer_id == 'crime_points':
+                        
+                        # Handle null values in 'Crime type' for coloring
+                        df_to_process['Crime type'] = df_to_process['Crime type'].fillna('None')
+
+                        # Map the crime type to the correct HEX color, then convert to RGBA
+                        def get_crime_color(crime_type):
+                            # Use the imported CRIME_COLOR_MAP
+                            hex_color = CRIME_COLOR_MAP.get(crime_type, CRIME_COLOR_MAP['None'])
+                            return hex_to_rgba(hex_color)
+
+                        df_to_process['color'] = df_to_process['Crime type'].apply(get_crime_color)
+                        new_layer_args['get_fill_color'] = 'color'
+                        
+                        # Use meters for zoom scaling
+                        new_layer_args['radius_units'] = 'meters'
+                        # Define a radius in meters
+                        new_layer_args['get_radius'] = 30
+                    # --- END CRIME POINTS ---
             
             elif layer_id in FLOOD_LAYER_CONFIG:
                 layer_config_id = FLOOD_LAYER_CONFIG[layer_id].get('id')
@@ -174,14 +215,33 @@ def register_callbacks(app, all_layers, dataframes):
                             new_layer_args['get_fill_color'] = BUILDING_COLOR_CONFIG['none']['color']
 
                     elif layer_id == 'stop_and_search':
+                        # --- START: STOP AND SEARCH COLORING LOGIC (Using centralized map and zoom scaling) ---
                         if sas_time_range and isinstance(sas_time_range, list) and len(sas_time_range) == 2 and sas_month_map:
                             df_to_process['Month_dt'] = pd.to_datetime(df_to_process['Date'], errors='coerce').dt.tz_localize(None)
                             start_month_str, end_month_str = sas_month_map.get(str(sas_time_range[0])), sas_month_map.get(str(sas_time_range[1]))
                             if start_month_str and end_month_str:
                                 start_date, end_date = pd.to_datetime(start_month_str), pd.to_datetime(end_month_str)
                                 df_to_process = df_to_process[(df_to_process['Month_dt'] >= start_date) & (df_to_process['Month_dt'] <= end_date)]
+                        
                         if sas_object_search:
                             df_to_process = df_to_process[df_to_process['Object of search'].isin(sas_object_search)]
+                        
+                        # Handle null values in 'Object of search' for coloring
+                        df_to_process['Object of search'] = df_to_process['Object of search'].fillna('None')
+
+                        # Map the object of search to the correct HEX color, then convert to RGBA
+                        def get_sas_color(object_of_search):
+                            # Use the imported map
+                            hex_color = STOP_AND_SEARCH_COLOR_MAP.get(object_of_search, STOP_AND_SEARCH_COLOR_MAP['None'])
+                            return hex_to_rgba(hex_color)
+
+                        df_to_process['color'] = df_to_process['Object of search'].apply(get_sas_color)
+                        new_layer_args['get_fill_color'] = 'color'
+                        
+                        # Set radius to scale with zoom
+                        new_layer_args['radius_units'] = 'meters' 
+                        new_layer_args['get_radius'] = 30 
+                        # --- END: STOP AND SEARCH COLORING LOGIC ---
                     
                     # --- NETWORK ANALYSIS COLORING & LINE WIDTH (CORRECTED PathLayer PARAMETERS) ---
                     elif layer_id == 'network' and network_metric and network_range:

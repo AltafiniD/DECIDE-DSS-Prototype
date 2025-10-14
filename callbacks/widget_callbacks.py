@@ -74,27 +74,48 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
             sas_fig = create_stop_and_search_histogram_figure(filtered_sas_df)
             sas_gender_fig = create_sas_gender_pie_chart(filtered_sas_df)
             
+            # MODIFIED: Create histogram widget to take full width
             sas_histogram = html.Div(className="widget", children=[
                 html.Div(style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[
                     dcc.Markdown("#### Stop & Search Events"),
                     html.Button("Clear Filter", id="clear-sas-filter-btn", n_clicks=0, style={'fontSize': '12px'})
                 ]),
-                dcc.Graph(id="stop-and-search-chart", figure=sas_fig, style={'height': '85%'})
+                dcc.Graph(id="stop-and-search-chart", figure=sas_fig, style={'height': '500px'})
             ])
-            sas_pie = html.Div(className="widget", children=[
-                dcc.Markdown("#### S&S Gender Distribution"),
-                dcc.Graph(id="sas-gender-pie-chart", figure=sas_gender_fig, style={'height': '85%'})
+            
+            # The container (html.Div) is now 50% wide, and the chart fills it
+            sas_pie = html.Div(
+                className="widget",
+                    style={'width': '49%', 'display': 'inline-block', 'margin': '0.5%'}, # Set container width
+                    children=[
+                    dcc.Markdown("#### S&S Gender Distribution"),
+                    dcc.Graph(id="sas-gender-pie-chart", figure=sas_gender_fig, style={'height': '250px'})
             ])
-            all_widgets.append(html.Div([sas_histogram, sas_pie], style={'display': 'flex', 'gap': '10px'}))
+
+            #--------------- MODIFIED: Stack histogram and pie chart vertically instead of side by side---------------
+            # 2. Define a second half-width widget (a placeholder)
+            #other_widget_half = html.Div(className="widget", style={'width': '50%'}, children=[
+            #dcc.Markdown("#### Another Widget"),
+            # ... content for the other widget ...
+
+            # 3. Create a flex container to hold them horizontally
+            #horizontal_container = html.Div(
+            #style={'display': 'flex', 'gap': '10px'},
+            #children=[sas_pie_half, other_widget_half]
+            #--------------- MODIFIED: Stack histogram and pie chart vertically instead of side by side---------------
+            
+            # MODIFIED: Stack them vertically instead of horizontally
+            all_widgets.append(sas_histogram)
+            all_widgets.append(sas_pie)
 
         # --- Crime Widget ---
         if crime_viz_selection:
-            initial_crime_fig = create_crime_histogram_figure(crime_df, plotly_colour_map)
+            initial_crime_fig = create_crime_histogram_figure(crime_df) 
             all_widgets.append(html.Div(className="widget", children=[
                 html.Div(style={'display': 'flex', 'justifyContent': 'space-between', 'alignItems': 'center'}, children=[
                     dcc.Markdown(id="crime-widget-title", children="#### Crime Statistics"),
                     html.Button("Clear Selection", id="clear-crime-filter-btn", n_clicks=0, style={'fontSize': '12px'})]),
-                dcc.Graph(id="crime-bar-chart", figure=initial_crime_fig, style={'height': '250px'})
+                dcc.Graph(id="crime-bar-chart", figure=initial_crime_fig, style={'height': '500px'})
             ]))
 
         # --- Network Widgets ---
@@ -298,7 +319,7 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         if selected_crime_types:
             df_to_filter = df_to_filter[df_to_filter['Crime type'].isin(selected_crime_types)]
 
-        fig = create_crime_histogram_figure(df_to_filter, plotly_colour_map, title=chart_title)
+        fig = create_crime_histogram_figure(df_to_filter, title=chart_title) 
         return fig, widget_title
 
     @app.callback(
@@ -439,3 +460,4 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
 
         fig = create_deprivation_bar_chart(filtered_df, title=chart_title)
         return fig, widget_title
+

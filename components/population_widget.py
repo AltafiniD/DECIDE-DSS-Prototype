@@ -192,7 +192,7 @@ def create_combined_population_widget(population_df):
                         id="population-density-chart",
                         figure=density_histogram_fig,
                         config={'displayModeBar': False},
-                        style={'height': '250px'}
+                        style={'height': '500px'}
                     )
                 ]
             ),

@@ -93,6 +93,44 @@ BUILDING_COLOR_CONFIG = {
     }
 }
 
+# --- NEW: Centralized color maps for crime data ---
+
+# Configuration for stop and search 'Object of search' categories
+STOP_AND_SEARCH_COLOR_MAP = {
+    'Controlled drugs': "#00AA39",  # Green
+    'Offensive weapons': '#3498DB',  # Blue
+    'Stolen goods': '#F39C12',  # Orange
+    'Article for use in theft': '#9B59B6',  # Purple (Corrected to singular)
+    'Articles for use in criminal damage': '#34495E',  # Dark Blue-Gray
+    'Firearms': '#1ABC9C',  # Teal
+    'Anything to threaten or harm anyone': '#E67E22',  # Dark Orange
+    'Evidence of offences under the Act': '#95A5A6',  # Gray
+    'Psychoactive substances': '#2ECC71',  # Light Green
+    'Fireworks': '#16A085',  # Dark Teal
+    'Game or poaching equipment': '#D35400',  # Dark Orange-Red
+    'Goods on which duty has not been paid etc.': '#FF5733', # Red-Orange
+    'None': '#A9A9A9' # Dark Gray for null/missing values
+}
+
+# Configuration for crime categories
+CRIME_COLOR_MAP = {
+    'Violence and sexual offences': '#E74C3C', # Red
+    'Anti-social behaviour': '#2ECC71',       # Green
+    'Public order': '#3498DB',                # Blue
+    'Criminal damage and arson': '#F1C40F',    # Yellow
+    'Vehicle crime': '#9B59B6',               # Purple
+    'Other theft': '#E67E22',                 # Dark Orange
+    'Shoplifting': '#1ABC9C',                 # Teal
+    'Burglary': '#34495E',                    # Dark Blue-Gray
+    'Drugs': '#C0392B',                       # Dark Red
+    'Robbery': '#A93226',                     # Darker Red
+    'Theft from the person': '#FF5733',        # Red-Orange
+    'Bicycle theft': '#27AE60',               # Medium Green
+    'Possession of weapons': '#7F8C8D',       # Gray
+    'Other crime': '#A9A9A9',                 # Dark Gray
+    'None': '#A9A9A9'                         # For null/missing values
+}
+
 # Columns to exclude from the dynamic network filter
 NETWORK_METRICS_EXCLUDE = ['fid', 'X1', 'Y1', 'X2', 'Y2', 'Depthmap_Ref']
 
