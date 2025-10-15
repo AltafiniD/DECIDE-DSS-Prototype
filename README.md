@@ -9,7 +9,7 @@ This application is a prototype for demonstration and research purposes. Its cod
 
 ## Overview
 
-# DECIDE-DSS Video Demonstration
+### DECIDE-DSS Video Demonstration
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=RYHcGnXGN5Q" target="_blank">
@@ -183,6 +183,7 @@ This research has received funding from the United Kingdom Research and Innova-t
 
 Diego Altafini
 altafinid@cardiff.ac.uk | altafini.diego@gmail.com
+
 
 
 
