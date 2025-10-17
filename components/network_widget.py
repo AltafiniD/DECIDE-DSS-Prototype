@@ -3,7 +3,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
 import pandas as pd
-from config import FLOOD_BASE_COLORS 
+from config import FLOOD_HAZARD_COLORS 
 
 # --- NEW UTILITY FUNCTION: Generates a color gradient ---
 def get_color_gradient(base_rgb, steps, output_hex=True, light_mix=0.1):
@@ -68,11 +68,11 @@ def create_network_histogram_figure(metric_series, metric_name):
             # --- NEW COLOR LOGIC START ---
             base_color = None
             if '_rivers_risk' in metric_name:
-                base_color = FLOOD_BASE_COLORS.get('rivers_risk')
+                base_color = FLOOD_HAZARD_COLORS['rivers_risk']['high'][:3]
             elif '_sea_risk' in metric_name:
-                base_color = FLOOD_BASE_COLORS.get('sea_risk')
+                base_color = FLOOD_HAZARD_COLORS['sea_risk']['high'][:3]
             elif '_surface_risk' in metric_name:
-                base_color = FLOOD_BASE_COLORS.get('surface_risk')
+                base_color = FLOOD_HAZARD_COLORS['surface_risk']['high'][:3]
             
             if base_color and num_deciles > 1:
                 # Flood Metrics: Generate the N-step HEX gradient (Lightest to Darkest)

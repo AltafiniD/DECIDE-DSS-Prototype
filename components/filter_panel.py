@@ -143,7 +143,7 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
     flood_risk_selector = dcc.Dropdown(
         id='flood-risk-selector', 
         options=flood_options, 
-        value=['flood_rivers'], 
+        value=['flood_rivers_high', 'flood_rivers_medium', 'flood_rivers_low'], # Default selected values, see config.py [FLOOD_LAYER_CONFIG] for correct namings
         multi=True, 
         placeholder="Select Flood Risk Layers"
     )

@@ -8,10 +8,14 @@ import numpy as np
 import jenkspy
 import re 
 
-# Ensure all necessary configs, including STOP_AND_SEARCH_COLOR_MAP and CRIME_COLOR_MAP, are imported
-from config import INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, BUILDING_COLOR_CONFIG, FLOOD_BASE_COLORS, STOP_AND_SEARCH_COLOR_MAP, CRIME_COLOR_MAP 
+# Ensure all necessary configs are imported
+from config import (
+    INITIAL_VIEW_STATE_CONFIG, LAYER_CONFIG, FLOOD_LAYER_CONFIG, 
+    BUILDING_COLOR_CONFIG, FLOOD_HAZARD_COLORS, 
+    STOP_AND_SEARCH_COLOR_MAP, CRIME_COLOR_MAP 
+)
 
-# --- NEW UTILITY FUNCTION: Converts HEX to RGB list with Alpha ---
+# --- UTILITY FUNCTION: Converts HEX to RGB list with Alpha ---
 def hex_to_rgba(hex_color, alpha=220):
     """
     Converts a hex color string (e.g., '#FF5733') to a list of [R, G, B, A]
@@ -27,10 +31,9 @@ def hex_to_rgba(hex_color, alpha=220):
     except ValueError:
         # Fallback to the 'None' color for safety if parsing fails
         return hex_to_rgba(CRIME_COLOR_MAP.get('None', '#A9A9A9'))
-# -----------------------------------------------------------------
 
 
-# --- NEW UTILITY FUNCTION: Generates a color gradient (Copied from network_widget.py) ---
+# --- UTILITY FUNCTION: Generates a color gradient ---
 def get_color_gradient(base_rgb, steps, output_hex=True, light_mix=0.1):
     """
     Generates a color gradient from a lighter mix (white) to the base_rgb (darker).
@@ -57,7 +60,6 @@ def get_color_gradient(base_rgb, steps, output_hex=True, light_mix=0.1):
     else:
         # Pydeck colors need an alpha channel, use 220
         return [list(rgb) + [220] for rgb in gradient_rgb]
-# --------------------------------------------------------
 
 
 def register_callbacks(app, all_layers, dataframes):
@@ -125,7 +127,6 @@ def register_callbacks(app, all_layers, dataframes):
 
                         # Map the crime type to the correct HEX color, then convert to RGBA
                         def get_crime_color(crime_type):
-                            # Use the imported CRIME_COLOR_MAP
                             hex_color = CRIME_COLOR_MAP.get(crime_type, CRIME_COLOR_MAP['None'])
                             return hex_to_rgba(hex_color)
 
@@ -139,9 +140,48 @@ def register_callbacks(app, all_layers, dataframes):
                     # --- END CRIME POINTS ---
             
             elif layer_id in FLOOD_LAYER_CONFIG:
-                layer_config_id = FLOOD_LAYER_CONFIG[layer_id].get('id')
+                # NEW: Granular flood layer handling with hazard levels
+                layer_config = FLOOD_LAYER_CONFIG[layer_id]
+                hazard_level = layer_config.get('hazard_level')
+                hazard_type = layer_config.get('hazard_type')
+                layer_config_id = layer_config.get('id')
+                
                 if flooding_toggle and flood_selection and layer_config_id in flood_selection:
                     should_render = True
+                    
+                    # Filter dataframe by hazard level from the database
+                    if hazard_level and 'hazard_level' in df_to_process.columns:
+                        df_to_process = df_to_process[
+                            df_to_process['hazard_level'].str.lower() == hazard_level.lower()
+                        ]
+                    
+                    # Apply color based on 'risk' column value if available, otherwise use hazard level
+                    if 'risk' in df_to_process.columns and hazard_type in FLOOD_HAZARD_COLORS:
+                        def get_flood_risk_color(risk_value):
+                            """Map risk value to color with transparency"""
+                            risk_str = str(risk_value).lower().strip()
+                            color_map = FLOOD_HAZARD_COLORS.get(hazard_type, {})
+                            
+                            # Try to match risk value to a color
+                            if risk_str in color_map:
+                                color = list(color_map[risk_str])
+                            else:
+                                # Fallback to hazard_level color if risk doesn't match
+                                color = list(color_map.get(hazard_level, [128, 128, 128, 255]))
+                            
+                            # Set alpha to 150 for transparency
+                            color[3] = 150
+                            return color
+                        
+                        df_to_process['color'] = df_to_process['risk'].apply(get_flood_risk_color)
+                        new_layer_args['get_fill_color'] = 'color'
+                    else:
+                        # Fallback: apply color based on hazard level
+                        if hazard_type and hazard_level in FLOOD_HAZARD_COLORS.get(hazard_type, {}):
+                            color = list(FLOOD_HAZARD_COLORS[hazard_type][hazard_level])
+                            color[3] = 150
+                            df_to_process['color'] = [color] * len(df_to_process)
+                            new_layer_args['get_fill_color'] = 'color'
             
             elif layer_id in LAYER_CONFIG:
                 if toggles_dict.get(layer_id):
@@ -215,7 +255,7 @@ def register_callbacks(app, all_layers, dataframes):
                             new_layer_args['get_fill_color'] = BUILDING_COLOR_CONFIG['none']['color']
 
                     elif layer_id == 'stop_and_search':
-                        # --- START: STOP AND SEARCH COLORING LOGIC (Using centralized map and zoom scaling) ---
+                        # --- STOP AND SEARCH COLORING LOGIC ---
                         if sas_time_range and isinstance(sas_time_range, list) and len(sas_time_range) == 2 and sas_month_map:
                             df_to_process['Month_dt'] = pd.to_datetime(df_to_process['Date'], errors='coerce').dt.tz_localize(None)
                             start_month_str, end_month_str = sas_month_map.get(str(sas_time_range[0])), sas_month_map.get(str(sas_time_range[1]))
@@ -231,7 +271,6 @@ def register_callbacks(app, all_layers, dataframes):
 
                         # Map the object of search to the correct HEX color, then convert to RGBA
                         def get_sas_color(object_of_search):
-                            # Use the imported map
                             hex_color = STOP_AND_SEARCH_COLOR_MAP.get(object_of_search, STOP_AND_SEARCH_COLOR_MAP['None'])
                             return hex_to_rgba(hex_color)
 
@@ -243,7 +282,7 @@ def register_callbacks(app, all_layers, dataframes):
                         new_layer_args['get_radius'] = 30 
                         # --- END: STOP AND SEARCH COLORING LOGIC ---
                     
-                    # --- NETWORK ANALYSIS COLORING & LINE WIDTH (CORRECTED PathLayer PARAMETERS) ---
+                    # --- NETWORK ANALYSIS COLORING & LINE WIDTH ---
                     elif layer_id == 'network' and network_metric and network_range:
                         if network_metric in df_to_process.columns:
                             df_to_process[network_metric] = pd.to_numeric(df_to_process[network_metric], errors='coerce')
@@ -257,19 +296,17 @@ def register_callbacks(app, all_layers, dataframes):
                                     decile_labels = pd.qcut(metric_series, 10, labels=False, duplicates='drop')
                                     df_to_process['decile'] = decile_labels
                                     
-                                    # --- FLOOD RISK COLORING LOGIC ---
-                                    base_color = None
-                                    if '_rivers_risk' in network_metric:
-                                        base_color = FLOOD_BASE_COLORS.get('rivers_risk')
-                                    elif '_sea_risk' in network_metric:
-                                        base_color = FLOOD_BASE_COLORS.get('sea_risk')
-                                    elif '_surface_risk' in network_metric:
-                                        base_color = FLOOD_BASE_COLORS.get('surface_risk')
-
                                     num_deciles = 10
                                     
-                                    if base_color:
-                                        # Flood Metrics: Use custom gradient (Lightest to Darkest)
+                                    # Determine coloring based on metric type
+                                    if '_rivers_risk' in network_metric:
+                                        base_color = FLOOD_HAZARD_COLORS['rivers_risk']['high'][:3]
+                                        decile_colors = get_color_gradient(base_color, steps=num_deciles, output_hex=False)
+                                    elif '_sea_risk' in network_metric:
+                                        base_color = FLOOD_HAZARD_COLORS['sea_risk']['high'][:3]
+                                        decile_colors = get_color_gradient(base_color, steps=num_deciles, output_hex=False)
+                                    elif '_surface_risk' in network_metric:
+                                        base_color = FLOOD_HAZARD_COLORS['surface_risk']['high'][:3]
                                         decile_colors = get_color_gradient(base_color, steps=num_deciles, output_hex=False)
                                     else:
                                         # Other Network Metrics (NACH, NAIN, NADC): Custom Rainbow scale (Blue=Low, Red=High)

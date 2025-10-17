@@ -24,44 +24,93 @@ MAP_STYLES = {
 }
 
 # Central configuration for all flood risk layers
-# FIX: Added "type": "polygon" to each flood layer so they are correctly created.
+# UPDATED: Granular layers for each hazard level (High, Medium, Low)
 FLOOD_LAYER_CONFIG = {
-    "indicators": {
-        "id": "flood_indicators", "label": "Flooding Indicators",
-        "file_path": "data/flood/FI01_Cardiff_Flooding_Indicators.geojson",
-        "color": [0, 191, 255, 100],
-        "type": "polygon"
-    },
-    "rivers": {
-        "id": "flood_rivers", "label": "Rivers Hazard",
+    "rivers_high": {
+        "id": "flood_rivers_high", "label": "Rivers - High Hazard",
         "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
-        "color": [95, 158, 160, 100], 
+        "hazard_level": "high",
+        "hazard_type": "rivers_risk",
         "type": "polygon"
     },
-    "sea": {
-        "id": "flood_sea", "label": "Sea Hazard",
+    "rivers_medium": {
+        "id": "flood_rivers_medium", "label": "Rivers - Medium Hazard",
+        "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
+        "hazard_level": "medium",
+        "hazard_type": "rivers_risk",
+        "type": "polygon"
+    },
+    "rivers_low": {
+        "id": "flood_rivers_low", "label": "Rivers - Low Hazard",
+        "file_path": "data/flood/FPM01_Risk_Rivers_Cardiff.geojson",
+        "hazard_level": "low",
+        "hazard_type": "rivers_risk",
+        "type": "polygon"
+    },
+    "sea_high": {
+        "id": "flood_sea_high", "label": "Sea - High Hazard",
         "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
-        "color": [65, 105, 225, 100],
+        "hazard_level": "high",
+        "hazard_type": "sea_risk",
         "type": "polygon"
     },
-    "watercourses": {
-        "id": "flood_watercourses", "label": "Surface Water Hazard",
+    "sea_medium": {
+        "id": "flood_sea_medium", "label": "Sea - Medium Hazard",
+        "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
+        "hazard_level": "medium",
+        "hazard_type": "sea_risk",
+        "type": "polygon"
+    },
+    "sea_low": {
+        "id": "flood_sea_low", "label": "Sea - Low Hazard",
+        "file_path": "data/flood/FPM01_Risk_Sea_Cardiff.geojson",
+        "hazard_level": "low",
+        "hazard_type": "sea_risk",
+        "type": "polygon"
+    },
+    "watercourses_high": {
+        "id": "flood_watercourses_high", "label": "Surface Water - High Hazard",
         "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
-        "color": [28, 92, 120, 100],
+        "hazard_level": "high",
+        "hazard_type": "surface_risk",
+        "type": "polygon"
+    },
+    "watercourses_medium": {
+        "id": "flood_watercourses_medium", "label": "Surface Water - Medium Hazard",
+        "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
+        "hazard_level": "medium",
+        "hazard_type": "surface_risk",
+        "type": "polygon"
+    },
+    "watercourses_low": {
+        "id": "flood_watercourses_low", "label": "Surface Water - Low Hazard",
+        "file_path": "data/flood/FPM01_Risk_Watercourses_Cardiff.geojson",
+        "hazard_level": "low",
+        "hazard_type": "surface_risk",
         "type": "polygon"
     }
 }
 
-# New dictionary to store the base RGB (excluding alpha) for gradient generation
-FLOOD_BASE_COLORS = {
-    # Keys match the metric suffixes requested: "_rivers_risk", "_sea_risk", "_surface_risk"
-    "rivers_risk": [95, 158, 160],
-    "sea_risk": [65, 105, 225],
-    "surface_risk": [28, 92, 120]
+# Flood hazard colors mapped by type and level (consistent with BUILDING_COLOR_CONFIG)
+FLOOD_HAZARD_COLORS = {
+    "rivers_risk": {
+        "high": [95, 158, 160, 255],
+        "medium": [125, 180, 182, 255],
+        "low": [160, 200, 202, 255]
+    },
+    "sea_risk": {
+        "high": [30, 60, 140, 255],    
+        "medium": [60, 100, 190, 255], 
+        "low": [90, 140, 240, 255], 
+    },
+    "surface_risk": {
+        "high": [28, 92, 120, 255],
+        "medium": [75, 135, 165, 255],
+        "low": [120, 180, 205, 255]
+    }
 }
 
 # Configuration for dynamic building coloring
-# UPDATED: Colors now derived from FLOOD_LAYER_CONFIG base colors
 BUILDING_COLOR_CONFIG = {
     "none": { "label": "Default", "color": [220, 220, 220, 255] },
     "risk_rivers": { 
@@ -77,9 +126,9 @@ BUILDING_COLOR_CONFIG = {
         "label": "Risk from Sea", 
         "column": "sea_hazard", 
         "colors": { 
-            "low": [140, 180, 255, 255],       
-            "medium": [100, 140, 240, 255],        
-            "high": [65, 105, 225, 255]  
+            "low": [90, 140, 240, 255], 
+            "medium": [60, 100, 190, 255], 
+            "high": [30, 60, 140, 255]    
         }
     },
     "risk_watercourses": { 
