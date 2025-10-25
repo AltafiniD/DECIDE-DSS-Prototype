@@ -114,7 +114,7 @@ FLOOD_HAZARD_COLORS = {
 BUILDING_COLOR_CONFIG = {
     "none": { "label": "Default", "color": [220, 220, 220, 255] },
     "risk_rivers": { 
-        "label": "Risk from Rivers", 
+        "label": "Hazard from Rivers", 
         "column": "river_hazard", 
         "colors": { 
             "low": [160, 200, 202, 255], 
@@ -123,7 +123,7 @@ BUILDING_COLOR_CONFIG = {
         }
     },
     "risk_sea": { 
-        "label": "Risk from Sea", 
+        "label": "Hazard from Sea", 
         "column": "sea_hazard", 
         "colors": { 
             "low": [90, 140, 240, 255], 
@@ -132,7 +132,7 @@ BUILDING_COLOR_CONFIG = {
         }
     },
     "risk_watercourses": { 
-        "label": "Risk from Surface Water", 
+        "label": "Hazard from Surface Water", 
         "column": "surface_hazard", 
         "colors": { 
             "low": [120, 180, 205, 255],      
