@@ -202,7 +202,7 @@ def create_filter_panel(crime_df, network_df, deprivation_df, buildings_df, land
                         children=[
                             html.Div(className="control-widget", children=[
                                 html.H3("Building & Environmental", style={'marginTop': 0}),
-                                html.Label("Buildings at Risk"), building_color_selector,
+                                html.Label("Buildings Under Hazard"), building_color_selector,
                                 html.Label("Flood Hazard Layer", style={'marginTop': '15px'}), flood_risk_selector,
                                 html.Label("Land Use Type", style={'marginTop': '15px'}), land_use_type_dropdown
                             ]),
