@@ -136,19 +136,19 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
         if toggles_dict.get('flooding_toggle'):
             all_widgets.append(html.Div(className="widget", children=[
                 dcc.Markdown("#### Buildings"),
-                html.Div("Total Buildings: N/A", id="total-buildings-placeholder", style={'padding': '6px', 'fontWeight': '600'})
+                html.Div("Total Buildings: 150.504", id="total-buildings-placeholder", style={'padding': '6px', 'fontWeight': '600'})
             ]))
 
         # --- Flooding Widgets ---            
             buildings_at_risk_cards = create_buildings_at_risk_widget(buildings_df)
             all_widgets.append(html.Div(className="widget", children=[
-                dcc.Markdown("#### Buildings at Risk Summary"),
+                dcc.Markdown("#### Buildings at Hazard Summary (Recurrence Interval)"),
                 buildings_at_risk_cards
             ]))
             
             initial_flood_fig = create_flood_risk_chart(buildings_df, ['river_hazard'], title="")
             all_widgets.append(html.Div(className="widget widget-full-width", children=[ # Added widget-full-width here
-                dcc.Markdown("#### Building Flood Hazard"),
+                dcc.Markdown("#### Building Flood Hazard (Recurrence Interval)"),
                 dcc.Checklist(
                     id='flood-risk-type-selector',
                     options=[

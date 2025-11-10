@@ -34,7 +34,7 @@ def _get_color_for_level(config_key, level):
 
 def create_buildings_at_risk_widget(buildings_df):
     """
-    Creates three small widgets (cards) for buildings at risk by hazard type.
+    Creates three small widgets (cards) for buildings by hazard type.
     Each card is now full-width and stacked vertically.
     """
     hazard_configs = [
@@ -70,7 +70,7 @@ def create_buildings_at_risk_widget(buildings_df):
             },
             children=[
                 html.Div(f"{title}", style={'fontWeight': '600', 'fontSize': '14px', 'marginBottom': '8px'}),
-                html.Div(f"Total at-risk: {total:,}", style={'fontWeight': '700', 'fontSize': '16px', 'marginBottom': '10px'}),
+                html.Div(f"Total under hazard: {total:,}", style={'fontWeight': '700', 'fontSize': '16px', 'marginBottom': '10px'}),
                 # --- MODIFIED: Layout of risk categories changed to horizontal flex ---
                 html.Div([
                     html.Div(

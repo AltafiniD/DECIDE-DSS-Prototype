@@ -74,13 +74,13 @@ def get_widgets(dataframes, color_map):
     flood_risk_widget = {
         "size": (1, 2),
         "content": [
-            dcc.Markdown("#### Building Flood Risk"),
+            dcc.Markdown("#### Building Flood Hazard (Recurrence Interval)"),
             dcc.RadioItems(
                 id='flood-risk-type-selector',
                 options=[
                     {'label': 'Sea', 'value': 'Sea_risk'},
                     {'label': 'Rivers', 'value': 'Rivers_risk'},
-                    {'label': 'Watercourses', 'value': 'Watercourses_Risk'},
+                    {'label': 'Watercourses', 'value': 'Watercourses_risk'},
                 ],
                 value='Sea_risk',
                 labelStyle={'display': 'inline-block', 'margin-right': '10px'}
