@@ -460,4 +460,3 @@ def register_callbacks(app, crime_df, neighbourhoods_df, network_df, buildings_d
 
         fig = create_deprivation_bar_chart(filtered_df, title=chart_title)
         return fig, widget_title
-

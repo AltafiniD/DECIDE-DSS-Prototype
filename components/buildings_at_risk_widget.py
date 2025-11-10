@@ -107,3 +107,4 @@ def create_buildings_at_risk_widget(buildings_df):
         children=cards
     )
     return content
+
