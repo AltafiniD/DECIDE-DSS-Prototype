@@ -1,3 +1,25 @@
+/* --- Toggle Switch (On/Off) --- */
+.toggle-switch {
+    min-width: 48px;
+    padding: 4px 16px;
+    border-radius: 16px;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    background: #e0e0e0;
+    color: #444;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    margin-left: 12px;
+}
+.toggle-switch.on {
+    background: #4caf50;
+    color: #fff;
+}
+.toggle-switch.off {
+    background: #c20707;
+    color: #ffffff;
+}
 /* assets/style.css */
 html,
 body,
@@ -806,6 +828,14 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 15px;
+}
+
+/* Tooltip dropdowns should stack vertically (title above dropdown) */
+.settings-tooltip-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     font-size: 15px;
 }
 

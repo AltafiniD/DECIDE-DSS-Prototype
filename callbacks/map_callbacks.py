@@ -67,7 +67,7 @@ def register_callbacks(app, all_layers, dataframes):
     Registers all map-related callbacks to the Dash app.
     """
     @app.callback(
-        [Output("deck-gl", "data"), Output("layers-loading-output", "children")],
+        [Output("deck-gl", "data"), Output("deck-gl", "tooltip"), Output("layers-loading-output", "children")],
         [Input("map-update-trigger-store", "data")],
         [State("month-map-store", "data"), State("sas-month-map-store", "data")],
         prevent_initial_call=True
@@ -365,18 +365,59 @@ def register_callbacks(app, all_layers, dataframes):
         view_config = INITIAL_VIEW_STATE_CONFIG.copy()
         updated_view_state = pdk.ViewState(**view_config, transition_duration=250)
         
-        active_tooltip = None
+
+
+        # --- Tooltip columns selection: per-layer ---
+        tooltip_columns_per_layer = trigger_data.get('tooltip_columns_per_layer', [])
+        # Get the layer order to match dropdowns to layers
+        all_configs = {**LAYER_CONFIG, **FLOOD_LAYER_CONFIG}
+        # Use config 'id' values (these become the pydeck layer.id) so keys match the Deck layers
+        sorted_layer_ids = [config.get('id', layer_key) for layer_key, config in sorted(all_configs.items(), key=lambda item: item[1].get('label', item[0])) if 'file_path' in config]
+
+        # Build a dict keyed by the pydeck layer id: {pydeck_layer_id: [selected columns]}
+        tooltip_columns_dict = {
+            sorted_layer_ids[i]: (tooltip_columns_per_layer[i] if i < len(tooltip_columns_per_layer) and tooltip_columns_per_layer[i] else [])
+            for i in range(len(sorted_layer_ids))
+        }
+
+        # Find the topmost visible layer with a tooltip selection
+        deck_tooltip = True
         for layer in reversed(visible_layers):
             if hasattr(layer, 'id'):
                 layer_id = layer.id
-                layer_key = next((k for k, v in {**LAYER_CONFIG, **FLOOD_LAYER_CONFIG}.items() if v.get('id') == layer_id), None)
-                if layer_key:
-                    config = {**LAYER_CONFIG, **FLOOD_LAYER_CONFIG}[layer_key]
-                    tooltip_config = config.get("tooltip")
-                    if tooltip_config:
-                        active_tooltip = tooltip_config
-                        break
-        
-        deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=active_tooltip if active_tooltip else True)
-        
-        return deck.to_json(), None
+                selected_cols = tooltip_columns_dict.get(layer_id, [])
+                if selected_cols:
+                    tooltip_text = "<br/>".join([f"<b>{col}:</b> {{{col}}}" for col in selected_cols])
+                    deck_tooltip = {"html": tooltip_text}
+                    break
+        else:
+            # Fallback to per-layer config or default
+            active_tooltip = None
+            for layer in reversed(visible_layers):
+                if hasattr(layer, 'id'):
+                    layer_id = layer.id
+                    layer_key = next((k for k, v in all_configs.items() if v.get('id') == layer_id), None)
+                    if layer_key:
+                        config = all_configs[layer_key]
+                        tooltip_config = config.get("tooltip")
+                        if tooltip_config:
+                            active_tooltip = tooltip_config
+                            break
+            deck_tooltip = active_tooltip if active_tooltip else True
+
+        # Respect the global "show_tooltips" flag if present in the trigger data
+        show_tooltips = False
+        try:
+            show_tooltips = bool(trigger_data.get('show_tooltips', False))
+        except Exception:
+            show_tooltips = False
+
+        if not show_tooltips:
+            deck_tooltip = False
+
+        deck = pdk.Deck(layers=visible_layers, initial_view_state=updated_view_state, map_style=map_style, tooltip=deck_tooltip)
+
+        # Return both the deck JSON (data) and the DeckGL tooltip prop so the front-end control
+        # (dash_deck.DeckGL tooltip prop) is updated. This ensures toggling works at runtime because
+        # the DeckGL component's own `tooltip` prop can override the JSON payload.
+        return deck.to_json(), deck_tooltip, None

@@ -6,6 +6,53 @@ from dash import no_update, ctx, ClientsideFunction
 from config import MAP_STYLES, LAYER_CONFIG
 
 def register_callbacks(app):
+    # Dynamically populate each layer's tooltip columns dropdown
+    @app.callback(
+        Output({'type': 'tooltip-columns-dropdown', 'index': ALL}, 'options'),
+        Input('settings-modal-overlay', 'className'),
+        prevent_initial_call=False
+    )
+    def populate_tooltip_columns_all(modal_class):
+        import os
+        from config import LAYER_CONFIG, FLOOD_LAYER_CONFIG
+        from utils.geojson_loader import process_geojson_features
+        all_configs = {**LAYER_CONFIG, **FLOOD_LAYER_CONFIG}
+        # Use the same sort as create_settings_modal to ensure order matches the created dropdowns
+        sorted_configs = sorted(all_configs.items(), key=lambda item: item[1].get('label', item[0]))
+        options_list = []
+        import pandas as pd
+        for layer_id, config in sorted_configs:
+            if 'file_path' not in config:
+                continue
+            file_path = config.get('file_path')
+            df = None
+            # Prefer parquet if it exists (fast path), otherwise fall back to GeoJSON loader
+            parquet_path = None
+            if isinstance(file_path, str) and file_path.endswith('.geojson'):
+                parquet_path = file_path.replace('.geojson', '.parquet')
+
+            try:
+                if parquet_path and os.path.exists(parquet_path):
+                    # Read parquet table
+                    df = pd.read_parquet(parquet_path)
+                elif file_path and os.path.exists(file_path):
+                    if isinstance(file_path, str) and file_path.endswith('.parquet'):
+                        df = pd.read_parquet(file_path)
+                    else:
+                        # Use the app's GeoJSON loader to ensure consistent processing
+                        df = process_geojson_features(file_path)
+            except Exception:
+                df = None
+
+            if df is not None and not df.empty:
+                options = [
+                    {"label": col, "value": col}
+                    for col in df.columns if not col.lower().startswith('geometry')
+                ]
+                options_list.append(options)
+            else:
+                options_list.append([])
+        return options_list
     """
     Registers all UI-related callbacks to the Dash app.
     """
@@ -18,7 +65,9 @@ def register_callbacks(app):
             Input("apply-filters-btn", "n_clicks"),
             Input("map-style-radio", "value"),
             Input("crime-viz-radio", "value"),
-            *layer_toggle_inputs
+            *layer_toggle_inputs,
+            Input('show-tooltips-toggle', 'n_clicks'),
+            Input({'type': 'tooltip-columns-dropdown', 'index': ALL}, 'value')
         ],
         [
             State("time-filter-slider", "value"),
@@ -37,14 +86,38 @@ def register_callbacks(app):
     )
     def aggregate_map_inputs(n_clicks, map_style, crime_viz, *args):
         num_states = 11
-        toggle_values = args[:-num_states]
-        state_values = args[-num_states:]
+        # The last items before the states are show-tooltips-toggle n_clicks and all tooltip-columns-dropdown values (list)
+        if len(args) < (num_states + 2):
+            toggle_values = args[:-num_states] if len(args) >= num_states else []
+            state_values = args[-num_states:] if len(args) >= num_states else []
+            show_tooltips = False
+            tooltip_columns_per_layer = []
+        else:
+            show_tooltips_n = args[-(num_states + 2)]
+            tooltip_columns_per_layer = args[-(num_states + 1)] or []
+            show_tooltips = bool(show_tooltips_n and show_tooltips_n % 2 == 1)
+            toggle_values = args[:-(num_states + 2)]
+            state_values = args[-num_states:]
         return {
             "map_style": map_style,
             "crime_viz": crime_viz,
             "toggles": toggle_values,
-            "states": state_values
+            "states": state_values,
+            "show_tooltips": show_tooltips,
+            "tooltip_columns_per_layer": tooltip_columns_per_layer
         }
+
+    @app.callback(
+        Output('show-tooltips-toggle', 'children'),
+        Output('show-tooltips-toggle', 'className'),
+        Input('show-tooltips-toggle', 'n_clicks'),
+        prevent_initial_call=False
+    )
+    def update_tooltip_toggle(n):
+        if not n or n % 2 == 0:
+            return "Off", "toggle-switch off"
+        else:
+            return "On", "toggle-switch on"
 
     @app.callback(
         Output('map-style-radio', 'value'),
@@ -241,6 +314,22 @@ def register_callbacks(app):
         Output('chat-history', 'data-scroll-version'),
         Input('chat-history', 'children'),
         prevent_initial_call=True
+    )
+
+    # Tooltip dropdowns collapsible toggle
+    app.clientside_callback(
+        """
+        function(n_clicks, current_className) {
+            if (n_clicks === 0) {
+                return window.dash_clientside.no_update;
+            }
+            const is_hidden = current_className.includes('hidden');
+            return is_hidden ? 'collapsible-content collapsible-content-visible' : 'collapsible-content collapsible-content-hidden';
+        }
+        """,
+        Output("tooltip-collapse-content", "className"),
+        Input("tooltip-collapse-toggle", "n_clicks"),
+        State("tooltip-collapse-content", "className")
     )
 
 

@@ -197,7 +197,8 @@ def create_layout():
                         initial_view_state=initial_view_state,
                         map_style=initial_map_style
                     ).to_json(),
-                    tooltip=True, enableEvents=['click']
+                    # Default: tooltips off (user requested default off)
+                    tooltip=False, enableEvents=['click']
                 ),
                 style={"position": "absolute", "top": 0, "left": 0, "width": "100%", "height": "100%"}
             ),
