@@ -30,6 +30,27 @@ window.dash_clientside.ui_callbacks = {
         chatWindow.addEventListener('mouseenter', activateChat);
         chatWindow.addEventListener('mouseleave', deactivateChat);
         
+        // Attach click handler to persistent avatar toggle (if present)
+        const toggleBtn = document.getElementById('toggle-chat-handle');
+        if (toggleBtn) {
+            toggleBtn.style.cursor = 'pointer';
+            toggleBtn.setAttribute('title', 'Show / hide chat');
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const container = document.getElementById('chat-window-container');
+                if (!container) return;
+                const isHidden = container.classList.contains('chat-hidden');
+                if (isHidden) {
+                    container.classList.remove('chat-hidden');
+                    // activate when shown
+                    activateChat();
+                    deactivateChat();
+                } else {
+                    container.classList.add('chat-hidden');
+                }
+            });
+        }
+        
         // Initially activate the chat window and set a timer to deactivate it
         activateChat();
         deactivateChat();

@@ -62,12 +62,13 @@ body {
 .chat-window-container {
     top: 20px;
     left: 20px;
-    width: 650px;
+    width: 715px;
     min-height: 150px;
     max-height: 42vh;
     display: flex;
     flex-direction: column;
-    padding: 10px 15px;
+    /* Make room on the left so the persistent avatar doesn't overlap message text */
+    padding: 10px 15px 10px 100px; /* top right bottom left (increased for larger avatar) */
     background-color: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -86,9 +87,43 @@ body {
 
 .chat-avatar {
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     flex-shrink: 0;
+}
+
+/* Persistent avatar toggle button (fixed, always visible) */
+.chat-avatar-toggle {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 12;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.chat-avatar-toggle img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: block;
+}
+
+/* Hide state for the chat container only; avatar remains visible */
+.chat-window-container.chat-hidden {
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
 }
 
 .chat-history {
@@ -105,7 +140,8 @@ body {
     align-items: flex-start;
     /* MODIFIED: Align items to the top */
     gap: 10px;
-    max-width: 90%;
+    max-width: 85%;
+    margin-right: 15px; /* Add space for scrollbar */
 }
 
 /* NEW: Container for the bot's text and buttons */
@@ -196,6 +232,28 @@ body {
     font-size: 14px;
 }
 
+/* Make the input area stick to the bottom of the chat container and occupy full width */
+.chat-window-container {
+    position: relative; /* ensure sticky/absolute children reference this */
+}
+
+.chat-input-area {
+    position: sticky;
+    bottom: 10px; /* sit above the bottom padding */
+    /* extend the input left over the container padding so it reaches behind the avatar but not all the way */
+    margin-left: -85px; /* slightly less than container left padding */
+    width: calc(100% + 70px); /* reduced from 100px to create padding */
+    box-sizing: border-box;
+    padding-left: 15px; /* add some padding back for visual balance */
+    padding-right: 15px;
+    background: transparent; /* keep glass effect from parent */
+    z-index: 5;
+}
+
+.chat-input-area input {
+    min-width: 0; /* allow flex-shrink in tight spaces */
+}
+
 .chat-input-area button {
     padding: 8px 16px;
     border: none;
@@ -204,6 +262,18 @@ body {
     border-radius: 8px;
     cursor: pointer;
     font-weight: 600;
+}
+
+/* --- Hide/show state for chat triggered by avatar click --- */
+.chat-window-container.chat-hidden {
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none; /* prevent hover/reactivation when hidden */
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+.chat-avatar {
+    cursor: pointer; /* indicate clickable */
 }
 
 /* --- Filter Panel and Wrapper Styles --- */

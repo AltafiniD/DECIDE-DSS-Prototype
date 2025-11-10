@@ -129,8 +129,8 @@ def register_callbacks(app):
                 html.Div(question_buttons, className='chat-question-buttons')
             ])
 
+            # Return bot message without an avatar image - avatar is fixed separately
             return html.Div(className="chat-message bot-message", children=[
-                html.Img(src="assets/avatar.png", className="chat-avatar"),
                 message_content
             ])
 
